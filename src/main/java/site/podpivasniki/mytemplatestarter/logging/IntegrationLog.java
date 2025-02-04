@@ -1,4 +1,4 @@
-package site.podpivasniki.mytemplatestarter;
+package site.podpivasniki.mytemplatestarter.logging;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

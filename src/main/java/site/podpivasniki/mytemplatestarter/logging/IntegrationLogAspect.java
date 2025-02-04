@@ -1,4 +1,4 @@
-package site.podpivasniki.mytemplatestarter;
+package site.podpivasniki.mytemplatestarter.logging;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -15,7 +15,7 @@ public class IntegrationLogAspect {
 
     private static final Logger log = LoggerFactory.getLogger("IntegrationLogger");
 
-    @Around("@annotation(site.podpivasniki.mytemplatestarter.IntegrationLog)")
+    @Around("@annotation(site.podpivasniki.mytemplatestarter.logging.IntegrationLog)")
     public Object logMethodExecution(ProceedingJoinPoint joinPoint) throws Throwable {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         String methodName = signature.getDeclaringTypeName() + "." + signature.getName();

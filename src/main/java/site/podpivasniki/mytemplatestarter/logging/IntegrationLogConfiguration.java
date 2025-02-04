@@ -1,4 +1,4 @@
-package site.podpivasniki.mytemplatestarter;
+package site.podpivasniki.mytemplatestarter.logging;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
