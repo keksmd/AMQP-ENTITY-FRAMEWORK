@@ -1,0 +1,25 @@
+stages:
+  - build
+  - test
+  - deploy
+variables:
+  BRANCH_NAME: $CI_COMMIT_REF_NAME
+
+build:
+  stage: build
+  tags:
+    - maven build
+  image: maven:latest
+  script:
+    - mvn clean install -DskipTests=true
+
+deploy:
+  stage: deploy
+  tags:
+    - maven deploy
+  image: maven:latest
+  script:
+    - mvn deploy -s ci_settings.xml -DskipTests=true
+  only:
+    - develop
+    - master
