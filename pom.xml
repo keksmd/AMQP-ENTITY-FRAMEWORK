@@ -10,7 +10,7 @@
     </parent>
     <groupId>site.podpivasniki</groupId>
     <artifactId>my-template-starter</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <name>my-template-starter</name>
     <description>my-template-starter</description>
     <packaging>jar</packaging>
@@ -64,4 +64,20 @@
         </plugins>
     </build>
 
+    <repositories>
+        <repository>
+            <id>gitlab-maven</id>
+            <url>https://podpivasniki.shortfy.site/api/v4/projects/${PROJECT_ID}/packages/maven</url>
+        </repository>
+    </repositories>
+    <distributionManagement>
+        <repository>
+            <id>gitlab-maven</id>
+            <url>https://podpivasniki.shortfy.site/api/v4/projects/${PROJECT_ID}/packages/maven</url>
+        </repository>
+        <snapshotRepository>
+            <id>gitlab-maven</id>
+            <url>https://podpivasniki.shortfy.site/api/v4/projects/${PROJECT_ID}/packages/maven</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
