@@ -8,4 +8,13 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface IntegrationLog {
+
+  String eventType();
+
+  Direction direction();
+
+  enum Direction {
+    IN,
+    OUT
+  }
 }

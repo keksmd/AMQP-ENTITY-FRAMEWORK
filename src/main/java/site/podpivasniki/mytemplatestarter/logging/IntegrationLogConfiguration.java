@@ -6,8 +6,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class IntegrationLogConfiguration {
 
-    @Bean
-    public IntegrationLogAspect integrationLogAspect(){
-        return new IntegrationLogAspect();
-    }
+  @Bean
+  public IntegrationLogAspect integrationLogAspect() {
+    return new IntegrationLogAspect();
+  }
 }
