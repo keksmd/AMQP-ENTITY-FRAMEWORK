@@ -1,6 +1,5 @@
 stages:
   - build
-  - test
   - deploy
 variables:
   BRANCH_NAME: $CI_COMMIT_REF_NAME
