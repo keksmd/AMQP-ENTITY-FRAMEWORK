@@ -2,6 +2,8 @@ package site.podpivasniki.mytemplatestarter.logging;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -27,9 +29,11 @@ public class IntegrationLogAspect {
     try {
       String requestJson = makeInput(joinPoint);
       MDC.put("rq", requestJson);
-      MDC.put("eventType", integrationLog.eventType());
     } catch (JsonProcessingException e) {
       MDC.put("rq", "Ошибка сериализации входных параметров");
+    }finally {
+        MDC.put("direction", integrationLog.direction().toString());
+        MDC.put("eventType", integrationLog.eventType());
     }
   }
 
@@ -73,6 +77,10 @@ public class IntegrationLogAspect {
   }
 
   private String getMdcAsJson() {
+      MDC.put("timestamp", String.valueOf(LocalDateTime.now()));
+      MDC.put("message", "empty");
+      MDC.put("logger", "INTEGRATION");
+      MDC.put("level", "INFO");
     try {
       return objectMapper.writeValueAsString(MDC.getCopyOfContextMap());
     } catch (JsonProcessingException e) {
