@@ -7,6 +7,8 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,8 @@ class IntegrationLogAspectTest {
   @Autowired
   private TestService testService;
 
+  private final ObjectMapper objectMapper = new ObjectMapper();
+
   private ListAppender<ILoggingEvent> logAppender;
 
   @BeforeEach
@@ -39,7 +43,7 @@ class IntegrationLogAspectTest {
   }
 
   @Test
-  void testIntegrationLogAspect() {
+  void testIntegrationLogAspect() throws Exception {
     String result = testService.testMethod("Hello");
 
     assertThat(result).isEqualTo("Processed: Hello");
@@ -47,26 +51,46 @@ class IntegrationLogAspectTest {
     List<ILoggingEvent> logsList = logAppender.list;
 
     assertThat(logsList).anySatisfy(event -> {
-      assertThat(event.getFormattedMessage())
-          .contains(
-             "{\"rs\":\"\\\"Processed: Hello\\\"\",\"eventType\":\"TestEventType\",\"rq\":\"[\\\"Hello\\\"]\"}");
+      JsonNode actualJson = parseJson(event.getFormattedMessage());
+      JsonNode expectedJson = parseJson("""
+                {
+                  "rs": "Processed: Hello",
+                  "eventType": "TestEventType",
+                  "rq": "[\\"Hello\\"]"
+                }
+                """);
+
+      assertThat(actualJson).isEqualTo(expectedJson);
     });
   }
 
-    @Test
-    void testIntegrationLogAspectThrowEx() {
-      assertThatThrownBy(
-          () -> testService.testMethodThrowEx("Hello")
-      );
+  @Test
+  void testIntegrationLogAspectThrowEx() throws Exception {
+    assertThatThrownBy(() -> testService.testMethodThrowEx("Hello"));
 
-        List<ILoggingEvent> logsList = logAppender.list;
+    List<ILoggingEvent> logsList = logAppender.list;
 
-        assertThat(logsList).anySatisfy(event -> {
-            assertThat(event.getFormattedMessage())
-                .contains(
-                    "{\"error\":\"Ex\",\"eventType\":\"TestEventType\",\"rq\":\"[\\\"Hello\\\"]\"}");
-        });
+    assertThat(logsList).anySatisfy(event -> {
+      JsonNode actualJson = parseJson(event.getFormattedMessage());
+      JsonNode expectedJson = parseJson("""
+                {
+                  "error": "Ex",
+                  "eventType": "TestEventType",
+                  "rq": "[\\"Hello\\"]"
+                }
+                """);
+
+      assertThat(actualJson).isEqualTo(expectedJson);
+    });
+  }
+
+  private JsonNode parseJson(String json) {
+    try {
+      return objectMapper.readTree(json);
+    } catch (Exception e) {
+      throw new RuntimeException("Ошибка парсинга JSON", e);
     }
+  }
 
   @Configuration
   static class TestConfig {
