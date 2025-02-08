@@ -1,5 +1,6 @@
 package site.podpivasniki.mytemplatestarter;
 
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -10,7 +11,6 @@ import ch.qos.logback.core.read.ListAppender;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,14 +49,21 @@ class IntegrationLogAspectTest {
     assertThat(logsList).anySatisfy(event -> {
       String actualJson = event.getFormattedMessage();
       String expectedJson = """
-          {
-            "rs": "\\"Processed: Hello\\"",
-            "eventType": "TestEventType",
-            "rq":  "{\\"input\\":\\"Hello\\"}"
-          }
-          """;
+            {
+              "rs": "\\"Processed: Hello\\"",
+              "eventType": "TestEventType",
+              "rq": "{\\"input\\":\\"Hello\\"}",
+              "level": "INFO",
+              "message": "empty",
+              "direction": "IN",
+              "logger": "INTEGRATION"
+            }
+            """;
 
-      JSONAssert.assertEquals(expectedJson, actualJson, false);
+
+      assertThatJson(actualJson)
+              .whenIgnoringPaths("$.timestamp")
+              .isEqualTo(expectedJson);
     });
   }
 
@@ -69,14 +76,20 @@ class IntegrationLogAspectTest {
     assertThat(logsList).anySatisfy(event -> {
       String actualJson = event.getFormattedMessage();
       String expectedJson = """
-          {
-            "error": "Ex",
-            "eventType": "TestEventType",
-            "rq": "{\\"input\\":\\"Hello\\"}"
-          }
-          """;
+            {
+              "error": "Ex",
+              "eventType": "TestEventType",
+              "rq": "{\\"input\\":\\"Hello\\"}",
+              "level": "INFO",
+              "message": "empty",
+              "direction": "IN",
+              "logger": "INTEGRATION"
+            }
+            """;
 
-      JSONAssert.assertEquals(expectedJson, actualJson, false);
+      assertThatJson(actualJson)
+              .whenIgnoringPaths("$.timestamp")
+              .isEqualTo(expectedJson);
     });
   }
 
