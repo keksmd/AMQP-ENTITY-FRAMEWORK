@@ -88,8 +88,8 @@ class IntegrationLogAspectTest {
             """;
 
       assertThatJson(actualJson)
-              .whenIgnoringPaths("$.timestamp")
-              .isEqualTo(expectedJson);
+          .whenIgnoringPaths("$.timestamp")
+          .isEqualTo(expectedJson);
     });
   }
 
