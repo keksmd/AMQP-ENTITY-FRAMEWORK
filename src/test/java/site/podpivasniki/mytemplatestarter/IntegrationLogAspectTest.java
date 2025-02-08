@@ -10,6 +10,7 @@ import ch.qos.logback.core.read.ListAppender;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,7 +25,6 @@ class IntegrationLogAspectTest {
 
   @Autowired
   private TestService testService;
-
   private ListAppender<ILoggingEvent> logAppender;
 
   @BeforeEach
@@ -39,7 +39,7 @@ class IntegrationLogAspectTest {
   }
 
   @Test
-  void testIntegrationLogAspect() {
+  void testIntegrationLogAspect() throws Exception {
     String result = testService.testMethod("Hello");
 
     assertThat(result).isEqualTo("Processed: Hello");
@@ -47,26 +47,38 @@ class IntegrationLogAspectTest {
     List<ILoggingEvent> logsList = logAppender.list;
 
     assertThat(logsList).anySatisfy(event -> {
-      assertThat(event.getFormattedMessage())
-          .contains(
-             "{\"rs\":\"\\\"Processed: Hello\\\"\",\"eventType\":\"TestEventType\",\"rq\":\"[\\\"Hello\\\"]\"}");
+      String actualJson = event.getFormattedMessage();
+      String expectedJson = """
+          {
+            "rs": "\\"Processed: Hello\\"",
+            "eventType": "TestEventType",
+            "rq":  "{\\"input\\":\\"Hello\\"}"
+          }
+          """;
+
+      JSONAssert.assertEquals(expectedJson, actualJson, false);
     });
   }
 
-    @Test
-    void testIntegrationLogAspectThrowEx() {
-      assertThatThrownBy(
-          () -> testService.testMethodThrowEx("Hello")
-      );
+  @Test
+  void testIntegrationLogAspectThrowEx() throws Exception {
+    assertThatThrownBy(() -> testService.testMethodThrowEx("Hello"));
 
-        List<ILoggingEvent> logsList = logAppender.list;
+    List<ILoggingEvent> logsList = logAppender.list;
 
-        assertThat(logsList).anySatisfy(event -> {
-            assertThat(event.getFormattedMessage())
-                .contains(
-                    "{\"error\":\"Ex\",\"eventType\":\"TestEventType\",\"rq\":\"[\\\"Hello\\\"]\"}");
-        });
-    }
+    assertThat(logsList).anySatisfy(event -> {
+      String actualJson = event.getFormattedMessage();
+      String expectedJson = """
+          {
+            "error": "Ex",
+            "eventType": "TestEventType",
+            "rq": "{\\"input\\":\\"Hello\\"}"
+          }
+          """;
+
+      JSONAssert.assertEquals(expectedJson, actualJson, false);
+    });
+  }
 
   @Configuration
   static class TestConfig {
