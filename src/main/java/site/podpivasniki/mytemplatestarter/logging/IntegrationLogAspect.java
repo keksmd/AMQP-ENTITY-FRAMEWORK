@@ -2,10 +2,13 @@ package site.podpivasniki.mytemplatestarter.logging;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.Map;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -22,12 +25,26 @@ public class IntegrationLogAspect {
       MDC.clear();
     }
     try {
-      String requestJson = objectMapper.writeValueAsString(joinPoint.getArgs());
+      String requestJson = makeInput(joinPoint);
       MDC.put("rq", requestJson);
       MDC.put("eventType", integrationLog.eventType());
     } catch (JsonProcessingException e) {
       MDC.put("rq", "Ошибка сериализации входных параметров");
     }
+  }
+
+  private static String makeInput(ProceedingJoinPoint joinPoint) throws JsonProcessingException {
+    MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+    String[] parameterNames = signature.getParameterNames();
+    Object[] args = joinPoint.getArgs();
+
+    Map<String, Object> paramMap = new HashMap<>();
+    for (int i = 0; i < parameterNames.length; i++) {
+      paramMap.put(parameterNames[i], args[i]);
+    }
+
+    String requestJson = objectMapper.writeValueAsString(paramMap);
+    return requestJson;
   }
 
   @Pointcut("@annotation(integrationLog)")
