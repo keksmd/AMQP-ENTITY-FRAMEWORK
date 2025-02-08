@@ -1,5 +1,6 @@
 package site.podpivasniki.mytemplatestarter;
 
+import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -56,6 +57,7 @@ class IntegrationLogAspectTest {
           }
           """;
 
+
       JSONAssert.assertEquals(expectedJson, actualJson, false);
     });
   }
@@ -76,7 +78,9 @@ class IntegrationLogAspectTest {
           }
           """;
 
-      JSONAssert.assertEquals(expectedJson, actualJson, false);
+      assertThatJson(actualJson)
+          .whenIgnoringPaths("$.timestamp")
+          .isEqualTo(expectedJson);
     });
   }
 
