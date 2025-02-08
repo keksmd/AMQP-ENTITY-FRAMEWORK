@@ -90,6 +90,9 @@ class IntegrationLogAspectTest {
       assertThatJson(actualJson)
               .whenIgnoringPaths("$.timestamp")
               .isEqualTo(expectedJson);
+      assertThatJson(actualJson)
+          .whenIgnoringPaths("$.timestamp")
+          .isEqualTo(expectedJson);
     });
   }
 
