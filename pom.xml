@@ -10,7 +10,7 @@
     </parent>
     <groupId>site.podpivasniki</groupId>
     <artifactId>my-template-starter</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3-SNAPSHOT</version>
     <name>my-template-starter</name>
     <description>my-template-starter</description>
     <packaging>jar</packaging>
