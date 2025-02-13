@@ -27,6 +27,8 @@ class IntegrationLogAspectTest {
   private TestService testService;
   private ListAppender<ILoggingEvent> logAppender;
 
+
+
   @BeforeEach
   void setupLogger() {
     Logger logger = (Logger) LoggerFactory.getLogger("IntegrationLogger");
@@ -47,23 +49,16 @@ class IntegrationLogAspectTest {
     List<ILoggingEvent> logsList = logAppender.list;
 
     assertThat(logsList).anySatisfy(event -> {
-      String actualJson = event.getFormattedMessage();
-      String expectedJson = """
-            {
-              "rs": "\\"Processed: Hello\\"",
-              "eventType": "TestEventType",
-              "rq": "{\\"input\\":\\"Hello\\"}",
-              "level": "INFO",
-              "message": "empty",
-              "direction": "IN",
-              "logger": "INTEGRATION"
-            }
-            """;
-
-
-      assertThatJson(actualJson)
-              .whenIgnoringPaths("$.timestamp")
-              .isEqualTo(expectedJson);
+      ILoggingEvent actualJson = event;
+      assertThatJson(JsonTestUtils.getJsonStringFromObject(actualJson))
+          .whenIgnoringPaths(
+              "$.loggerContextVO.birthTime",
+              "$.instant",
+              "$.timeStamp",
+              "$.nanoseconds",
+              "$.contextBirthTime"
+          )
+          .isEqualTo(JsonTestUtils.getJsonFromPath("src/test/resources/expected/succes-integration-log.json"));
     });
   }
 
@@ -74,22 +69,17 @@ class IntegrationLogAspectTest {
     List<ILoggingEvent> logsList = logAppender.list;
 
     assertThat(logsList).anySatisfy(event -> {
-      String actualJson = event.getFormattedMessage();
-      String expectedJson = """
-            {
-              "error": "Ex",
-              "eventType": "TestEventType",
-              "rq": "{\\"input\\":\\"Hello\\"}",
-              "level": "INFO",
-              "message": "empty",
-              "direction": "IN",
-              "logger": "INTEGRATION"
-            }
-            """;
-
-      assertThatJson(actualJson)
-          .whenIgnoringPaths("$.timestamp")
-          .isEqualTo(expectedJson);
+      ILoggingEvent actualJson = event;
+      System.out.println(JsonTestUtils.getJsonStringFromObject(actualJson));
+      assertThatJson(JsonTestUtils.getJsonStringFromObject(actualJson))
+          .whenIgnoringPaths(
+              "$.loggerContextVO.birthTime",
+              "$.instant",
+              "$.timeStamp",
+              "$.nanoseconds",
+              "$.contextBirthTime"
+          )
+          .isEqualTo(JsonTestUtils.getJsonFromPath("src/test/resources/expected/failed-integration-log.json"));
     });
   }
 

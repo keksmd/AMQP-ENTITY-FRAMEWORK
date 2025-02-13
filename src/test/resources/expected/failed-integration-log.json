@@ -1,0 +1,38 @@
+{
+  "threadName": "main",
+  "loggerName": "IntegrationLogger",
+  "loggerContextVO": {
+    "name": "default",
+    "propertyMap": {},
+    "birthTime": 1739471004159
+  },
+  "message": "failed",
+  "throwableProxy": null,
+  "markerList": null,
+  "keyValuePairs": null,
+  "instant": 1739471005.838642000,
+  "timeStamp": 1739471005838,
+  "nanoseconds": 838642000,
+  "sequenceNumber": 0,
+  "level": {
+    "levelInt": 40000,
+    "levelStr": "ERROR"
+  },
+  "callerData": [],
+  "mdc": {
+    "eventType": "TestEventType",
+    "error": "Ex",
+    "rq": "{\"input\":\"Hello\"}",
+    "direction": "IN"
+  },
+  "argumentArray": null,
+  "contextBirthTime": 1739471004159,
+  "mdcpropertyMap": {
+    "eventType": "TestEventType",
+    "error": "Ex",
+    "rq": "{\"input\":\"Hello\"}",
+    "direction": "IN"
+  },
+  "formattedMessage": "failed",
+  "marker": null
+}

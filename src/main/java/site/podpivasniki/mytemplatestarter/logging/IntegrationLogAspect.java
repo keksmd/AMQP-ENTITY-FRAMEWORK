@@ -3,7 +3,6 @@ package site.podpivasniki.mytemplatestarter.logging;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -65,26 +64,15 @@ public class IntegrationLogAspect {
       result = joinPoint.proceed();
       String responseJson = objectMapper.writeValueAsString(result);
       MDC.put("rs", responseJson);
+      log.info("success");
     } catch (Throwable ex) {
       MDC.put("error", ex.getMessage());
+      log.error("failed");
       throw ex;
     } finally {
-      log.info("{}", getMdcAsJson());
       MDC.clear();
     }
 
     return result;
-  }
-
-  private String getMdcAsJson() {
-      MDC.put("timestamp", String.valueOf(LocalDateTime.now()));
-      MDC.put("message", "empty");
-      MDC.put("logger", "INTEGRATION");
-      MDC.put("level", "INFO");
-    try {
-      return objectMapper.writeValueAsString(MDC.getCopyOfContextMap());
-    } catch (JsonProcessingException e) {
-      return "{\"error\": \"Ошибка сериализации MDC\"}";
-    }
   }
 }
