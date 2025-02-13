@@ -4,35 +4,35 @@
   "loggerContextVO": {
     "name": "default",
     "propertyMap": {},
-    "birthTime": 1739470735421
+    "birthTime": 1739480967789
   },
   "message": "success",
   "throwableProxy": null,
   "markerList": null,
   "keyValuePairs": null,
-  "instant": 1739470737.081465000,
-  "timeStamp": 1739470737081,
-  "nanoseconds": 81465000,
+  "instant": 1739480969.515146000,
+  "timeStamp": 1739480969515,
+  "nanoseconds": 515146000,
   "sequenceNumber": 0,
-  "argumentArray": null,
-  "contextBirthTime": 1739470735421,
-  "mdcpropertyMap": {
-    "rs": "\"Processed: Hello\"",
-    "eventType": "TestEventType",
-    "rq": "{\"input\":\"Hello\"}",
-    "direction": "IN"
-  },
-  "formattedMessage": "success",
-  "callerData": [],
-  "mdc": {
-    "rs": "\"Processed: Hello\"",
-    "eventType": "TestEventType",
-    "rq": "{\"input\":\"Hello\"}",
-    "direction": "IN"
-  },
   "level": {
     "levelInt": 20000,
     "levelStr": "INFO"
   },
+  "argumentArray": null,
+  "formattedMessage": "success",
+  "mdcpropertyMap": {
+    "rs": "\"Processed: Hello\"",
+    "eventType": "TestEventType",
+    "rq": "{\"pram0\":\"Hello\"}",
+    "direction": "IN"
+  },
+  "contextBirthTime": 1739480967789,
+  "mdc": {
+    "rs": "\"Processed: Hello\"",
+    "eventType": "TestEventType",
+    "rq": "{\"pram0\":\"Hello\"}",
+    "direction": "IN"
+  },
+  "callerData": [],
   "marker": null
 }
