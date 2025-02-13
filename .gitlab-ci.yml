@@ -10,7 +10,7 @@ build:
     - maven build
   image: maven:latest
   script:
-    - mvn clean install -DskipTests=true
+    - mvn clean install
 
 deploy:
   stage: deploy
