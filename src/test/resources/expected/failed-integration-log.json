@@ -4,35 +4,35 @@
   "loggerContextVO": {
     "name": "default",
     "propertyMap": {},
-    "birthTime": 1739471004159
+    "birthTime": 1739480967789
   },
   "message": "failed",
   "throwableProxy": null,
   "markerList": null,
   "keyValuePairs": null,
-  "instant": 1739471005.838642000,
-  "timeStamp": 1739471005838,
-  "nanoseconds": 838642000,
+  "instant": 1739480969.651430000,
+  "timeStamp": 1739480969651,
+  "nanoseconds": 651430000,
   "sequenceNumber": 0,
   "level": {
     "levelInt": 40000,
     "levelStr": "ERROR"
   },
-  "callerData": [],
-  "mdc": {
-    "eventType": "TestEventType",
-    "error": "Ex",
-    "rq": "{\"input\":\"Hello\"}",
-    "direction": "IN"
-  },
   "argumentArray": null,
-  "contextBirthTime": 1739471004159,
+  "formattedMessage": "failed",
   "mdcpropertyMap": {
     "eventType": "TestEventType",
     "error": "Ex",
-    "rq": "{\"input\":\"Hello\"}",
+    "rq": "{\"pram0\":\"Hello\"}",
     "direction": "IN"
   },
-  "formattedMessage": "failed",
+  "contextBirthTime": 1739480967789,
+  "mdc": {
+    "eventType": "TestEventType",
+    "error": "Ex",
+    "rq": "{\"pram0\":\"Hello\"}",
+    "direction": "IN"
+  },
+  "callerData": [],
   "marker": null
 }

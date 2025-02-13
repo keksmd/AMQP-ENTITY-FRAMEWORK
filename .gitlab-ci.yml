@@ -1,9 +1,19 @@
 stages:
+  - test
   - build
   - deploy
 variables:
   BRANCH_NAME: $CI_COMMIT_REF_NAME
-
+test:
+  image: maven:latest
+  stage: test
+  tags:
+    - maven test
+  script: mvn clean test -s ci_settings.xml
+  cache:
+    paths:
+      - /root/.m2/repository
+    key: maven-dependencies
 build:
   stage: build
   tags:
