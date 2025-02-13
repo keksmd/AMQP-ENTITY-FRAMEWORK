@@ -2,7 +2,6 @@ package site.podpivasniki.mytemplatestarter.logging;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.util.HashMap;
 import java.util.Map;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -30,9 +29,9 @@ public class IntegrationLogAspect {
       MDC.put("rq", requestJson);
     } catch (JsonProcessingException e) {
       MDC.put("rq", "Ошибка сериализации входных параметров");
-    }finally {
-        MDC.put("direction", integrationLog.direction().toString());
-        MDC.put("eventType", integrationLog.eventType());
+    } finally {
+      MDC.put("direction", integrationLog.direction().toString());
+      MDC.put("eventType", integrationLog.eventType());
     }
   }
 

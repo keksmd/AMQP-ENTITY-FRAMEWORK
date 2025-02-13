@@ -28,7 +28,6 @@ class IntegrationLogAspectTest {
   private ListAppender<ILoggingEvent> logAppender;
 
 
-
   @BeforeEach
   void setupLogger() {
     Logger logger = (Logger) LoggerFactory.getLogger("IntegrationLogger");
@@ -58,7 +57,8 @@ class IntegrationLogAspectTest {
               "$.nanoseconds",
               "$.contextBirthTime"
           )
-          .isEqualTo(JsonTestUtils.getJsonFromPath("src/test/resources/expected/succes-integration-log.json"));
+          .isEqualTo(JsonTestUtils.getJsonFromPath(
+              "src/test/resources/expected/succes-integration-log.json"));
     });
   }
 
@@ -79,7 +79,8 @@ class IntegrationLogAspectTest {
               "$.nanoseconds",
               "$.contextBirthTime"
           )
-          .isEqualTo(JsonTestUtils.getJsonFromPath("src/test/resources/expected/failed-integration-log.json"));
+          .isEqualTo(JsonTestUtils.getJsonFromPath(
+              "src/test/resources/expected/failed-integration-log.json"));
     });
   }
 

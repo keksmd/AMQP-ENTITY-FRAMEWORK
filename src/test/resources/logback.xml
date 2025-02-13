@@ -9,7 +9,7 @@
 
   <!-- Отдельный JSON-логгер для IntegrationLogger -->
   <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder class="net.logstash.logback.encoder.LogstashEncoder" />
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
   </appender>
 
   <!-- Настраиваем IntegrationLogger на JSON -->

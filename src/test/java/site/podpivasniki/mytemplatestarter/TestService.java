@@ -13,7 +13,7 @@ public class TestService {
   }
 
   @IntegrationLog(direction = Direction.IN, eventType = "TestEventType")
-  public String testMethodThrowEx(String input){
+  public String testMethodThrowEx(String input) {
     throw new RuntimeException("Ex");
   }
 }
