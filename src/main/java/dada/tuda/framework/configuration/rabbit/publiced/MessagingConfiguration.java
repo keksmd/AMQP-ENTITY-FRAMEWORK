@@ -12,6 +12,7 @@ import dada.tuda.framework.facade.FrameworkMessagingApi;
 import dada.tuda.framework.handling.MessageHandler;
 import dada.tuda.framework.handling.MessageHandlerRegistry;
 import dada.tuda.framework.normalization.AbstractNormalMessage;
+import dada.tuda.framework.normalization.FrameworkMessageFactory;
 import dada.tuda.framework.normalization.converters.IMessagingEventTypeDeserializer;
 import dada.tuda.framework.normalization.types.interfaces.IEventActionType;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingAggregate;
@@ -54,10 +55,13 @@ public class MessagingConfiguration {
     }
 
     @Bean
-    IEventActionType requestedType() {
+    public IEventActionType requestedType() {
         return RequestedType.getInstance();
     }
-
+    @Bean
+    public FrameworkMessageFactory frameworkMessageFabric(ObjectMapper objectMapper){
+        return  new FrameworkMessageFactory(objectMapper);
+    }
     @Bean
     IMessagingEventTypeDeserializer iMessagingEventTypeDeserializer(List<IMessagingEventType> types) {
         MESSAGING_EVENT_TYPES.addAll(types);
