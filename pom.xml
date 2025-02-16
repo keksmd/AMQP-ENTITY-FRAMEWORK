@@ -214,27 +214,23 @@
             <artifactId>mapstruct</artifactId>
             <version>1.5.5.Final</version>
         </dependency>
-
-
     </dependencies>
-
-
-    <repositories>
-        <repository>
-            <id>gitlab-maven</id>
-            <url>https://podpivasniki.shortfy.site/api/v4/projects/${PROJECT_ID}/packages/maven</url>
-        </repository>
-    </repositories>
-    <distributionManagement>
-        <repository>
-            <id>gitlab-maven</id>
-            <url>https://podpivasniki.shortfy.site/api/v4/projects/${PROJECT_ID}/packages/maven</url>
-        </repository>
-        <snapshotRepository>
-            <id>gitlab-maven</id>
-            <url>https://podpivasniki.shortfy.site/api/v4/projects/${PROJECT_ID}/packages/maven</url>
-        </snapshotRepository>
-    </distributionManagement>
+   <repositories>
+    <repository>
+        <id>nexus-maven-central</id>
+        <url>https://podpivasniki.shortfy.site:5443/repository/maven-central/</url>
+    </repository>
+</repositories>
+<distributionManagement>
+    <repository>
+        <id>nexus-maven-releases</id>
+        <url>https://podpivasniki.shortfy.site:5443/repository/maven-releases/</url>
+    </repository>
+    <snapshotRepository>
+        <id>nexus-maven-snapshots</id>
+        <url>https://podpivasniki.shortfy.site:5443/repository/maven-snapshots/</url>
+    </snapshotRepository>
+</distributionManagement>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -313,3 +309,5 @@
         </plugins>
     </build>
 </project>
+
+
