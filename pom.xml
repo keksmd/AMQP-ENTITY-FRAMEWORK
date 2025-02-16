@@ -215,20 +215,20 @@
             <version>1.5.5.Final</version>
         </dependency>
     </dependencies>
-    <repositories>
+   <repositories>
     <repository>
         <id>nexus-maven-central</id>
-        <url>http://podpivasniki.shortfy.site:5443/repository/maven-central/</url>
+        <url>https://podpivasniki.shortfy.site:5443/repository/maven-central/</url>
     </repository>
 </repositories>
 <distributionManagement>
     <repository>
         <id>nexus-maven-releases</id>
-        <url>http://podpivasniki.shortfy.site:5443/repository/maven-releases/</url>
+        <url>https://podpivasniki.shortfy.site:5443/repository/maven-releases/</url>
     </repository>
     <snapshotRepository>
         <id>nexus-maven-snapshots</id>
-        <url>http://podpivasniki.shortfy.site:5443/repository/maven-snapshots/</url>
+        <url>https://podpivasniki.shortfy.site:5443/repository/maven-snapshots/</url>
     </snapshotRepository>
 </distributionManagement>
     <dependencyManagement>
