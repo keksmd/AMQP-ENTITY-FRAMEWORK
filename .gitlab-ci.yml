@@ -9,7 +9,7 @@ test:
   stage: test
   tags:
     - maven test
-  script: mvn clean test -s $NEXUS_MAVEN_SETTINGS 
+  script: mvn clean test -s $NEXUS_MAVEN_SETTINGS
   cache:
     paths:
       - /root/.m2/repository

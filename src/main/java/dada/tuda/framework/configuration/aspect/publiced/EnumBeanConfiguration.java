@@ -46,7 +46,7 @@ public class EnumBeanConfiguration {
                     for (Object aggregate : clazz.getEnumConstants()) {
                         Enum<?> enumConst = (Enum<?>) aggregate;
                         RootBeanDefinition definition = new RootBeanDefinition();
-                        definition.setTargetType((Class<?>) clazz);
+                        definition.setTargetType(clazz);
                         definition.setInstanceSupplier(() -> enumConst);
                         definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_NO);
                         registry.registerBeanDefinition((hasPrefix ? (clazz.getSimpleName() + ".") : "") + enumConst.name(), definition);
