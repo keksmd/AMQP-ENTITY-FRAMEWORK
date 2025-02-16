@@ -9,7 +9,7 @@ test:
   stage: test
   tags:
     - maven test
-  script: mvn clean test -s ci_settings.xml
+  script: mvn clean test -s $NEXUS_MAVEN_SETTINGS 
   cache:
     paths:
       - /root/.m2/repository
@@ -28,7 +28,7 @@ deploy:
     - maven deploy
   image: maven:latest
   script:
-    - mvn deploy -s ci_settings.xml -DskipTests=true
+    - mvn deploy -s $NEXUS_MAVEN_SETTINGS  -DskipTests=true
   only:
     - develop
     - master
