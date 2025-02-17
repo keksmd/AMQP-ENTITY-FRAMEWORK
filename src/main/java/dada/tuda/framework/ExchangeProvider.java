@@ -20,9 +20,6 @@ public class ExchangeProvider {
 
 
     public TopicExchange getExchange(IMessagingAggregate aggregate) {
-
         return topics.stream().filter(t -> t.getName().equals(aggregate.getExchangeName())).findFirst().orElseThrow(() -> new IllegalArgumentException("Топик не нашелся в списке"));
-
-
     }
 }
