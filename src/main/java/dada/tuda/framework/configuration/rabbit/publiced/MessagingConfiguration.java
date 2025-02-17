@@ -16,7 +16,8 @@ import dada.tuda.framework.normalization.FrameworkMessageFactory;
 import dada.tuda.framework.normalization.converters.IMessagingEventTypeDeserializer;
 import dada.tuda.framework.normalization.types.interfaces.IEventActionType;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
-import dada.tuda.framework.normalization.types.realizations.CancellingEvent;
+
+import dada.tuda.framework.normalization.types.realizations.CancelUtils;
 import dada.tuda.framework.normalization.types.realizations.RequestedType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -47,7 +48,7 @@ public class MessagingConfiguration {
 
     @Bean
     IMessagingEventType cancellingEvent() {
-        return new CancellingEvent();
+        return CancelUtils.getCancellingEventType();
     }
 
     @Bean
