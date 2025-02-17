@@ -35,7 +35,7 @@ public class CancelUtils {
         return type;
     }
 
-    static class CancellingEvent implements IMessagingEventType {
+    public static class CancellingEvent implements IMessagingEventType {
 
         @Override
         public IMessagingAggregate getAggregate() {

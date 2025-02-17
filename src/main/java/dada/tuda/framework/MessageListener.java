@@ -2,7 +2,8 @@ package dada.tuda.framework;
 
 import dada.tuda.framework.handling.MessageHandlerRegistry;
 import dada.tuda.framework.normalization.AbstractNormalMessage;
-import dada.tuda.framework.normalization.types.realizations.CancellingEvent;
+
+import dada.tuda.framework.normalization.types.realizations.CancelUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
@@ -15,7 +16,7 @@ public class MessageListener {
 
     @RabbitHandler
     public Object handleEventCreatedEvent(@Payload AbstractNormalMessage event) throws Exception {
-        if (event.computeType() instanceof CancellingEvent) {
+        if (event.computeType() instanceof CancelUtils.CancellingEvent) {
             String reason = (String) event.getPayloadMap().get("reason");
             if (reason != null) {
                 log.warn("operation {} id cancelling because {}", event.getOperationId(), reason);
