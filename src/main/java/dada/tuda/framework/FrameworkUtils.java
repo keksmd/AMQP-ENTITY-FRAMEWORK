@@ -2,12 +2,15 @@ package dada.tuda.framework;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.core.DefaultParameterNameDiscoverer;
+import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Objects;
 
 public class FrameworkUtils {
     private static final ExpressionParser parser = new SpelExpressionParser();
@@ -15,21 +18,20 @@ public class FrameworkUtils {
     private FrameworkUtils() {
     }
 
-    public static Object resolveKey(ProceedingJoinPoint joinPoint, String keyExpression) {
-        // Создаём контекст для вычисления SpEL
-        StandardEvaluationContext context = new StandardEvaluationContext();
 
-        // Добавляем аргументы метода в контекст
+    public static Object resolveKey(ProceedingJoinPoint joinPoint,String key) {
         Object[] args = joinPoint.getArgs();
-        String[] paramNames = ((MethodSignature) joinPoint.getSignature()).getParameterNames();
-        if (paramNames != null) {
-            for (int i = 0; i < paramNames.length; i++) {
-                context.setVariable(paramNames[i], args[i]);
-            }
+        DefaultParameterNameDiscoverer nameDiscoverer = new DefaultParameterNameDiscoverer();
+        String[] parameterNames = nameDiscoverer.getParameterNames(((MethodSignature)joinPoint.getSignature()).getMethod());
+        StandardEvaluationContext context = new StandardEvaluationContext();
+        for (int i = 0; i < Objects.requireNonNull(parameterNames).length; i++) {
+            context.setVariable(parameterNames[i], args[i]);
         }
+        SpelExpressionParser parser = new SpelExpressionParser();
+        Expression expression = parser.parseExpression(key);
+        return expression.getValue(context);
 
-        // Вычисляем значение SpEL-выражения
-        return parser.parseExpression(keyExpression).getValue(context);
+
     }
 
     public static boolean isReturnsList(ProceedingJoinPoint joinPoint) {

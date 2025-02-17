@@ -38,8 +38,8 @@ public class DetailedCacheEvictAspect {
         if (listCache instanceof RedisCache redisListCache) {
             String pattern = detailedCacheEvict.listCacheName() + "::*";
             for (var k : redisTemplate.keys(pattern)) {
-                if (k.contains(key.toString())) {
-                    redisListCache.evict(k);
+                if (k.split("::")[1].contains(key.toString())) {
+                    redisListCache.evict(k.split("::")[1]);
                 }
             }
         }

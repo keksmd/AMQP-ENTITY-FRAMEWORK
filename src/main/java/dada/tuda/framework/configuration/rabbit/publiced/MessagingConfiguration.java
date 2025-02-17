@@ -15,7 +15,6 @@ import dada.tuda.framework.normalization.AbstractNormalMessage;
 import dada.tuda.framework.normalization.FrameworkMessageFactory;
 import dada.tuda.framework.normalization.converters.IMessagingEventTypeDeserializer;
 import dada.tuda.framework.normalization.types.interfaces.IEventActionType;
-import dada.tuda.framework.normalization.types.interfaces.IMessagingAggregate;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
 import dada.tuda.framework.normalization.types.realizations.CancellingEvent;
 import dada.tuda.framework.normalization.types.realizations.RequestedType;
@@ -27,13 +26,11 @@ import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.Scope;
 import org.springframework.lang.Nullable;
 
 import javax.naming.OperationNotSupportedException;
@@ -49,19 +46,20 @@ public class MessagingConfiguration {
 
 
     @Bean
-    @Scope("prototype")
-    IMessagingEventType cancellingEvent(@Qualifier("cancelled") IMessagingAggregate aggregate, @Qualifier("canceled") IEventActionType type) {
-        return new CancellingEvent(aggregate, type);
+    IMessagingEventType cancellingEvent() {
+        return new CancellingEvent();
     }
 
     @Bean
     public IEventActionType requestedType() {
         return RequestedType.getInstance();
     }
+
     @Bean
-    public FrameworkMessageFactory frameworkMessageFabric(ObjectMapper objectMapper){
-        return  new FrameworkMessageFactory(objectMapper);
+    public FrameworkMessageFactory frameworkMessageFabric(ObjectMapper objectMapper) {
+        return new FrameworkMessageFactory(objectMapper);
     }
+
     @Bean
     IMessagingEventTypeDeserializer iMessagingEventTypeDeserializer(List<IMessagingEventType> types) {
         MESSAGING_EVENT_TYPES.addAll(types);
