@@ -14,6 +14,7 @@ test:
     paths:
       - /root/.m2/repository
     key: maven-dependencies
+
 build:
   stage: build
   tags:
@@ -21,6 +22,10 @@ build:
   image: maven:latest
   script:
     - mvn clean install
+  cache:
+    paths:
+      - /root/.m2/repository
+    key: maven-dependencies
 
 deploy:
   stage: deploy
@@ -30,5 +35,9 @@ deploy:
   script:
     - mvn deploy -s $NEXUS_MAVEN_SETTINGS  -DskipTests=true
   only:
-    - develop
     - master
+  cache:
+    paths:
+      - /root/.m2/repository
+    key: maven-dependencies
+
