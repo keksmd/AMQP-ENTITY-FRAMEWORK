@@ -4,9 +4,8 @@ import dada.tuda.framework.normalization.types.interfaces.IEventActionType;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingAggregate;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
 
-
-public class CancellingEvent implements IMessagingEventType {
-    private final IMessagingAggregate aggregate =new IMessagingAggregate(){
+class CancelUtils {
+    private static final IMessagingAggregate aggregate = new IMessagingAggregate() {
 
         @Override
         public String getExchangeName() {
@@ -18,29 +17,44 @@ public class CancellingEvent implements IMessagingEventType {
             return "CANCELLED";
         }
     };
-    private final IEventActionType type = () -> "CANCELED";
+    private static final IEventActionType type = () -> "CANCELED";
+    private static CancellingEvent cancellingEvent = new CancellingEvent();
 
+    private CancelUtils() {
+    }
 
+    public static IMessagingEventType getCancellingEventType() {
+        return cancellingEvent;
+    }
 
-    @Override
-    public IMessagingAggregate getAggregate() {
+    public static IMessagingAggregate getCancelAggregate() {
         return aggregate;
     }
 
-    @Override
-    public IEventActionType getActionType() {
+    public static IEventActionType getCancelActionType() {
         return type;
     }
 
-    @Override
-    public boolean isQuery() {
-        return false;
+    static class CancellingEvent implements IMessagingEventType {
+
+        @Override
+        public IMessagingAggregate getAggregate() {
+            return CancelUtils.aggregate;
+        }
+
+        @Override
+        public IEventActionType getActionType() {
+            return type;
+        }
+
+        @Override
+        public boolean isQuery() {
+            return false;
+        }
+
+        @Override
+        public String name() {
+            return "CANCEL";
+        }
     }
-
-    @Override
-    public String name() {
-        return "CANCEL";
-    }
-
-
 }
