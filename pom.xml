@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>site.podpivasniki</groupId>
     <artifactId>my-template-starter</artifactId>
-    <version>0.0.8-SNAPSHOT</version>
+    <version>0.0.9</version>
     <name>my-template-starter</name>
     <description>my-template-starter</description>
     <packaging>jar</packaging>
