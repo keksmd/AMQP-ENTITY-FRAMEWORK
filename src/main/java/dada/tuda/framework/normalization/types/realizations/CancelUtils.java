@@ -4,7 +4,7 @@ import dada.tuda.framework.normalization.types.interfaces.IEventActionType;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingAggregate;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
 
-class CancelUtils {
+public class CancelUtils {
     private static final IMessagingAggregate aggregate = new IMessagingAggregate() {
 
         @Override
@@ -35,7 +35,7 @@ class CancelUtils {
         return type;
     }
 
-    static class CancellingEvent implements IMessagingEventType {
+    public static class CancellingEvent implements IMessagingEventType {
 
         @Override
         public IMessagingAggregate getAggregate() {
