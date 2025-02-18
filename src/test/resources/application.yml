@@ -1,0 +1,10 @@
+dada:
+  tuda:
+    messaging:
+      store-only-cancelable: true
+      saga:
+        enabled: true
+spring:
+  rabbitmq:
+    password: guest
+    username: guest

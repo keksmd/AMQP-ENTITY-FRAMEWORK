@@ -2,7 +2,7 @@ package dada.tuda.framework.handling;
 
 import dada.tuda.framework.consistency.EventStorager;
 import dada.tuda.framework.consistency.IdempotencyProvider;
-import dada.tuda.framework.facade.FrameworkMessagingApi;
+import dada.tuda.framework.facade.MessageCanceller;
 import dada.tuda.framework.normalization.AbstractNormalMessage;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class MessageHandlerRegistry {
     private final IdempotencyProvider idempotencyProvider;
     private final EventStorager eventStorager;
     private final Map<IMessagingEventType, MessageHandler> cache = new HashMap<>();
-    private final FrameworkMessagingApi frameworkMessagingApi;
+    private final MessageCanceller messageCanceller;
     @Value("${dada.tuda.messaging.store-only-cancelable:true}")
     private boolean storeOnlyCancellableEvents;
     @Value("${dada.tuda.messaging.saga.enabled:false}")
@@ -42,7 +42,7 @@ public class MessageHandlerRegistry {
             } catch (Exception e) {
                 log.warn("operation {} should be canceled: \n {}", message.getOperationId(), e.getMessage());
                 if (Boolean.TRUE.equals(sagaEnabled)) {
-                    String id = frameworkMessagingApi.cancelOperation(message.getOperationId(), "Exception in service: " + serviceName + " " + e.getLocalizedMessage(), message.computeType());
+                    String id = messageCanceller.cancelOperation(message.getOperationId(), "Exception in service: " + serviceName + " " + e.getLocalizedMessage(), message.computeType());
                     idempotencyProvider.storeEventAsProcessed(id);
                     log.warn(e.getLocalizedMessage());
                     return null;

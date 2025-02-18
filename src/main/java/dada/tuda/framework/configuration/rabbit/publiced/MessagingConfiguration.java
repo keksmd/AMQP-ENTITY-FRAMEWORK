@@ -3,20 +3,23 @@ package dada.tuda.framework.configuration.rabbit.publiced;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
+import dada.tuda.framework.ExchangeProvider;
 import dada.tuda.framework.configuration.jackson.JaksonConfiguration;
 import dada.tuda.framework.configuration.rabbit.ExchangesConfiguration;
 import dada.tuda.framework.consistency.DefaultIdempotencyProvider;
 import dada.tuda.framework.consistency.EventStorager;
 import dada.tuda.framework.consistency.IdempotencyProvider;
-import dada.tuda.framework.facade.FrameworkMessagingApi;
+import dada.tuda.framework.facade.MessageCanceller;
+import dada.tuda.framework.facade.MessageSender;
 import dada.tuda.framework.handling.MessageHandler;
 import dada.tuda.framework.handling.MessageHandlerRegistry;
 import dada.tuda.framework.normalization.AbstractNormalMessage;
 import dada.tuda.framework.normalization.FrameworkMessageFactory;
+import dada.tuda.framework.normalization.Header;
+import dada.tuda.framework.normalization.HeadersGenerator;
 import dada.tuda.framework.normalization.converters.IMessagingEventTypeDeserializer;
 import dada.tuda.framework.normalization.types.interfaces.IEventActionType;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
-
 import dada.tuda.framework.normalization.types.realizations.CancelUtils;
 import dada.tuda.framework.normalization.types.realizations.RequestedType;
 import lombok.extern.slf4j.Slf4j;
@@ -68,8 +71,18 @@ public class MessagingConfiguration {
     }
 
     @Bean
-    public MessageHandlerRegistry messageHandlerRegistry(@Autowired List<MessageHandler> handlers, IdempotencyProvider idempotencyProvider, FrameworkMessagingApi frameworkMessagingApi, EventStorager eventStorager) {
-        return new MessageHandlerRegistry(handlers, idempotencyProvider, eventStorager, frameworkMessagingApi);
+    public MessageHandlerRegistry messageHandlerRegistry(@Autowired List<MessageHandler> handlers, IdempotencyProvider idempotencyProvider, MessageCanceller messageCanceller, EventStorager eventStorager) {
+        return new MessageHandlerRegistry(handlers, idempotencyProvider, eventStorager, messageCanceller);
+    }
+    @Bean public MessageCanceller eventCanceler(FrameworkMessageFactory frameworkMessageFactory, MessageSender sender){
+        return new MessageCanceller(frameworkMessageFactory,sender);
+    }
+    @Bean public MessageSender eventSender(ExchangeProvider exchangeProvider, RabbitTemplate rabbitTemplate, HeadersGenerator headersGenerator){
+        return new MessageSender(exchangeProvider,rabbitTemplate,headersGenerator);
+    }
+    @Bean
+    HeadersGenerator headersGenerator(@Autowired List<Header> headers) {
+        return new HeadersGenerator(headers);
     }
 
     @Bean

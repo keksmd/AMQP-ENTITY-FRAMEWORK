@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 
 import java.util.List;
-
 @Configuration
 @Import({RedisRepositoryConfig.class, JaksonConfiguration.class, MessagingConfiguration.class})
 public class SagaConfig {
