@@ -303,6 +303,10 @@
                         <compilerArg>
                             -Amapstruct.defaultComponentModel=spring
                         </compilerArg>
+                        <arg>-parameters</arg>
+                        <compilerArg>
+                            -parameters
+                        </compilerArg>
                     </compilerArgs>
                 </configuration>
             </plugin>

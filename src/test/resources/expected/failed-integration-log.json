@@ -23,14 +23,14 @@
   "mdcpropertyMap": {
     "eventType": "TestEventType",
     "error": "Ex",
-    "rq": "{\"pram0\":\"Hello\"}",
+    "rq": "{\"input\":\"Hello\"}",
     "direction": "IN"
   },
   "contextBirthTime": 1739480967789,
   "mdc": {
     "eventType": "TestEventType",
     "error": "Ex",
-    "rq": "{\"pram0\":\"Hello\"}",
+    "rq": "{\"input\":\"Hello\"}",
     "direction": "IN"
   },
   "callerData": [],

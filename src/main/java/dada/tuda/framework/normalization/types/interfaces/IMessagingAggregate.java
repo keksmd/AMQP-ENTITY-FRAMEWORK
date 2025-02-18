@@ -4,7 +4,7 @@ public interface IMessagingAggregate {
 
 
     default String getExchangeName(){
-        return this.getName().toLowerCase()+"-exchange";
+        return this.getKey()+"-exchange";
     }
 
     default String getKey() {

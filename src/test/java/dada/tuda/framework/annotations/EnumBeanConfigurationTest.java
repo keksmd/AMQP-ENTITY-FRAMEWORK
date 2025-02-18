@@ -55,7 +55,5 @@ class EnumBeanConfigurationTest {
         String exchangeName = (String) context.getBean("entityExchangeName");
        org.springframework.amqp.core.Exchange exchange= (org.springframework.amqp.core.Exchange) context.getBean("entityExchange");
        assert exchange.getName().equals(exchangeName);
-
-
     }
 }
