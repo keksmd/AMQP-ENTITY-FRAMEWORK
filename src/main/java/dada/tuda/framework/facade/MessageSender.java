@@ -35,7 +35,7 @@ public class MessageSender {
                 }
         );
     }
-    private <T> T sendRequestUsingType(AbstractNormalMessage event, TypeReference<T> returning) {
+    public  <T> T sendRequestUsingType(AbstractNormalMessage event, TypeReference<T> returning) {
         IMessagingAggregate aggregate = event.computeType().getAggregate();
         TopicExchange exchange = exchangeProvider.getExchange(aggregate);
         String routingKey = aggregate.getKey() + "." + RequestedType.getInstance().name().toLowerCase();
@@ -49,7 +49,6 @@ public class MessageSender {
                     return message;
                 }
         );
-
         if (response == null) {
             throw new RuntimeException("No request response: ");
         } else {
