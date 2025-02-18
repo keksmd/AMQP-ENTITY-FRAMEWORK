@@ -8,7 +8,7 @@ test:
   image: maven:latest
   stage: test
   tags:
-    - maven test
+    - dind
   script: mvn clean test -s $NEXUS_MAVEN_SETTINGS
   cache:
     paths:
@@ -18,7 +18,7 @@ test:
 build:
   stage: build
   tags:
-    - maven build
+    - dind
   image: maven:latest
   script:
     - mvn clean install
