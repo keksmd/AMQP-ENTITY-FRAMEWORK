@@ -77,8 +77,8 @@ public class MessagingConfiguration {
     @Bean public MessageCanceller eventCanceler(FrameworkMessageFactory frameworkMessageFactory, MessageSender sender){
         return new MessageCanceller(frameworkMessageFactory,sender);
     }
-    @Bean public MessageSender eventSender(ExchangeProvider exchangeProvider, RabbitTemplate rabbitTemplate, HeadersGenerator headersGenerator){
-        return new MessageSender(exchangeProvider,rabbitTemplate,headersGenerator);
+    @Bean public MessageSender eventSender(ExchangeProvider exchangeProvider, RabbitTemplate rabbitTemplate, HeadersGenerator headersGenerator,ObjectMapper objectMapper){
+        return new MessageSender(exchangeProvider,rabbitTemplate,headersGenerator,objectMapper);
     }
     @Bean
     HeadersGenerator headersGenerator(@Autowired List<Header> headers) {

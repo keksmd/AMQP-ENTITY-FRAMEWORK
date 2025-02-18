@@ -8,14 +8,16 @@ import org.reflections.util.ConfigurationBuilder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 
 import java.net.URL;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+@AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)
 @Configuration
 public class EnumBeanConfiguration {
     @Bean

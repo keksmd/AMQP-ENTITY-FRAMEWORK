@@ -21,7 +21,7 @@ build:
     - dind
   image: maven:latest
   script:
-    - mvn clean install
+    - mvn clean install -DskipTests=true -s $NEXUS_MAVEN_SETTINGS
   cache:
     paths:
       - /root/.m2/repository
@@ -36,6 +36,7 @@ deploy:
     - mvn deploy -s $NEXUS_MAVEN_SETTINGS  -DskipTests=true
   only:
     - master
+    - develop
   cache:
     paths:
       - /root/.m2/repository
