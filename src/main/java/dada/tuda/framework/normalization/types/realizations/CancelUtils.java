@@ -5,18 +5,7 @@ import dada.tuda.framework.normalization.types.interfaces.IMessagingAggregate;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
 
 public class CancelUtils {
-    private static final IMessagingAggregate aggregate = new IMessagingAggregate() {
-
-        @Override
-        public String getExchangeName() {
-            return "";
-        }
-
-        @Override
-        public String getName() {
-            return "CANCELLED";
-        }
-    };
+    private static final IMessagingAggregate aggregate = () -> "CANCELLED";
     private static final IEventActionType type = () -> "CANCELED";
     private static CancellingEvent cancellingEvent = new CancellingEvent();
 

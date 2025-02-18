@@ -1,6 +1,7 @@
 package dada.tuda.framework.annotations;
 
 import dada.tuda.framework.configuration.aspect.publiced.EnumBeanConfiguration;
+import dada.tuda.framework.configuration.rabbit.ExchangesConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,5 +48,14 @@ class EnumBeanConfigurationTest {
         // Убедимся, что объекты действительно совпадают
         Assertions.assertEquals(MyTestEnumWithConstructorParameter .FIRST, firstBeanWithNoPrefix);
         Assertions.assertEquals(MyTestEnumWithConstructorParameter .SECOND, secondBeanWithNoPrefix);
+    }
+    @Test
+    void testWithEnumBeansAreRegistered() {
+        context = new AnnotationConfigApplicationContext(EnumBeanConfiguration.class, ExchangesConfiguration.class);
+        String exchangeName = (String) context.getBean("entityExchangeName");
+       org.springframework.amqp.core.Exchange exchange= (org.springframework.amqp.core.Exchange) context.getBean("entityExchange");
+       assert exchange.getName().equals(exchangeName);
+
+
     }
 }

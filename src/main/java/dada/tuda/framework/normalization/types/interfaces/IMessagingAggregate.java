@@ -3,9 +3,11 @@ package dada.tuda.framework.normalization.types.interfaces;
 public interface IMessagingAggregate {
 
 
-    String getExchangeName();
+    default String getExchangeName(){
+        return this.getName().toLowerCase()+"-exchange";
+    }
 
-    public default String getKey() {
+    default String getKey() {
         return this.getName().toLowerCase();
     }
 

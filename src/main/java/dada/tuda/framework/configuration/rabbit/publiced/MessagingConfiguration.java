@@ -19,6 +19,7 @@ import dada.tuda.framework.normalization.Header;
 import dada.tuda.framework.normalization.HeadersGenerator;
 import dada.tuda.framework.normalization.converters.IMessagingEventTypeDeserializer;
 import dada.tuda.framework.normalization.types.interfaces.IEventActionType;
+import dada.tuda.framework.normalization.types.interfaces.IMessagingAggregate;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
 import dada.tuda.framework.normalization.types.realizations.CancelUtils;
 import dada.tuda.framework.normalization.types.realizations.RequestedType;
@@ -52,6 +53,14 @@ public class MessagingConfiguration {
     @Bean
     IMessagingEventType cancellingEvent() {
         return CancelUtils.getCancellingEventType();
+    }
+    @Bean
+    IMessagingAggregate cancelAggregate() {
+        return CancelUtils.getCancelAggregate();
+    }
+    @Bean
+    IEventActionType cancelActionType() {
+        return CancelUtils.getCancelActionType();
     }
 
     @Bean

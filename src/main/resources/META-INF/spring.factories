@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+dada.tuda.framework.configuration.aspect.publiced.EnumBeanConfiguration
