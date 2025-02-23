@@ -30,7 +30,7 @@ build:
 deploy:
   stage: deploy
   tags:
-    - maven deploy
+    - dind
   image: maven:latest
   script:
     - mvn deploy -s $NEXUS_MAVEN_SETTINGS  -DskipTests=true
