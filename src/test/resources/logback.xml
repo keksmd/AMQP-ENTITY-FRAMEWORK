@@ -1,0 +1,25 @@
+<configuration>
+
+    <!-- Обычный логгер (оставляем стандартный формат для всех остальных логов) -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Отдельный JSON-логгер для IntegrationLogger -->
+    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+
+    <!-- Настраиваем IntegrationLogger на JSON -->
+    <logger name="IntegrationLogger" level="INFO" additivity="false">
+        <appender-ref ref="JSON_CONSOLE"/>
+    </logger>
+
+    <!-- Глобальный логгер (все остальные логи остаются стандартными) -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</configuration>

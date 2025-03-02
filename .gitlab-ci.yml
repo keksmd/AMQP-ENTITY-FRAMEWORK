@@ -1,0 +1,34 @@
+stages:
+  - test
+  - build
+  - deploy
+variables:
+  BRANCH_NAME: $CI_COMMIT_REF_NAME
+test:
+  image: maven:latest
+  stage: test
+  tags:
+    - maven test
+  script: mvn clean test -s $NEXUS_MAVEN_SETTINGS 
+  cache:
+    paths:
+      - /root/.m2/repository
+    key: maven-dependencies
+build:
+  stage: build
+  tags:
+    - maven build
+  image: maven:latest
+  script:
+    - mvn clean install
+
+deploy:
+  stage: deploy
+  tags:
+    - maven deploy
+  image: maven:latest
+  script:
+    - mvn deploy -s $NEXUS_MAVEN_SETTINGS  -DskipTests=true
+  only:
+    - develop
+    - master
