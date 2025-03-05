@@ -11,7 +11,7 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.List;
 
-@SpringBootTest(classes = {EnumBeanConfiguration.class,EnumBeanConfigurationTest.class,MyTestEnum.class,MyTestEnumWithNoPrefix.class,MyTestEnumWithConstructorParameter.class, ExchangesConfiguration.class})
+@SpringBootTest(classes = {EnumBeanConfiguration.class,EnumBeanConfigurationTest.class,MyTestEnum.class,MyTestEnumWithNoPrefix.class,MyTestEnumWithConstructorParameter.class,MyTestEnumExchange.class, ExchangesConfiguration.class})
 class EnumBeanConfigurationTest {
     @Autowired
    ApplicationContext context;

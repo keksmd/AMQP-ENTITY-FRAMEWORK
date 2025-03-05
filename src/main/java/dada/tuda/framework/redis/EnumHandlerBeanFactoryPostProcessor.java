@@ -33,7 +33,7 @@ public class EnumHandlerBeanFactoryPostProcessor<T extends  IEnum> implements Be
 				Class<T> beanClass = (Class<T>) Class.forName(beanClassName);
 
 				if (beanClass.isEnum() && beanClass.isAnnotationPresent(EnumBean.class)) {
-					beanDefinition.setFactoryMethodName("values");
+					//
 					LOG.debug("Processing ENUM class: {}", beanClass);
 					EnumBean annotation = beanClass.getAnnotation(EnumBean.class);
 					boolean hasPrefix = Boolean.parseBoolean(annotation.enumNamePrefix());
@@ -49,6 +49,7 @@ public class EnumHandlerBeanFactoryPostProcessor<T extends  IEnum> implements Be
 							LOG.warn("Skipping already registered bean: {}", constBeanName);
 						}
 					}
+					registry.removeBeanDefinition(beanName);
 				}
 			} catch (ClassNotFoundException e) {
 				LOG.error("Could not load class: " + beanClassName, e);

@@ -24,6 +24,7 @@ public class EnumBeanRegistrar implements ImportBeanDefinitionRegistrar {
     private Set<Class<?>> findAnnotatedEnums() throws IOException {
        //return EnumHandlerBeanFactoryPostProcessor.enumClasses.keySet();
         return null;
+
     }
 
 

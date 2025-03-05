@@ -58,8 +58,8 @@ class PP implements Ordered, BeanDefinitionRegistryPostProcessor {
 
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-
-        for (IMessagingAggregate aggregate : aggregates) {
+        for (int i = 0;i<aggregates.size();i++) {
+            IMessagingAggregate aggregate =( (IMessagingAggregate)aggregates.get(i));
             String exchangeBeanName = aggregate.getName().toLowerCase() + "Exchange";
             String exchangeName = aggregate.getExchangeName();
             ExchangesConfiguration.registerExchange(exchangeName, exchangeBeanName, registry);
