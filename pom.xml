@@ -218,17 +218,17 @@
    <repositories>
     <repository>
         <id>nexus-maven-central</id>
-        <url>https://podpivasniki.shortfy.site:5443/repository/maven-central/</url>
+        <url>https://nexus.dada-tuda.ru/repository/maven-central/</url>
     </repository>
 </repositories>
 <distributionManagement>
     <repository>
         <id>nexus-maven-releases</id>
-        <url>https://podpivasniki.shortfy.site:5443/repository/maven-releases/</url>
+        <url>https://nexus.dada-tuda.ru/repository/maven-releases/</url>
     </repository>
     <snapshotRepository>
         <id>nexus-maven-snapshots</id>
-        <url>https://podpivasniki.shortfy.site:5443/repository/maven-snapshots/</url>
+        <url>https://nexus.dada-tuda.ru/repository/maven-snapshots/</url>
     </snapshotRepository>
 </distributionManagement>
     <dependencyManagement>
