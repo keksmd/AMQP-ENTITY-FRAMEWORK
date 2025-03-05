@@ -1,6 +1,9 @@
 package dada.tuda.framework.annotations;
-@EnumBean()
-public enum MyTestEnumWithConstructorParameter {
+
+import dada.tuda.framework.redis.IEnum;
+
+@EnumBean
+public enum MyTestEnumWithConstructorParameter implements IEnum {
     FIRST("1"),
     SECOND("2");
     private final String value;

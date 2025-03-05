@@ -1,6 +1,10 @@
 package dada.tuda.framework.annotations;
-@EnumBean()
-public enum MyTestEnum {
+
+import dada.tuda.framework.redis.IEnum;
+
+@EnumBean
+public enum MyTestEnum implements IEnum {
     FIRST,
-    SECOND
+    SECOND;
+
 }

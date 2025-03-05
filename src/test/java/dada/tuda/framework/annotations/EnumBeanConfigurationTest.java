@@ -2,30 +2,29 @@ package dada.tuda.framework.annotations;
 
 import dada.tuda.framework.configuration.aspect.publiced.EnumBeanConfiguration;
 import dada.tuda.framework.configuration.rabbit.ExchangesConfiguration;
-import org.junit.jupiter.api.AfterEach;
+import dada.tuda.framework.normalization.types.interfaces.IMessagingAggregate;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 
+import java.util.List;
+
+@SpringBootTest(classes = {EnumBeanConfiguration.class,EnumBeanConfigurationTest.class,MyTestEnum.class,MyTestEnumWithNoPrefix.class,MyTestEnumWithConstructorParameter.class, ExchangesConfiguration.class})
 class EnumBeanConfigurationTest {
-    AnnotationConfigApplicationContext context;
+    @Autowired
+   ApplicationContext context;
 
-    @AfterEach
-    void end() {
-        context.close();
-    }
 
-    @BeforeEach
-    void setUp() {
-        context = new AnnotationConfigApplicationContext(EnumBeanConfiguration.class);
-    }
+    @Autowired(required = false)
+    private List<IMessagingAggregate> ens;
 
     @Test
     void testSimpleEnumBeansAreRegistered() {
         // Создаём контекст с конфигурацией и самим enum-классом
-        MyTestEnum firstBean = (MyTestEnum) context.getBean("MyTestEnum.FIRST");
-        MyTestEnum secondBean = (MyTestEnum) context.getBean("MyTestEnum.SECOND");
+        MyTestEnum firstBean = (MyTestEnum) context.getBean("myTestEnum.FIRST");
+        MyTestEnum secondBean = (MyTestEnum) context.getBean("myTestEnum.SECOND");
         // Убедимся, что объекты действительно совпадают
         Assertions.assertEquals(MyTestEnum.FIRST, firstBean);
         Assertions.assertEquals(MyTestEnum.SECOND, secondBean);
@@ -43,16 +42,15 @@ class EnumBeanConfigurationTest {
     @Test
     void testWithConstructorParameterEnumBeansAreRegistered() {
         // Создаём контекст с конфигурацией и самим enum-классом
-        MyTestEnumWithConstructorParameter firstBeanWithNoPrefix = (MyTestEnumWithConstructorParameter ) context.getBean("MyTestEnumWithConstructorParameter.FIRST");
-        MyTestEnumWithConstructorParameter secondBeanWithNoPrefix = (MyTestEnumWithConstructorParameter ) context.getBean("MyTestEnumWithConstructorParameter.SECOND");
+        MyTestEnumWithConstructorParameter firstBeanWithNoPrefix = (MyTestEnumWithConstructorParameter ) context.getBean("myTestEnumWithConstructorParameter.FIRST");
+        MyTestEnumWithConstructorParameter secondBeanWithNoPrefix = (MyTestEnumWithConstructorParameter ) context.getBean("myTestEnumWithConstructorParameter.SECOND");
         // Убедимся, что объекты действительно совпадают
-        Assertions.assertEquals(MyTestEnumWithConstructorParameter .FIRST, firstBeanWithNoPrefix);
-        Assertions.assertEquals(MyTestEnumWithConstructorParameter .SECOND, secondBeanWithNoPrefix);
+        Assertions.assertEquals(MyTestEnumWithConstructorParameter.FIRST, firstBeanWithNoPrefix);
+        Assertions.assertEquals(MyTestEnumWithConstructorParameter.SECOND, secondBeanWithNoPrefix);
     }
     @Test
     void testWithEnumBeansAreRegistered() {
-        context = new AnnotationConfigApplicationContext(EnumBeanConfiguration.class, ExchangesConfiguration.class);
-        String exchangeName = (String) context.getBean("entityExchangeName");
+      String exchangeName = (String) context.getBean("entityExchangeName");
        org.springframework.amqp.core.Exchange exchange= (org.springframework.amqp.core.Exchange) context.getBean("entityExchange");
        assert exchange.getName().equals(exchangeName);
     }
