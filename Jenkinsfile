@@ -6,10 +6,9 @@ pipeline {
     stages {
 
         stage('Test') {
-
             steps {
                 script {
-                    sh 'mvn clean test -s $NEXUS_MAVEN_SETTINGS'
+                    sh 'mvn clean test'
                 }
             }
         }
@@ -31,7 +30,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh 'mvn deploy -s $NEXUS_MAVEN_SETTINGS -DskipTests=true'
+                    sh 'mvn deploy -DskipTests=true'
                 }
             }
         }
