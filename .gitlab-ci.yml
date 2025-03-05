@@ -8,37 +8,27 @@ test:
   image: maven:latest
   stage: test
   tags:
-    - dind
-  script: mvn clean test -s $NEXUS_MAVEN_SETTINGS
+    - maven test
+  script: mvn clean test -s $NEXUS_MAVEN_SETTINGS 
   cache:
     paths:
       - /root/.m2/repository
     key: maven-dependencies
-
 build:
   stage: build
   tags:
-    - dind
+    - maven build
   image: maven:latest
   script:
-    - mvn clean install -DskipTests=true -s $NEXUS_MAVEN_SETTINGS
-  cache:
-    paths:
-      - /root/.m2/repository
-    key: maven-dependencies
+    - mvn clean install
 
 deploy:
   stage: deploy
   tags:
-    - dind
+    - maven deploy
   image: maven:latest
   script:
     - mvn deploy -s $NEXUS_MAVEN_SETTINGS  -DskipTests=true
   only:
-    - master
     - develop
-  cache:
-    paths:
-      - /root/.m2/repository
-    key: maven-dependencies
-
+    - master
