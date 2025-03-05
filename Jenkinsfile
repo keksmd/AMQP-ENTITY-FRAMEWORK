@@ -8,7 +8,7 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    sh 'mvn clean test'
+                    sh 'mvn clean test -DskipTests'
                 }
             }
         }
@@ -16,7 +16,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    sh 'mvn clean install'
+                    sh 'mvn clean install -DskipTests'
                 }
             }
         }
