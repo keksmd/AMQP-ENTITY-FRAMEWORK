@@ -60,7 +60,6 @@ public class EnumBeanPostProcessor implements BeanPostProcessor {
 				ReflectionUtils.setField(field, bean, enums);
 			}
 		}
-
 		return bean;
 	}
 

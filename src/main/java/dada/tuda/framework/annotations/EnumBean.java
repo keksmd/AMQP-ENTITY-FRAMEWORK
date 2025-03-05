@@ -11,5 +11,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Component()
 public @interface EnumBean {
-    String enumNamePrefix() default "true";
+    String classnamePrefix() default "true";
+
+    String lowercase() default "false";
 }

@@ -35,10 +35,13 @@ public class EnumHandlerBeanFactoryPostProcessor<T extends  IEnum> implements Be
 				if (beanClass.isEnum() && beanClass.isAnnotationPresent(EnumBean.class)) {
 					LOG.debug("Processing ENUM class: {}", beanClass);
 					EnumBean annotation = beanClass.getAnnotation(EnumBean.class);
-					boolean hasPrefix = Boolean.parseBoolean(annotation.enumNamePrefix());
+					boolean hasPrefix = Boolean.parseBoolean(annotation.classnamePrefix());
+					boolean lowercase = Boolean.parseBoolean(annotation.lowercase());
 
 					for (T enumConst : beanClass.getEnumConstants()) {
-						String constBeanName = (hasPrefix ? (StringUtils.uncapitalize(beanClass.getSimpleName()) + ".") : "") + enumConst.name();
+						String constBeanName = (hasPrefix ? (StringUtils.uncapitalize(beanClass.getSimpleName()) + ".") : "")
+											   + (lowercase ? enumConst.name().toLowerCase() : enumConst.name());
+
 						if (!registry.isBeanNameInUse(constBeanName)) {  // **Проверка перед регистрацией**
 
 							BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(beanClass,
