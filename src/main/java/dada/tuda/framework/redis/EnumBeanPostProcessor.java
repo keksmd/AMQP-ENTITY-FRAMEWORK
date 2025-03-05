@@ -1,14 +1,9 @@
 package dada.tuda.framework.redis;
 
-import dada.tuda.framework.annotations.EnumBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.ReflectionUtils;
@@ -16,36 +11,15 @@ import org.springframework.util.ReflectionUtils;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
-@AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)
-public class EnumBeanPostProcessor implements BeanPostProcessor, ApplicationContextAware {
-	private static final transient Logger LOG = LoggerFactory.getLogger(EnumBeanPostProcessor.class.getName());
+import static dada.tuda.framework.redis.EnumHandlerBeanFactoryPostProcessor.enumBeans;
 
-	private ApplicationContext context;
+@AutoConfigureOrder(Ordered.LOWEST_PRECEDENCE)
+public class EnumBeanPostProcessor implements BeanPostProcessor {
 
 	private Set<IEnum> getEnums() {
-		final Map<String, Object> enumMap = context.getBeansWithAnnotation(EnumBean.class);
-		LOG.debug("enumMap.size: {}", enumMap.size());
-
-		Set<IEnum> result = new HashSet<IEnum>();
-		for (Object o : enumMap.values()) {
-
-			if (o.getClass().isArray()) {
-				final IEnum[] o1 = (IEnum[]) o;
-				Collections.addAll(result, o1);
-
-			} else {
-				result.add((IEnum) o);
-
-			}
-		}
-
-		LOG.debug("result: {}", result);
-		return result;
+		return enumBeans;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -70,8 +44,6 @@ public class EnumBeanPostProcessor implements BeanPostProcessor, ApplicationCont
 
 	@Override
 	public Object postProcessBeforeInitialization(final Object bean, final String beanName) throws BeansException {
-		LOG.debug("bean: {}", bean);
-		LOG.debug("beanName: {}", beanName);
 
 		final Set<IEnum> enums = getEnums();
 		if (enums.size() < 1) {
@@ -84,7 +56,6 @@ public class EnumBeanPostProcessor implements BeanPostProcessor, ApplicationCont
 		for (Field field : fields) {
 
 			if (isAutowiredEnumSetField(field)) {
-				LOG.trace("field inject values.");
 				field.setAccessible(true);
 				ReflectionUtils.setField(field, bean, enums);
 			}
@@ -98,8 +69,4 @@ public class EnumBeanPostProcessor implements BeanPostProcessor, ApplicationCont
 		return bean;
 	}
 
-	@Override
-	public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
-		this.context = applicationContext;
-	}
 }

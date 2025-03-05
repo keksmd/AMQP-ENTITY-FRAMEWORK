@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Component
+@Component()
 public @interface EnumBean {
     String enumNamePrefix() default "true";
 }

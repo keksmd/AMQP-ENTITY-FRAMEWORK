@@ -1,6 +1,6 @@
 package dada.tuda.framework.annotations;
 
-import dada.tuda.framework.configuration.aspect.publiced.EnumBeanConfiguration;
+import dada.tuda.framework.configuration.EnumBeanConfiguration;
 import dada.tuda.framework.configuration.rabbit.ExchangesConfiguration;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingAggregate;
 import org.junit.jupiter.api.Assertions;
@@ -11,7 +11,9 @@ import org.springframework.context.ApplicationContext;
 
 import java.util.List;
 
-@SpringBootTest(classes = {EnumBeanConfiguration.class,EnumBeanConfigurationTest.class,MyTestEnum.class,MyTestEnumWithNoPrefix.class,MyTestEnumWithConstructorParameter.class,MyTestEnumExchange.class, ExchangesConfiguration.class})
+import static org.junit.Assert.assertNotNull;
+
+@SpringBootTest(classes = {EnumBeanConfiguration.class,EnumBeanConfigurationTest.class,MyTestEnum.class,EnumDependedOnMyTestEnum.class,MyTestEnumWithNoPrefix.class,MyTestEnumWithConstructorParameter.class,MyTestEnumExchange.class, ExchangesConfiguration.class})
 class EnumBeanConfigurationTest {
     @Autowired
    ApplicationContext context;
@@ -29,6 +31,27 @@ class EnumBeanConfigurationTest {
         Assertions.assertEquals(MyTestEnum.FIRST, firstBean);
         Assertions.assertEquals(MyTestEnum.SECOND, secondBean);
     }
+    @Test
+    void testEnumWithAutowiredBeansAreRegistered() {
+        // Создаём контекст с конфигурацией и самим enum-классом
+        EnumDependedOnMyTestEnum firstBean = (EnumDependedOnMyTestEnum) context.getBean("enumDependedOnMyTestEnum.FIRST");
+        EnumDependedOnMyTestEnum secondBean = (EnumDependedOnMyTestEnum) context.getBean("enumDependedOnMyTestEnum.SECOND");
+        // Убедимся, что объекты действительно совпадают
+        assertNotNull(firstBean.getMyTestEnum());
+        assertNotNull(secondBean.getMyTestEnum());
+
+        Assertions.assertEquals(MyTestEnum.SECOND, firstBean.getMyTestEnum());
+        Assertions.assertEquals(MyTestEnum.SECOND, secondBean.getMyTestEnum());
+
+        Assertions.assertEquals(MyTestEnum.SECOND, EnumDependedOnMyTestEnum.FIRST.getMyTestEnum());
+        Assertions.assertEquals(MyTestEnum.SECOND, EnumDependedOnMyTestEnum.SECOND.getMyTestEnum());
+
+        Assertions.assertEquals(EnumDependedOnMyTestEnum.FIRST, firstBean);
+        Assertions.assertEquals(EnumDependedOnMyTestEnum.SECOND, secondBean);
+
+
+    }
+
 
     @Test
     void testWithNoPrefixEnumBeansAreRegistered() {

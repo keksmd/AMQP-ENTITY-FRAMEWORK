@@ -20,7 +20,7 @@ import java.util.List;
 public class ExchangesConfiguration {
     @Bean
     static BeanDefinitionRegistryPostProcessor ex(@Autowired List<IMessagingAggregate> aggregates) {
-        return new PP(aggregates);
+        return new ExchangesByAggragetesCreatePostProcessor(aggregates);
     }
 
     static void registerExchange(String exchangeName, String exchangeBeanName, BeanDefinitionRegistry registry) {
@@ -48,7 +48,7 @@ public class ExchangesConfiguration {
 
 
 @RequiredArgsConstructor
-class PP implements Ordered, BeanDefinitionRegistryPostProcessor {
+class ExchangesByAggragetesCreatePostProcessor implements Ordered, BeanDefinitionRegistryPostProcessor {
     private final List<IMessagingAggregate> aggregates;
 
     @Override
@@ -58,10 +58,9 @@ class PP implements Ordered, BeanDefinitionRegistryPostProcessor {
 
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-        for (int i = 0;i<aggregates.size();i++) {
-            IMessagingAggregate aggregate =( (IMessagingAggregate)aggregates.get(i));
-            String exchangeBeanName = aggregate.getName().toLowerCase() + "Exchange";
-            String exchangeName = aggregate.getExchangeName();
+        for (IMessagingAggregate iMessagingAggregate : aggregates) {
+            String exchangeBeanName = (iMessagingAggregate).getName().toLowerCase() + "Exchange";
+            String exchangeName = (iMessagingAggregate).getExchangeName();
             ExchangesConfiguration.registerExchange(exchangeName, exchangeBeanName, registry);
             ExchangesConfiguration.registerExchangeName(exchangeName, exchangeBeanName, registry);
         }
