@@ -20,7 +20,6 @@ pipeline {
                 }
             }
         }
-
         stage('Deploy') {
             when {
                 anyOf {
