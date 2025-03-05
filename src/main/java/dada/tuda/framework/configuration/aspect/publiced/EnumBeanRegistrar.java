@@ -1,6 +1,5 @@
 package dada.tuda.framework.configuration.aspect.publiced;
 
-import dada.tuda.framework.redis.EnumHandlerBeanFactoryPostProcessor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -23,7 +22,8 @@ public class EnumBeanRegistrar implements ImportBeanDefinitionRegistrar {
     }
 
     private Set<Class<?>> findAnnotatedEnums() throws IOException {
-       return EnumHandlerBeanFactoryPostProcessor.enumClasses.keySet();
+       //return EnumHandlerBeanFactoryPostProcessor.enumClasses.keySet();
+        return null;
     }
 
 
