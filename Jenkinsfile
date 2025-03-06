@@ -3,6 +3,11 @@ pipeline {
     options {
         skipStagesAfterUnstable()
     }
+     env.PATH = "${tool 'M3'}/bin:${env.PATH}"
+     configFileProvider(
+            [configFile(fileId: 'MyGlobalSettings', variable: 'MAVEN_SETTINGS')]) {
+            sh 'mvn -s $MAVEN_SETTINGS clean package'
+     }
     stages {
 
         stage('Test') {
