@@ -11,29 +11,29 @@ pipeline {
     }
 
     stages {
-         stage('Prepare Maven Settings') {
+        stage('Prepare Maven Settings') {
             steps {
                 script {
                     // Retrieve the stored secret file
                     withCredentials([file(credentialsId: 'maven-nexus-settings', variable: 'MAVEN_SETTINGS')]) {
                         echo "Using Maven settings file: $MAVEN_SETTINGS"
 
-                        // Set the settings.xml as default for Maven
-                        env.MAVEN_OPTS = "-s $MAVEN_SETTINGS"
+                        // Ensure MAVEN_SETTINGS is set for later stages
+                        env.MAVEN_SETTINGS = MAVEN_SETTINGS
                     }
                 }
             }
-         }
+        }
 
         stage('Test') {
             steps {
-                sh 'mvn clean test -DskipTests'
+                sh 'mvn clean test -DskipTests=true -s $MAVEN_SETTINGS'
             }
         }
 
         stage('Build') {
             steps {
-                sh 'mvn clean install -DskipTests'
+                sh 'mvn clean install -DskipTests=true -s $MAVEN_SETTINGS'
             }
         }
 
@@ -45,7 +45,7 @@ pipeline {
                 }
             }
             steps {
-                sh 'mvn deploy -s $MAVEN_SETTINGS -DskipTests=true'
+                sh 'mvn deploy -DskipTests=true -s $MAVEN_SETTINGS'
             }
         }
     }
