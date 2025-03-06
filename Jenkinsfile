@@ -11,13 +11,19 @@ pipeline {
     }
 
     stages {
-        stage('Prepare Maven Settings') {
+         stage('Prepare Maven Settings') {
             steps {
-                configFileProvider([configFile(fileId: 'MyGlobalSettings', variable: 'MAVEN_SETTINGS')]) {
-                    sh 'echo "Using custom Maven settings.xml from Jenkins Config File Management"'
+                script {
+                    // Retrieve the stored secret file
+                    withCredentials([file(credentialsId: 'maven-nexus-settings', variable: 'MAVEN_SETTINGS')]) {
+                        echo "Using Maven settings file: $MAVEN_SETTINGS"
+
+                        // Set the settings.xml as default for Maven
+                        env.MAVEN_OPTS = "-s $MAVEN_SETTINGS"
+                    }
                 }
             }
-        }
+         }
 
         stage('Test') {
             steps {
