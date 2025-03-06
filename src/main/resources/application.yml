@@ -1,6 +1,0 @@
-dada:
-  tuda:
-    messaging:
-      store-only-cancelable: true
-      saga:
-        enabled: true
