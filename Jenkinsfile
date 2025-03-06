@@ -1,30 +1,36 @@
 pipeline {
- agent { label 'spring-boot-build-image' }
+    agent { label 'spring-boot-build-image' }
+
     options {
         skipStagesAfterUnstable()
     }
-     env.PATH = "${tool 'M3'}/bin:${env.PATH}"
-     configFileProvider(
-            [configFile(fileId: 'MyGlobalSettings', variable: 'MAVEN_SETTINGS')]) {
-            sh 'mvn -s $MAVEN_SETTINGS clean package'
-     }
+
+    environment {
+        M3_HOME = tool 'M3'
+        PATH = "${M3_HOME}/bin:${env.PATH}"
+    }
+
     stages {
+        stage('Prepare Maven Settings') {
+            steps {
+                configFileProvider([configFile(fileId: 'MyGlobalSettings', variable: 'MAVEN_SETTINGS')]) {
+                    sh 'echo "Using custom Maven settings.xml from Jenkins Config File Management"'
+                }
+            }
+        }
 
         stage('Test') {
             steps {
-                script {
-                    sh 'mvn clean test -DskipTests'
-                }
+                sh 'mvn clean test -DskipTests'
             }
         }
 
         stage('Build') {
             steps {
-                script {
-                    sh 'mvn clean install -DskipTests'
-                }
+                sh 'mvn clean install -DskipTests'
             }
         }
+
         stage('Deploy') {
             when {
                 anyOf {
@@ -33,9 +39,7 @@ pipeline {
                 }
             }
             steps {
-                script {
-                    sh 'mvn deploy -DskipTests=true'
-                }
+                sh 'mvn deploy -s $MAVEN_SETTINGS -DskipTests=true'
             }
         }
     }
