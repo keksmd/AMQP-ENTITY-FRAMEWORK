@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Prepare Maven Settings') {
             steps {
-                configFileProvider([configFile(fileId: 'MyGlobalSettings', variable: 'MAVEN_SETTINGS')]) {
+                configFileProvider([configFile(fileId: 'settings.xml', variable: 'MAVEN_SETTINGS')]) {
                     sh 'echo "Using custom Maven settings.xml from Jenkins Config File Management"'
                 }
             }
