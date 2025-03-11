@@ -5,9 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dada.tuda.framework.ExchangeProvider;
 import dada.tuda.framework.normalization.AbstractNormalMessage;
 import dada.tuda.framework.normalization.HeadersGenerator;
-import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
+import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
 import dada.tuda.framework.normalization.types.realizations.CancelUtils;
-import dada.tuda.framework.normalization.types.realizations.Requested;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -21,9 +20,9 @@ public class MessageSender {
     private final ObjectMapper objectMapper;
 
     public void sendUsingType(AbstractNormalMessage event) {
-        IMessagingDomain aggregate = event.getType().getAggregate();
-        TopicExchange exchange = exchangeProvider.getExchange(aggregate);
-        String routingKey = aggregate.getKey() + "." + event.getType().name().toLowerCase();
+       IMessagingEventType type = event.getType();
+        TopicExchange exchange = exchangeProvider.getExchange(type.getAggregate());
+        String routingKey = type.toRoutingKey();
         rabbitTemplate.convertAndSend(
                 exchange.getName(),
                 routingKey,
@@ -35,9 +34,9 @@ public class MessageSender {
         );
     }
     public void sendMessageCancel(AbstractNormalMessage event) {
-        IMessagingDomain aggregate = event.getType().getAggregate();
-        TopicExchange exchange = exchangeProvider.getExchange(aggregate);
-        String routingKey =aggregate.getKey() + "." + event.getType().name().toLowerCase() + CancelUtils.CANCELLED_ACTION.name();
+        IMessagingEventType type = event.getType();
+        TopicExchange exchange = exchangeProvider.getExchange(type.getAggregate());
+        String routingKey = type.toRoutingKey()+ CancelUtils.CANCELLED_ACTION.name().toLowerCase();
         rabbitTemplate.convertAndSend(
                 exchange.getName(),
                 routingKey,
@@ -49,10 +48,9 @@ public class MessageSender {
         );
     }
     public  <T> T sendRequestUsingType(AbstractNormalMessage event, TypeReference<T> returning) {
-        IMessagingDomain aggregate = event.getType().getAggregate();
-        TopicExchange exchange = exchangeProvider.getExchange(aggregate);
-        String routingKey = aggregate.getKey() + "." + Requested.getInstance().name().toLowerCase();
-
+        IMessagingEventType type = event.getType();
+        TopicExchange exchange = exchangeProvider.getExchange(type.getAggregate());
+        String routingKey = type.toRoutingKey();
         Object response = rabbitTemplate.convertSendAndReceive(
                 exchange.getName(),
                 routingKey,

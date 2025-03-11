@@ -9,7 +9,9 @@ public interface IMessagingEventType extends Serializable {
     IEventAction getActionType();
 
     boolean isQuery();
-
+    public default String toRoutingKey(){
+       return this.getAggregate().getKey() + "." + this.getActionType().name().toLowerCase();
+    }
     String name();
 
 
