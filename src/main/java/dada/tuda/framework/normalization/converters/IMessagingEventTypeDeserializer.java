@@ -15,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 public class IMessagingEventTypeDeserializer extends JsonDeserializer<IMessagingEventType> {
 
-    public static final List<IMessagingEventType> MESSAGING_EVENT_TYPES = new ArrayList<>(List.of(CancelUtils.getCancellingEventType()));
+    public static final List<IMessagingEventType> MESSAGING_EVENT_TYPES = new ArrayList<>(List.of(CancelUtils.CANCELLING_EVENT_TYPE));
 
     @Override
     public IMessagingEventType deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {

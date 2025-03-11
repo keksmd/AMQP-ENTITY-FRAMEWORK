@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RedisEventStorager implements EventStorager {
     private final EventRepository eventRepository;
+    private final MessageEntityMapper mapper;
 
     @Override
     public void save(AbstractNormalMessage message) {
@@ -28,6 +29,6 @@ public class RedisEventStorager implements EventStorager {
 
     @Override
     public AbstractNormalMessage getByID(String operationId) {
-        return eventRepository.findById(operationId).orElse(null);
+        return eventRepository.findById(operationId).map(mapper::toMessage).orElse(null);
     }
 }

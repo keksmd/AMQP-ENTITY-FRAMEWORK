@@ -1,6 +1,6 @@
 package dada.tuda.framework.normalization.types.interfaces;
 
-public interface IEventActionType {
+public interface IEventAction {
     String name();
 }
 

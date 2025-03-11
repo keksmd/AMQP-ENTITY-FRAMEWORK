@@ -1,7 +1,14 @@
 package dada.tuda.framework.entity;
 
-import dada.tuda.framework.normalization.AbstractNormalMessage;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import dada.tuda.framework.normalization.NormalMessage;
+import dada.tuda.framework.normalization.converters.EventTypeConverter;
+import dada.tuda.framework.normalization.converters.IMessagingEventTypeDeserializer;
+import dada.tuda.framework.normalization.converters.MapToJsonConverter;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
+import jakarta.annotation.Nullable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.EqualsAndHashCode;
@@ -18,23 +25,32 @@ import java.util.Map;
 @Setter
 @ToString
 @Entity
-@EqualsAndHashCode(callSuper = true)
-public class EventEntity extends AbstractNormalMessage implements Serializable {
+@EqualsAndHashCode()
+public class EventEntity implements Serializable, NormalMessage {
+    private @Nullable String objectId;
+
+    @Convert(converter = MapToJsonConverter.class)
+    @Column(columnDefinition = "TEXT")
+    private Map<String, Object> payloadMap;
+    @Convert(converter = EventTypeConverter.class)
+    @JsonDeserialize(using = IMessagingEventTypeDeserializer.class)
+    private IMessagingEventType type;
+    @org.springframework.data.annotation.Id
+    @jakarta.persistence.Id
+    private String operationId;
+    private String actorId;
+
     public EventEntity() {
-        super();
+    }
+    public EventEntity(NormalMessage type) {
+        this.objectId = type.getObjectId();
+        this.type = type.getType();
+        this.operationId = type.getOperationId();
+        this.actorId = type.getActorId();
+
     }
 
-    public EventEntity(AbstractNormalMessage abstractNormalMessage) {
-        super(abstractNormalMessage);
-    }
 
-    public EventEntity(String objectId, String actorId, Map<String, Object> payloadMap, IMessagingEventType type) {
-        super(objectId, actorId, payloadMap, type);
-    }
-
-    public EventEntity(String objectId, Map<String, Object> payloadMap, IMessagingEventType type) {
-        super(objectId, payloadMap, type);
-    }
 
     @Id
     @org.springframework.data.annotation.Id
@@ -43,4 +59,8 @@ public class EventEntity extends AbstractNormalMessage implements Serializable {
     }
 
 
+    @Override
+    public Map<String, Object> getProperties() {
+        return payloadMap;
+    }
 }

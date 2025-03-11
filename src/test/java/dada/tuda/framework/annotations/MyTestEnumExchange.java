@@ -1,10 +1,10 @@
 package dada.tuda.framework.annotations;
 
-import dada.tuda.framework.normalization.types.interfaces.IMessagingAggregate;
+import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import dada.tuda.framework.redis.IEnum;
 
 @EnumBean
-public enum MyTestEnumExchange implements IMessagingAggregate, IEnum {
+public enum MyTestEnumExchange implements IMessagingDomain, IEnum {
     ENTITY;
     @Override
     public String getName() {

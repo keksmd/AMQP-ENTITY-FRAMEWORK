@@ -31,7 +31,7 @@ public class MessageHandlerRegistry {
 
 
     public Object handleMessage(AbstractNormalMessage message) throws Exception {
-        if (message.computeType() instanceof CancelUtils.CancellingEvent) {
+        if (message.getType() instanceof CancelUtils.CancellingEvent) {
             String reason = (String) message.getPayloadMap().get("reason");
             if (reason != null) {
                 log.warn("operation with id={} is cancelling. \nReason: {}", message.getOperationId(), reason);
@@ -39,7 +39,7 @@ public class MessageHandlerRegistry {
             this.cancelMessage(message.getOperationId());
         }
 
-        MessageHandler cachedHandler = getHandlerByType(message.computeType());
+        MessageHandler cachedHandler = getHandlerByType(message.getType());
         if (!idempotencyProvider.eventProcessed(message.getOperationId())) {
             try {
                 Object returned = cachedHandler.handle(message);
@@ -51,7 +51,7 @@ public class MessageHandlerRegistry {
             } catch (Exception e) {
                 log.warn("operation {} should be canceled: \n {}", message.getOperationId(), e.getMessage());
                 if (Boolean.TRUE.equals(sagaEnabled)) {
-                    String id = messageCanceller.cancelOperation(message.getOperationId(), "Exception in service: " + serviceName + " " + e.getLocalizedMessage(), message.computeType());
+                    String id = messageCanceller.cancelOperation(message.getOperationId(), "Exception in service: " + serviceName + " " + e.getLocalizedMessage(), message.getType());
                     idempotencyProvider.storeEventAsProcessed(id);
                     log.warn(e.getLocalizedMessage());
                     return null;
@@ -71,14 +71,33 @@ public class MessageHandlerRegistry {
             log.error("Operation with id {} cannot be cancelled because it is not stored before.", eventId);
             return;
         }
-        var cachedHandler = getHandlerByType(canceledEvent.computeType());
+        var cachedHandler = getHandlerByType(canceledEvent.getType());
         if (cachedHandler instanceof CancelableMessageHandler cancelableMessageHandler) {
             cancelableMessageHandler.cancel(canceledEvent);
         }
     }
-
     private MessageHandler getHandlerByType(IMessagingEventType type) {
-        return cache.computeIfAbsent(type, key -> handlers.stream().filter(handler -> handler.canHandle(key)).findFirst().orElseThrow(() -> new Error("No handler found for type: " + type)));
+        return cache
+                .computeIfAbsent(type, key
+                                -> handlers
+                                .stream()
+                                .filter(handler ->
+                                        handler.canHandle(key))
+                        .findFirst().
+                        orElse(defaultHandler));
     }
+    private final MessageHandler defaultHandler = new MessageHandler() {
+        @Override
+        public Boolean canHandle(IMessagingEventType type) {
+            return true;
+        }
+
+        @Override
+        public Object handle(AbstractNormalMessage message) {
+            log.warn("Message with id has no valid handler: {}",message.toString());
+            return null;
+        }
+    };
+
 
 }

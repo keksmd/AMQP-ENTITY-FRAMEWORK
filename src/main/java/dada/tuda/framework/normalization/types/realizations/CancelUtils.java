@@ -1,39 +1,27 @@
 package dada.tuda.framework.normalization.types.realizations;
 
-import dada.tuda.framework.normalization.types.interfaces.IEventActionType;
-import dada.tuda.framework.normalization.types.interfaces.IMessagingAggregate;
+import dada.tuda.framework.normalization.types.interfaces.IEventAction;
+import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
 
 public class CancelUtils {
-    private static final IMessagingAggregate aggregate = () -> "CANCELLED";
-    private static final IEventActionType type = () -> "CANCELED";
-    private static CancellingEvent cancellingEvent = new CancellingEvent();
+    public static final IMessagingDomain CANCELLED_DOMAIN = () -> "CANCELLED";
+    public static final IEventAction CANCELLED_ACTION = () -> "CANCELLED";
+   public static IMessagingEventType CANCELLING_EVENT_TYPE = new CancellingEvent();
 
     private CancelUtils() {
-    }
-
-    public static IMessagingEventType getCancellingEventType() {
-        return cancellingEvent;
-    }
-
-    public static IMessagingAggregate getCancelAggregate() {
-        return aggregate;
-    }
-
-    public static IEventActionType getCancelActionType() {
-        return type;
     }
 
     public static class CancellingEvent implements IMessagingEventType {
 
         @Override
-        public IMessagingAggregate getAggregate() {
-            return CancelUtils.aggregate;
+        public IMessagingDomain getAggregate() {
+            return CancelUtils.CANCELLED_DOMAIN;
         }
 
         @Override
-        public IEventActionType getActionType() {
-            return type;
+        public IEventAction getActionType() {
+            return CancelUtils.CANCELLED_ACTION;
         }
 
         @Override

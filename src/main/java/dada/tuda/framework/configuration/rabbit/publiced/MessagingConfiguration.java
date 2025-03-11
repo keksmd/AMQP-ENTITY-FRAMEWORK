@@ -18,11 +18,11 @@ import dada.tuda.framework.normalization.FrameworkMessageFactory;
 import dada.tuda.framework.normalization.Header;
 import dada.tuda.framework.normalization.HeadersGenerator;
 import dada.tuda.framework.normalization.converters.IMessagingEventTypeDeserializer;
-import dada.tuda.framework.normalization.types.interfaces.IEventActionType;
-import dada.tuda.framework.normalization.types.interfaces.IMessagingAggregate;
+import dada.tuda.framework.normalization.types.interfaces.IEventAction;
+import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
 import dada.tuda.framework.normalization.types.realizations.CancelUtils;
-import dada.tuda.framework.normalization.types.realizations.RequestedType;
+import dada.tuda.framework.normalization.types.realizations.Requested;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
@@ -52,20 +52,20 @@ public class MessagingConfiguration {
 
     @Bean
     IMessagingEventType cancellingEvent() {
-        return CancelUtils.getCancellingEventType();
+        return CancelUtils.CANCELLING_EVENT_TYPE;
     }
     @Bean
-    IMessagingAggregate cancelAggregate() {
-        return CancelUtils.getCancelAggregate();
+    IMessagingDomain cancelAggregate() {
+        return CancelUtils.CANCELLED_DOMAIN;
     }
     @Bean
-    IEventActionType cancelActionType() {
-        return CancelUtils.getCancelActionType();
+    IEventAction cancelActionType() {
+        return CancelUtils.CANCELLED_ACTION;
     }
 
     @Bean
-    public IEventActionType requestedType() {
-        return RequestedType.getInstance();
+    public IEventAction requestedType() {
+        return Requested.getInstance();
     }
 
     @Bean

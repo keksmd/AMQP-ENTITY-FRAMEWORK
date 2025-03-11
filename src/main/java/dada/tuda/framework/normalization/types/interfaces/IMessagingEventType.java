@@ -4,9 +4,9 @@ import java.io.Serializable;
 
 public interface IMessagingEventType extends Serializable {
 
-    IMessagingAggregate getAggregate();
+    IMessagingDomain getAggregate();
 
-    IEventActionType getActionType();
+    IEventAction getActionType();
 
     boolean isQuery();
 

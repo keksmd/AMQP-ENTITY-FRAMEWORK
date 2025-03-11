@@ -3,11 +3,10 @@ package dada.tuda.framework.normalization;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
 import jakarta.annotation.Nullable;
 
-import java.io.Serializable;
 import java.util.Map;
 
 
-public interface NormalMessage extends Serializable {
+public interface NormalMessage {
 
     @Nullable
     String getObjectId();
@@ -17,7 +16,7 @@ public interface NormalMessage extends Serializable {
 
     String getOperationId();
 
-    IMessagingEventType computeType();
+    IMessagingEventType getType();
 
     Map<String, Object> getProperties();
 

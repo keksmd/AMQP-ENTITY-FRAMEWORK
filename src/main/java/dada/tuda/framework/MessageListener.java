@@ -16,7 +16,7 @@ public class MessageListener {
 
     @RabbitHandler
     public Object handleMessage(@Payload AbstractNormalMessage event) throws Exception {
-        if (event.computeType() instanceof CancelUtils.CancellingEvent) {
+        if (event.getType() instanceof CancelUtils.CancellingEvent) {
             String reason = (String) event.getPayloadMap().get("reason");
             if (reason != null) {
                 log.warn("operation with id={} is cancelling. \nReason: {}", event.getOperationId(), reason);

@@ -1,40 +1,30 @@
 package dada.tuda.framework.normalization;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import dada.tuda.framework.normalization.converters.EventTypeConverter;
 import dada.tuda.framework.normalization.converters.IMessagingEventTypeDeserializer;
-import dada.tuda.framework.normalization.converters.MapToJsonConverter;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
 import jakarta.annotation.Nullable;
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.springframework.data.annotation.Id;
 
 import java.util.Map;
 import java.util.UUID;
 
-@MappedSuperclass
+
 @RequiredArgsConstructor
 @Getter
 @Setter
 @ToString
 public class AbstractNormalMessage implements NormalMessage {
     private @Nullable String objectId;
+    private  Map<String, Object> payloadMap;
 
-    @Convert(converter = MapToJsonConverter.class)
-    @Column(columnDefinition = "TEXT")
-    private Map<String, Object> payloadMap;
-    @Convert(converter = EventTypeConverter.class)
     @JsonDeserialize(using = IMessagingEventTypeDeserializer.class)
     private IMessagingEventType type;
-    @Id
-    @jakarta.persistence.Id
+
     private String operationId;
     private String actorId;
 
@@ -62,31 +52,8 @@ public class AbstractNormalMessage implements NormalMessage {
         this.actorId = message.actorId;
     }
 
-
-    @Override
-    public @Nullable String getObjectId() {
-        return objectId;
-    }
-
-    @Override
-    public @Nullable String getActorId() {
-        return actorId;
-    }
-
-    @Override
-    public String getOperationId() {
-        return operationId;
-    }
-
     @Override
     public Map<String, Object> getProperties() {
         return payloadMap;
     }
-
-    @Override
-    public IMessagingEventType computeType() {
-        return type;
-    }
-
-
 }

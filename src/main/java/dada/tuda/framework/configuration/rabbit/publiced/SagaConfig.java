@@ -5,10 +5,12 @@ import dada.tuda.framework.configuration.jackson.JaksonConfiguration;
 import dada.tuda.framework.configuration.redis.RedisRepositoryConfig;
 import dada.tuda.framework.consistency.EventRepository;
 import dada.tuda.framework.consistency.EventStorager;
+import dada.tuda.framework.consistency.MessageEntityMapper;
 import dada.tuda.framework.consistency.RedisEventStorager;
 import dada.tuda.framework.normalization.converters.EventTypeConverter;
 import dada.tuda.framework.normalization.converters.MapToJsonConverter;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
+import org.mapstruct.factory.Mappers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,8 +23,12 @@ import java.util.List;
 public class SagaConfig {
     @Bean
     @Primary
-    EventStorager eventStorager(EventRepository repo) {
-        return new RedisEventStorager(repo);
+    EventStorager eventStorager(EventRepository repo, MessageEntityMapper mapper) {
+        return new RedisEventStorager(repo,mapper);
+    }
+    @Bean
+    MessageEntityMapper messageEntityMapper() {
+        return Mappers.getMapper(MessageEntityMapper.class);
     }
 
     @Bean

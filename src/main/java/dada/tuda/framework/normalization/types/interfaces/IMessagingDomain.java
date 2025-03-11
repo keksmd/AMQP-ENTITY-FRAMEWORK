@@ -1,6 +1,6 @@
 package dada.tuda.framework.normalization.types.interfaces;
 
-public interface IMessagingAggregate {
+public interface IMessagingDomain {
 
 
     default String getExchangeName(){

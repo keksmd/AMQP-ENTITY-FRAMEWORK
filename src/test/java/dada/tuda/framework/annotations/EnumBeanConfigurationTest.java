@@ -2,7 +2,7 @@ package dada.tuda.framework.annotations;
 
 import dada.tuda.framework.configuration.EnumBeanConfiguration;
 import dada.tuda.framework.configuration.rabbit.ExchangesConfiguration;
-import dada.tuda.framework.normalization.types.interfaces.IMessagingAggregate;
+import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ class EnumBeanConfigurationTest {
 
 
     @Autowired(required = false)
-    private List<IMessagingAggregate> ens;
+    private List<IMessagingDomain> ens;
 
     @Test
     void testSimpleEnumBeansAreRegistered() {

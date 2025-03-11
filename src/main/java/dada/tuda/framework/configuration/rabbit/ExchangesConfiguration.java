@@ -1,7 +1,7 @@
 package dada.tuda.framework.configuration.rabbit;
 
 import dada.tuda.framework.ExchangeProvider;
-import dada.tuda.framework.normalization.types.interfaces.IMessagingAggregate;
+import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.core.ExchangeBuilder;
 import org.springframework.amqp.core.TopicExchange;
@@ -19,7 +19,7 @@ import java.util.List;
 @Configuration
 public class ExchangesConfiguration {
     @Bean
-    static BeanDefinitionRegistryPostProcessor ex(@Autowired List<IMessagingAggregate> aggregates) {
+    static BeanDefinitionRegistryPostProcessor ex(@Autowired List<IMessagingDomain> aggregates) {
         return new ExchangesByAggragetesCreatePostProcessor(aggregates);
     }
 
@@ -49,7 +49,7 @@ public class ExchangesConfiguration {
 
 @RequiredArgsConstructor
 class ExchangesByAggragetesCreatePostProcessor implements Ordered, BeanDefinitionRegistryPostProcessor {
-    private final List<IMessagingAggregate> aggregates;
+    private final List<IMessagingDomain> aggregates;
 
     @Override
     public int getOrder() {
@@ -58,9 +58,9 @@ class ExchangesByAggragetesCreatePostProcessor implements Ordered, BeanDefinitio
 
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-        for (IMessagingAggregate iMessagingAggregate : aggregates) {
-            String exchangeBeanName = (iMessagingAggregate).getName().toLowerCase() + "Exchange";
-            String exchangeName = (iMessagingAggregate).getExchangeName();
+        for (IMessagingDomain iMessagingDomain : aggregates) {
+            String exchangeBeanName = (iMessagingDomain).getName().toLowerCase() + "Exchange";
+            String exchangeName = (iMessagingDomain).getExchangeName();
             ExchangesConfiguration.registerExchange(exchangeName, exchangeBeanName, registry);
             ExchangesConfiguration.registerExchangeName(exchangeName, exchangeBeanName, registry);
         }
