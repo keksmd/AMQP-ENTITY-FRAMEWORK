@@ -15,11 +15,11 @@ public class MessageListener {
     private final MessageHandlerRegistry handlerRegistry;
 
     @RabbitHandler
-    public Object handleEventCreatedEvent(@Payload AbstractNormalMessage event) throws Exception {
+    public Object handleMessage(@Payload AbstractNormalMessage event) throws Exception {
         if (event.computeType() instanceof CancelUtils.CancellingEvent) {
             String reason = (String) event.getPayloadMap().get("reason");
             if (reason != null) {
-                log.warn("operation {} id cancelling because {}", event.getOperationId(), reason);
+                log.warn("operation with id={} is cancelling. \nReason: {}", event.getOperationId(), reason);
             }
             handlerRegistry.cancelMessage(event.getOperationId());
         }

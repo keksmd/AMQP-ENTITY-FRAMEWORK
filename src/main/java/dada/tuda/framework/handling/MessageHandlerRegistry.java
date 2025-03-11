@@ -5,6 +5,7 @@ import dada.tuda.framework.consistency.IdempotencyProvider;
 import dada.tuda.framework.facade.MessageCanceller;
 import dada.tuda.framework.normalization.AbstractNormalMessage;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
+import dada.tuda.framework.normalization.types.realizations.CancelUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,14 @@ public class MessageHandlerRegistry {
 
 
     public Object handleMessage(AbstractNormalMessage message) throws Exception {
+        if (message.computeType() instanceof CancelUtils.CancellingEvent) {
+            String reason = (String) message.getPayloadMap().get("reason");
+            if (reason != null) {
+                log.warn("operation with id={} is cancelling. \nReason: {}", message.getOperationId(), reason);
+            }
+            this.cancelMessage(message.getOperationId());
+        }
+
         MessageHandler cachedHandler = getHandlerByType(message.computeType());
         if (!idempotencyProvider.eventProcessed(message.getOperationId())) {
             try {
