@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'dev-stand' }
+    agent { label 'dev-runner' }
 
     options {
         skipStagesAfterUnstable()
