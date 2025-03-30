@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'spring-boot-build-image' }
+    agent { label 'dev-stand' }
 
     options {
         skipStagesAfterUnstable()
