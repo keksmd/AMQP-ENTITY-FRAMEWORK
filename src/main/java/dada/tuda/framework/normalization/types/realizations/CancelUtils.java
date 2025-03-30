@@ -15,7 +15,7 @@ public class CancelUtils {
     public static class CancellingEvent implements IMessagingEventType {
 
         @Override
-        public IMessagingDomain getAggregate() {
+        public IMessagingDomain getDomain() {
             return CancelUtils.CANCELLED_DOMAIN;
         }
 
