@@ -21,7 +21,7 @@ public class MessageSender {
 
     public void sendUsingType(AbstractNormalMessage event) {
        IMessagingEventType type = event.getType();
-        TopicExchange exchange = exchangeProvider.getExchange(type.getAggregate());
+        TopicExchange exchange = exchangeProvider.getExchange(type.getDomain());
         String routingKey = type.toRoutingKey();
         rabbitTemplate.convertAndSend(
                 exchange.getName(),
@@ -35,7 +35,7 @@ public class MessageSender {
     }
     public void sendMessageCancel(AbstractNormalMessage event) {
         IMessagingEventType type = event.getType();
-        TopicExchange exchange = exchangeProvider.getExchange(type.getAggregate());
+        TopicExchange exchange = exchangeProvider.getExchange(type.getDomain());
         String routingKey = type.toRoutingKey()+ CancelUtils.CANCELLED_ACTION.name().toLowerCase();
         rabbitTemplate.convertAndSend(
                 exchange.getName(),
@@ -49,7 +49,7 @@ public class MessageSender {
     }
     public  <T> T sendRequestUsingType(AbstractNormalMessage event, TypeReference<T> returning) {
         IMessagingEventType type = event.getType();
-        TopicExchange exchange = exchangeProvider.getExchange(type.getAggregate());
+        TopicExchange exchange = exchangeProvider.getExchange(type.getDomain());
         String routingKey = type.toRoutingKey();
         Object response = rabbitTemplate.convertSendAndReceive(
                 exchange.getName(),

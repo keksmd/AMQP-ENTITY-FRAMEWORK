@@ -18,7 +18,7 @@ public class RedisEventStorager implements EventStorager {
             eventRepository.save(new EventEntity(message));
             log.debug("saved event processed {}", message.getOperationId());
         } catch (Exception e) {
-            log.error("failed to save event processed {}", e.getMessage());
+            log.error("failed to save event processed", e);
         }
     }
 

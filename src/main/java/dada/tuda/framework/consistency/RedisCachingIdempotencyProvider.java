@@ -37,7 +37,7 @@ public class RedisCachingIdempotencyProvider implements IdempotencyProvider {
             valueOps.set(key, key, 5, TimeUnit.MINUTES);
             log.debug("saved event processed {}", key);
         } catch (Exception e) {
-            log.error("failed to save event processed {}", e.getMessage());
+            log.error("failed to save event processed", e);
         }
     }
 
