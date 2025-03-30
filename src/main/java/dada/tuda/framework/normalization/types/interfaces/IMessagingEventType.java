@@ -4,13 +4,13 @@ import java.io.Serializable;
 
 public interface IMessagingEventType extends Serializable {
 
-    IMessagingDomain getAggregate();
+    IMessagingDomain getDomain();
 
     IEventAction getActionType();
 
     boolean isQuery();
-    public default String toRoutingKey(){
-       return this.getAggregate().getKey() + "." + this.getActionType().name().toLowerCase();
+    default String toRoutingKey(){
+        return this.getDomain().getKey() + "." + this.getActionType().name().toLowerCase();
     }
     String name();
 
