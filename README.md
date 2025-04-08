@@ -3,8 +3,19 @@ This framework is all you need to start declarative DDD with distributed transac
 
 Now framework supports only RabbitMQ, but we have a plan to promote Kafka support
 
+Enable configuration partitionaly with
+```
+@EnableCustomConfigs(types = { RABBIT, REDIS, TRACING, CACHE, IDEMPOTENCY, CACHE_ANNOTATIONS ,IDEMPOTENCY_SAGAS, SAGAS })
+```
+or entire with 
+```
+@EnableCustomConfigs(types = {ConfigType.ALL})
+```
 
-Create Activity Domain and EventType Beans (using EnumBean tool)
+
+
+
+Design Activity domain and EventType Beans (using EnumBean tool)
 ``` java
 @EnumBean(classnamePrefix = "false",lowercase = "true")
 public enum MessagingAggregate implements IMessagingDomain, IEnum {
