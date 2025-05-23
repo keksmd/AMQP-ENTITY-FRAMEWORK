@@ -7,16 +7,6 @@
         </encoder>
     </appender>
 
-    <!-- Отдельный JSON-логгер для IntegrationLogger -->
-    <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
-    </appender>
-
-    <!-- Настраиваем IntegrationLogger на JSON -->
-    <logger name="IntegrationLogger" level="INFO" additivity="false">
-        <appender-ref ref="JSON_CONSOLE"/>
-    </logger>
-
     <!-- Глобальный логгер (все остальные логи остаются стандартными) -->
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
