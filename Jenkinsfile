@@ -17,7 +17,7 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    sh "mvn clean test -DskipTests=true -s ${env.MAVEN_SETTINGS_PATH}"
+                    sh "mvn -Dmaven.repo.local=/root/.m2/repository/ clean test -ntp -U -s ${env.MAVEN_SETTINGS_PATH}"
                 }
             }
         }
@@ -25,7 +25,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    sh "mvn clean install -DskipTests=true -s ${env.MAVEN_SETTINGS_PATH}"
+                    sh "mvn -Dmaven.repo.local=/root/.m2/repository/ clean install -DskipTests=true -ntp -U -s ${env.MAVEN_SETTINGS_PATH}"
                 }
             }
         }
@@ -39,7 +39,7 @@ pipeline {
             }
             steps {
                 script {
-                    sh "mvn deploy -DskipTests=true -s ${env.MAVEN_SETTINGS_PATH}"
+                    sh "mvn -Dmaven.repo.local=/root/.m2/repository/ deploy -ntp -U -DskipTests=true -s ${env.MAVEN_SETTINGS_PATH}"
                 }
             }
         }
