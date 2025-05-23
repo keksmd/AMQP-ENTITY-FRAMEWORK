@@ -6,12 +6,8 @@ pipeline {
                 script {
                     withCredentials([file(credentialsId: 'maven-nexus-settings', variable: 'MAVEN_SETTINGS')]) {
                         echo "Using temporary Maven settings file"
-
-                        // Define the settings.xml path inside the workspace
                         def persistentSettingsPath = "${env.WORKSPACE}/maven-settings.xml"
-                        sh "cp $MAVEN_SETTINGS ${persistentSettingsPath}"
-
-                        // Store the path in the environment for later stages
+                        sh "cp ${MAVEN_SETTINGS} ${persistentSettingsPath}"
                         env.MAVEN_SETTINGS_PATH = persistentSettingsPath
                     }
                 }
