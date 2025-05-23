@@ -1,15 +1,5 @@
 pipeline {
     agent any
-
-    options {
-        skipStagesAfterUnstable()
-    }
-
-    environment {
-        M3_HOME = tool 'M3'
-        PATH = "${M3_HOME}/bin:${env.PATH}"
-    }
-
     stages {
         stage('Prepare Maven Settings') {
             steps {
