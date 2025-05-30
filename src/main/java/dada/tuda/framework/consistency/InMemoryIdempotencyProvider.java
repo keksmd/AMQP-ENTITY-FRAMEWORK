@@ -24,7 +24,7 @@ public class InMemoryIdempotencyProvider implements MessageStorage {
     @Override
     public boolean isProcessed(NormalMessage message) {
         try {
-            return messages.containsValue(message);
+            return messages.containsKey(message.getOperationId());
         } catch (Exception e) {
             log.error("failed to check event processed {}", e.getMessage());
             return false;
