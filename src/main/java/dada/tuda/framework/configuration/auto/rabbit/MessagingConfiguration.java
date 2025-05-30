@@ -38,6 +38,8 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -50,6 +52,7 @@ import java.util.Set;
 @Slf4j
 @Configuration
 @ConditionalOnBean(ConnectionFactory.class)
+@AutoConfigureAfter(RabbitAutoConfiguration.class)
 @Import(TypesRealizationConfig.class)
 public class MessagingConfiguration {
 

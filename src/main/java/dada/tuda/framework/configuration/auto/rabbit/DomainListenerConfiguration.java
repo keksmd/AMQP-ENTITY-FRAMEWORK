@@ -16,12 +16,15 @@ import dada.tuda.framework.handling.MessageHandlerRegistry;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+@AutoConfigureAfter(RabbitAutoConfiguration.class)
 @Configuration
 public class DomainListenerConfiguration {
 

@@ -10,6 +10,8 @@ import dada.tuda.framework.consistency.mapper.MessageMapper;
 import dada.tuda.framework.normalization.converters.MapToJsonConverter;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -20,8 +22,9 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 @Configuration
-@ConditionalOnProperty(name = "dada.tuda.messaging.saga.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
 @Import(CancelConfig.class)
+@AutoConfigureAfter(RabbitAutoConfiguration.class)
 @ConditionalOnBean({ RedisConnectionFactory.class, ConnectionFactory.class })
 public class SagaConfig {
     @Bean
