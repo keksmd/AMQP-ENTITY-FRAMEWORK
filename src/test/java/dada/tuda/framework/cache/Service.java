@@ -41,7 +41,7 @@ public class Service {
         }).toList();
     }
 
-    @Cacheable(key = "#dtoIds", cacheNames = "item", cacheManager = "redisCacheManager")
+    @Cacheable(key = "#dtoIds", cacheNames = "item", cacheManager = "redisCacheManagerWithJsonSerializer")
     public Dto getSaved(String dtoIds) {
         return getSavedNoCache(dtoIds);
     }
