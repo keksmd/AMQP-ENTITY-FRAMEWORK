@@ -1,7 +1,7 @@
 package dada.tuda.framework.crud;
 
 import dada.tuda.framework.crud.contexts.EntityContext;
-import dada.tuda.framework.normalization.types.realizations.EntityProducer;
+import dada.tuda.framework.normalization.types.interfaces.EntityProducer;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;

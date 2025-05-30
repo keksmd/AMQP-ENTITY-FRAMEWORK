@@ -119,7 +119,7 @@ public class RedisRepositoryConfig {
             enableKeyspaceEvents = RedisKeyValueAdapter.EnableKeyspaceEvents.ON_STARTUP
     )
     @ConditionalOnBean(RedisConnectionFactory.class)
-    static class RedisRepositoriesConfig {
+    public static class RedisRepositoriesConfig {
 
     }
 }

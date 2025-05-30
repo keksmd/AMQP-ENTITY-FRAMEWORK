@@ -34,9 +34,9 @@ import dada.tuda.framework.handling.MessageHandler;
 import dada.tuda.framework.handling.MessageHandlerRegistry;
 import dada.tuda.framework.normalization.Header;
 import dada.tuda.framework.normalization.HeadersGenerator;
+import dada.tuda.framework.normalization.types.interfaces.EntityProducer;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
-import dada.tuda.framework.normalization.types.realizations.EntityProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.TopicExchange;
@@ -132,7 +132,7 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public EntityProducer<?> myCancelMessageEntityEntityProducer(MessageSender messageSender, EntityContext entityContext, DescriptorConverter descriptorConverter, MessageStorage messageStorage) {
+    public EntityProducer<?> entityProducer(MessageSender messageSender, EntityContext entityContext, DescriptorConverter descriptorConverter, MessageStorage messageStorage) {
         return new EntityProducer<>(messageSender, entityContext, descriptorConverter, messageStorage);
     }
 
@@ -218,7 +218,7 @@ public class MessagingConfiguration {
 
     @Configuration
     @ComponentScan(basePackages = "dada.tuda.framework.normalization.types.realizations")
-    static class TypesRealizationConfig {
+    public static class TypesRealizationConfig {
     }
 
 }

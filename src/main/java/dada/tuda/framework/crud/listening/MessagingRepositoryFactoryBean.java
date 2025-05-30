@@ -1,7 +1,7 @@
 package dada.tuda.framework.crud.listening;
 
 import dada.tuda.framework.facade.MessagingEntittyRepository;
-import dada.tuda.framework.normalization.types.realizations.EntityProducer;
+import dada.tuda.framework.normalization.types.interfaces.EntityProducer;
 import dada.tuda.framework.normalization.types.realizations.MessagingEntityRepositoryInvocationHandler;
 import lombok.Setter;
 import org.springframework.beans.BeansException;

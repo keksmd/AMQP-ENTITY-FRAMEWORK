@@ -19,6 +19,6 @@ public class CancelConfig {
     @Configuration
     @EnableMessagingRepositories(basePackages = "dada.tuda.framework.repositories.cancel")
     @ConditionalOnBean(ConnectionFactory.class)
-    static class CancelRepositoryConfig {
+    public static class CancelRepositoryConfig {
     }
 }

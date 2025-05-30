@@ -1,5 +1,7 @@
 package dada.tuda.framework.normalization.types.realizations;
 
+import dada.tuda.framework.normalization.types.interfaces.EntityProducer;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 

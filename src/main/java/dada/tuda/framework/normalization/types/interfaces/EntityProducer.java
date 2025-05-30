@@ -1,4 +1,4 @@
-package dada.tuda.framework.normalization.types.realizations;
+package dada.tuda.framework.normalization.types.interfaces;
 
 import dada.tuda.framework.consistency.MessageStorage;
 import dada.tuda.framework.crud.DescriptorConverter;
@@ -6,7 +6,7 @@ import dada.tuda.framework.crud.contexts.EntityContext;
 import dada.tuda.framework.facade.MessageSender;
 import dada.tuda.framework.facade.MessagingEntittyRepository;
 import dada.tuda.framework.normalization.messages.NormalizedMessage;
-import dada.tuda.framework.normalization.types.interfaces.IEventAction;
+import dada.tuda.framework.normalization.types.realizations.CRUDEventActionTypes;
 import lombok.RequiredArgsConstructor;
 
 
