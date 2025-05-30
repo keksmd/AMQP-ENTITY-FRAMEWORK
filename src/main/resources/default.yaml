@@ -1,0 +1,11 @@
+dada:
+  tuda:
+    framework:
+      messaging:
+        store-only-cancelable: true
+        saga:
+          enabled: false
+      domains:
+        queue:
+          naming:
+            per-service: true

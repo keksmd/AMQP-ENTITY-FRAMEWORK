@@ -1,7 +1,7 @@
 package dada.tuda.framework.handling;
 
-import dada.tuda.framework.normalization.AbstractNormalMessage;
+import dada.tuda.framework.normalization.messages.NormalMessage;
 
 public interface CancelableMessageHandler extends MessageHandler {
-    void cancel(AbstractNormalMessage message);
+    void cancel(NormalMessage message);
 }

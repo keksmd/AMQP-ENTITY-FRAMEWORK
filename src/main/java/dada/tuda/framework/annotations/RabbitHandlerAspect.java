@@ -1,6 +1,6 @@
 package dada.tuda.framework.annotations;
 
-import dada.tuda.framework.normalization.AbstractNormalMessage;
+import dada.tuda.framework.normalization.messages.NormalMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -28,15 +28,15 @@ public class RabbitHandlerAspect {
                     }
                 }
                 String type = null;
-                if (args.length > 0 && args[0] instanceof AbstractNormalMessage bodyValue) {
+                if (args.length > 0 && args[0] instanceof NormalMessage bodyValue) {
                     if (requestId == null) {
                         requestId = bodyValue.getOperationId();
                     }
-                    type = bodyValue.getType().name();
+                    //type = bodyValue.getDomain() + bodyValue.getActionType().name();
                 } else {
                     for (Object arg : args) {
-                        if (arg instanceof AbstractNormalMessage bodyValue) {
-                            type = bodyValue.getType().name();
+                        if (arg instanceof NormalMessage bodyValue) {
+                            //type = bodyValue.getDomain() + bodyValue.getActionType().name();
                             break;
                         }
                     }
@@ -44,7 +44,7 @@ public class RabbitHandlerAspect {
                 if (requestId == null) {
                     requestId = java.util.UUID.randomUUID().toString();
                 }
-                requestId += ":" + (type != null ? type : "unknownEvent");
+                requestId += ":" + "unknownEvent";
                 MDC.put("requestId", requestId);
             } catch (Exception e) {
                 log.error("Не удалось установить requestId. Подробнее: {}", e.getLocalizedMessage());

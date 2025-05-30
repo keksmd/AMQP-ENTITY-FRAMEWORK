@@ -1,0 +1,24 @@
+package dada.tuda.framework.normalization.types.realizations;
+
+import dada.tuda.framework.annotations.EnumBean;
+import dada.tuda.framework.enums.IEnum;
+import dada.tuda.framework.normalization.types.interfaces.IEventAction;
+
+@EnumBean
+public enum CRUDEventActionTypes implements IEventAction, IEnum {
+    CREATED(false),
+    UPDATED(false),
+    DELETED(false),
+    REQUESTED(true),
+    ASYNC_REQUESTED(true);
+    private final boolean query;
+
+    CRUDEventActionTypes(boolean query) {
+        this.query = query;
+    }
+
+    @Override
+    public boolean isQuery() {
+        return query;
+    }
+}

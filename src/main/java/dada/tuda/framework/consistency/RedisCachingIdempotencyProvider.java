@@ -1,45 +1,55 @@
 package dada.tuda.framework.consistency;
 
+import dada.tuda.framework.consistency.mapper.MessageMapper;
+import dada.tuda.framework.normalization.messages.NormalMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
-
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
-public class RedisCachingIdempotencyProvider implements IdempotencyProvider {
-    private final StringRedisTemplate redisTemplate;
-    @Value("${spring.application.name}")
-    private String serviceName;
+public class RedisCachingIdempotencyProvider implements MessageStorage {
+    private final MessageRepository messageRepository;
+    private final MessageMapper mapper;
 
     @Override
-    public boolean eventProcessed(String operationId) {
+    public NormalMessage getByID(String operationId) {
+        return messageRepository.findById(operationId).map(mapper::toMessage).orElse(null);
+    }
+
+    @Override
+    public boolean isProcessed(NormalMessage message) {
+        String id = mapper.toEntity(message).getId();
         try {
-            return redisTemplate.hasKey(buildKey(operationId));
+            return messageRepository.existsById(id);
         } catch (Exception e) {
-            log.error("failed to check event processed {}", e.getMessage());
+            log.error("failed to check event processed,input={}\n{}", message, e.getMessage());
             return false;
         }
     }
 
-    protected String buildKey(String operationId) {
-        return serviceName + ":" + operationId;
+    @Override
+    public boolean isProcessedById(String id) {
+        try {
+            return messageRepository.existsById(id);
+        } catch (Exception e) {
+            log.error("failed to check event processed,input id={}\n{}", id, e.getMessage());
+            return false;
+        }
     }
 
     @Override
-    public void storeEventAsProcessed(String id) {
+    public void storeEventAsProcessed(NormalMessage message) {
         try {
-            String key = buildKey(id);
-            ValueOperations<String, String> valueOps = redisTemplate.opsForValue();
-            valueOps.set(key, key, 5, TimeUnit.MINUTES);
-            log.debug("saved event processed {}", key);
+            messageRepository.save(mapper.toEntity(message));
+            log.debug("saved event processed {}", message.getOperationId());
         } catch (Exception e) {
             log.error("failed to save event processed", e);
         }
     }
 
 
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }

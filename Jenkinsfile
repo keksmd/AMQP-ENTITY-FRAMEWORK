@@ -1,6 +1,4 @@
-properties([
-        disableConcurrentBuilds(abortPrevious: true)
-])
+properties([disableConcurrentBuilds(abortPrevious: true)])
 @Library('maven-lib@1.0.5') _
 node {
     cleanWs()

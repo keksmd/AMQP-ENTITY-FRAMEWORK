@@ -15,4 +15,6 @@ public @interface CacheWithDetails {
     String listKey() default "";// Поле или выражение для создания ключа списка
 
     String itemKeyField() default "id"; // Поле элемента, используемое как ключ
+
+    String waitSet() default "true";
 }

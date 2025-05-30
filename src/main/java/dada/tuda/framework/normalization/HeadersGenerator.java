@@ -12,6 +12,6 @@ public class HeadersGenerator implements Consumer<Map<String, Object>> {
 
     @Override
     public void accept(Map<String, Object> stringObjectMap) {
-        headers.forEach(g-> g.accept(stringObjectMap));
+        headers.forEach(g -> g.accept(stringObjectMap));
     }
 }

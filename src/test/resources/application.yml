@@ -1,10 +1,26 @@
 dada:
   tuda:
-    messaging:
-      store-only-cancelable: true
-      saga:
-        enabled: true
+    framework:
+      messaging:
+        store-only-cancelable: false
+        saga:
+          enabled: true
+      domains:
+        queue:
+          naming:
+            per-service: false
 spring:
+  cache:
+    redis:
+      time-to-live: 60000
+  data:
+    redis:
+      host: localhost
+      port: 6379
   rabbitmq:
-    password: guest
     username: guest
+    password: guest
+    host: localhost
+    port: 5672
+    virtual-host: /
+    connection-timeout: 2000

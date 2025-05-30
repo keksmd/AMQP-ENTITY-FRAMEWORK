@@ -1,20 +1,18 @@
 package dada.tuda.framework.facade;
 
-import dada.tuda.framework.normalization.AbstractNormalMessage;
-import dada.tuda.framework.normalization.FrameworkMessageFactory;
-import dada.tuda.framework.normalization.types.interfaces.IMessagingEventType;
+import dada.tuda.framework.repositories.cancel.CancelPayload;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 
 public class MessageCanceller {
 
-    private  final FrameworkMessageFactory eventFabric;
-    private final MessageSender sender;
-    public String cancelOperation(String operationId, String reason, IMessagingEventType type) {
-        AbstractNormalMessage event = eventFabric.canceled(operationId, reason, type);
-       sender.sendMessageCancel(event);
-        return event.getOperationId();
+    private final MessagingEntittyRepository<CancelPayload> repository;
+
+    public void cancelOperation(String reason, String operationId) {
+        var cancel = new CancelPayload(reason, operationId);
+        repository.create(cancel);
     }
+
 }
 
