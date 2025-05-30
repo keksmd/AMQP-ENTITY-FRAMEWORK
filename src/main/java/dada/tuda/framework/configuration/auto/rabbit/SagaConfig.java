@@ -22,14 +22,14 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 @Configuration
-@ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
 @Import(CancelConfig.class)
 @AutoConfigureAfter(RabbitAutoConfiguration.class)
-@ConditionalOnBean({ RedisConnectionFactory.class, ConnectionFactory.class })
+
 public class SagaConfig {
     @Bean
     @Primary
     @ConditionalOnBean({ RedisConnectionFactory.class, ConnectionFactory.class })
+    @ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
     MessageStorage eventStorager(MessageRepository repo, MessageMapper mapper) {
         return new RedisCachingIdempotencyProvider(repo, mapper);
     }
@@ -37,12 +37,17 @@ public class SagaConfig {
 
     @Bean
     @ConditionalOnClass(AutoConfigurationPackages.class)
+    @ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
+
+    @ConditionalOnBean({ RedisConnectionFactory.class, ConnectionFactory.class })
     MessagingRepositoriesMissingAnnotationChecker checker() {
         return new MessagingRepositoriesMissingAnnotationChecker();
     }
 
 
     @Bean
+    @ConditionalOnBean({ RedisConnectionFactory.class, ConnectionFactory.class })
+    @ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
     MapToJsonConverter mapToJsonConverter(ObjectMapper objectMapper) {
         return new MapToJsonConverter(objectMapper);
     }

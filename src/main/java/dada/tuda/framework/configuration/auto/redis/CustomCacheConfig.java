@@ -18,7 +18,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import java.time.Duration;
 
 @Configuration
-@ConditionalOnMissingBean(CacheManager.class)
+
 public class CustomCacheConfig {
     @Bean
     @ConditionalOnBean(RedisConnectionFactory.class)
@@ -33,6 +33,7 @@ public class CustomCacheConfig {
 
     @Bean
     @ConditionalOnBean(RedisConnectionFactory.class)
+    @ConditionalOnMissingBean(CacheManager.class)
     RedisCacheConfiguration redisCacheConfiguration(GenericJackson2JsonRedisSerializer serializer, @Value("${spring.cache.redis.time-to-live:#{10*60*1000}}") Integer ttl) {
         RedisSerializationContext.SerializationPair<String> keySer =
                 RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer());

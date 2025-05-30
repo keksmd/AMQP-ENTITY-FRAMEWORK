@@ -51,7 +51,6 @@ import java.util.Set;
 
 @Slf4j
 @Configuration
-@ConditionalOnBean(ConnectionFactory.class)
 @AutoConfigureAfter(RabbitAutoConfiguration.class)
 @Import(TypesRealizationConfig.class)
 public class MessagingConfiguration {
@@ -64,6 +63,7 @@ public class MessagingConfiguration {
     }
 
     @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
     EventActionContext eventActionContext(List<IEventAction> actions) {
         return new EventActionContext(actions);
     }
@@ -83,6 +83,7 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnMissingBean({ MessageStorage.class })
+    @ConditionalOnBean(ConnectionFactory.class)
     MessageStorage inMemory() {
         return new InMemoryIdempotencyProvider();
     }
@@ -94,11 +95,13 @@ public class MessagingConfiguration {
     }
 
     @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
     public OperationIdGenerator operationIdGenerator() {
         return new UUUDOperationIdGenerator();
     }
 
     @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
     public DescriptorConverter descriptorConverter(ObjectMapper objectMapper) {
         return new DescriptorConverter(objectMapper);
     }
@@ -110,16 +113,19 @@ public class MessagingConfiguration {
     }
 
     @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
     EntityContext entityContext() {
         return new AnnotationEntityContext();
     }
 
     @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
     RoutingKeyConverter routingKeyExtractor(List<IMessagingDomain> domains) {
         return new TypeRoutingKeyConverter(domains);
     }
 
     @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
     HeadersGenerator headersGenerator(@Autowired List<Header> headers) {
         return new HeadersGenerator(headers);
     }
@@ -135,24 +141,27 @@ public class MessagingConfiguration {
     }
 
     @Bean
-    @ConditionalOnBean(ObjectMapper.class)
+    @ConditionalOnBean({ ObjectMapper.class, ConnectionFactory.class })
+
     public Jackson2JsonMessageConverter jsonMessageConverter(@Autowired ObjectMapper objectMapper) {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
         return new Jackson2JsonMessageConverter(objectMapper);
     }
 
-
+    @ConditionalOnBean(ConnectionFactory.class)
     @Bean
     public MessagingEntityBeanFactoryPostProcessor postProcessor(EntityContext context, DomainContext domainContext, QueueNameContext queueContext) {
         return new MessagingEntityBeanFactoryPostProcessor(context, domainContext, queueContext);
     }
 
     @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
     DomainContext domainContext(Set<IMessagingDomain> domains) {
         return new AnnotationDomainContext(domains);
     }
 
     @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
     public MessageMapper messageMapper(DomainContext domainContext,
                                        EventActionContext eventActionContext) {
         // Получаем «сырую» реализацию
@@ -164,6 +173,7 @@ public class MessagingConfiguration {
     }
 
     @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
     public AutoEntityProducer autoEntityProducerConfiguration(EntityContext entityContext) {
         return new AutoEntityProducer(entityContext);
     }

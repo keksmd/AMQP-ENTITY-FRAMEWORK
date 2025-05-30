@@ -16,11 +16,11 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.util.Arrays;
 
-@ConditionalOnBean(RedisConnectionFactory.class)
+
 @Configuration
 public class RedisConnectionConfig {
     @Bean
-    @ConditionalOnBean(name = "objectMapperForRedis")
+    @ConditionalOnBean(name = "objectMapperForRedis", value = RedisConnectionFactory.class)
     public GenericJackson2JsonRedisSerializer serializer(@Qualifier("objectMapperForRedis") ObjectMapper objectMapper) {
         return new GenericJackson2JsonRedisSerializer(objectMapper) {
             private static final byte[] BINARY_NULL;
