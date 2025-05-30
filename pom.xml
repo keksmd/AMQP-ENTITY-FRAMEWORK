@@ -16,7 +16,7 @@
         <springdoc-openapi-ui.version>1.7.0</springdoc-openapi-ui.version>
         <jackson-databind-nullable.version>0.2.1</jackson-databind-nullable.version>
     </properties>
-    <!--suppress VulnerableLibrariesLocal -->
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -28,11 +28,10 @@
             <artifactId>jackson-databind-nullable</artifactId>
             <version>${jackson-databind-nullable.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
-            <version>0.10.2</version> <!-- либо последняя доступная версия -->
+            <version>0.10.2</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -57,7 +56,6 @@
             <artifactId>spring-rabbit</artifactId>
             <version>3.2.2</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
@@ -97,12 +95,6 @@
             <artifactId>jakarta.persistence-api</artifactId>
             <version>3.1.0</version> <!-- Use the latest version -->
         </dependency>
-        <!-- H2 для тестовой базы данных -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -114,8 +106,6 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
-        <!-- TestContainers для RabbitMQ -->
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>rabbitmq</artifactId>
@@ -128,7 +118,6 @@
             <version>2.37.0</version>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api -->
         <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
@@ -150,7 +139,6 @@
             <artifactId>springdoc-openapi-ui</artifactId>
             <version>${springdoc-openapi-ui.version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.redis</groupId>
             <artifactId>testcontainers-redis</artifactId>

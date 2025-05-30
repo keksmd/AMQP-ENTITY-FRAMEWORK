@@ -106,6 +106,6 @@ class MessageHandlerRegistryTest {
         testEntity.setObject("test2");
         testRepo.create(testEntity);
         Thread.sleep(5000);
-        assert ("test".equals(storage.getByID(operationId).getObjectId()));
+        assert ("test2".equals(storage.getByID(operationId).getObjectId()));
     }
 }
