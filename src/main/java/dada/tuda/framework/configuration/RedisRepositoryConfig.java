@@ -8,10 +8,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.cache.support.NullValue;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.cache.RedisCacheWriter;
@@ -33,7 +35,7 @@ import java.util.Arrays;
 public class RedisRepositoryConfig {
     @Bean
     @ConditionalOnBean(name = "objectMapperForRedis", value = RedisConnectionFactory.class)
-    public GenericJackson2JsonRedisSerializer serializer(@Qualifier("objectMapperForRedis") ObjectMapper objectMapper) {
+    public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer(@Qualifier("objectMapperForRedis") ObjectMapper objectMapper) {
         return new GenericJackson2JsonRedisSerializer(objectMapper) {
             private static final byte[] BINARY_NULL;
 
@@ -74,9 +76,18 @@ public class RedisRepositoryConfig {
             }
         };
     }
+
     @Bean
     @ConditionalOnBean(RedisConnectionFactory.class)
-    RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory, GenericJackson2JsonRedisSerializer serializer) {
+    @ConditionalOnMissingBean(name = "redisTemplate")
+    public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        RedisTemplate<Object, Object> template = new RedisTemplate();
+        template.setConnectionFactory(redisConnectionFactory);
+        return template;
+    }
+    @Bean
+    @ConditionalOnBean(RedisConnectionFactory.class)
+    RedisTemplate<String, Object> redisTemplateWithJsonSerializer(RedisConnectionFactory redisConnectionFactory, GenericJackson2JsonRedisSerializer serializer) {
         var redis = new RedisTemplate<String, Object>();
         redis.setConnectionFactory(redisConnectionFactory);
         StringRedisSerializer stringSerializer = new StringRedisSerializer();
@@ -92,7 +103,8 @@ public class RedisRepositoryConfig {
 
     @Bean
     @ConditionalOnBean(RedisConnectionFactory.class)
-    RedisCacheManager redisCacheManager(CacheNamesRegistry cacheNamesRegistry, RedisConnectionFactory connectionFactory, RedisCacheConfiguration config) {
+    @Primary
+    RedisCacheManager redisCacheManagerWithJsonSerializer(CacheNamesRegistry cacheNamesRegistry, RedisConnectionFactory connectionFactory, RedisCacheConfiguration config) {
         return RedisCacheManager
                 .builder(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory))
                 .cacheDefaults(config)
@@ -102,7 +114,8 @@ public class RedisRepositoryConfig {
 
     @Bean
     @ConditionalOnBean(RedisConnectionFactory.class)
-    RedisCacheConfiguration redisCacheConfiguration(GenericJackson2JsonRedisSerializer serializer, @Value("${spring.cache.redis.time-to-live:#{10*60*1000}}") Integer ttl) {
+    @Primary
+    RedisCacheConfiguration redisCacheConfigurationWithJsonSerializer(GenericJackson2JsonRedisSerializer serializer, @Value("${spring.cache.redis.time-to-live:#{10*60*1000}}") Integer ttl) {
         RedisSerializationContext.SerializationPair<String> keySer =
                 RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer());
         RedisSerializationContext.SerializationPair<Object> valueSer = RedisSerializationContext.SerializationPair.fromSerializer(serializer);
