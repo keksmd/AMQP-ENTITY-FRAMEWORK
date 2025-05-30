@@ -1,1 +1,11 @@
-dada.tuda.framework.springconf.WholeConfig
+dada.tuda.framework.springconf.PropertiesConfig
+dada.tuda.framework.configuration.TracingAspectConfiguration
+dada.tuda.framework.configuration.JaksonConfiguration.class
+dada.tuda.framework.configuration.MyCacheAspectConfiguration.class
+dada.tuda.framework.configuration.MessagingConfiguration.class
+dada.tuda.framework.configuration.SagaConfig.class
+dada.tuda.framework.configuration.RedisRepositoryConfig.class
+dada.tuda.framework.configuration.BeanUtilsConfig.class
+dada.tuda.framework.configuration.CancelConfig.class
+dada.tuda.framework.configuration.EnumBeanConfiguration.class
+dada.tuda.framework.configuration.MessagingRepositoriesRegistrar.class

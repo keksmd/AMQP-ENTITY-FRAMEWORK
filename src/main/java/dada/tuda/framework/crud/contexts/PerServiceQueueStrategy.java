@@ -1,6 +1,6 @@
 package dada.tuda.framework.crud.contexts;
 
-import dada.tuda.framework.configuration.auto.DadaTudaFrameworkProperties;
+import dada.tuda.framework.DadaTudaFrameworkProperties;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

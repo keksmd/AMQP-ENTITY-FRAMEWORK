@@ -1,4 +1,4 @@
-package dada.tuda.framework.configuration.auto;
+package dada.tuda.framework;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -6,7 +6,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter
 @Setter
-
 @ConfigurationProperties(prefix = "dada.tuda.framework")
 public class DadaTudaFrameworkProperties {
     private MessagingProperties messaging;

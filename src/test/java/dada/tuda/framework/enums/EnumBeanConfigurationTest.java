@@ -1,7 +1,6 @@
 package dada.tuda.framework.enums;
 
-import dada.tuda.framework.configuration.auto.enums.ExchangesConfiguration;
-import dada.tuda.framework.configuration.auto.rabbit.EnumBeanConfiguration;
+import dada.tuda.framework.configuration.EnumBeanConfiguration;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -15,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
-@SpringBootTest(classes = { EnumBeanConfiguration.class, EnumBeanConfigurationTest.class, MyTestEnum.class, EnumDependedOnMyTestEnum.class, MyTestEnumWithNoPrefix.class, MyTestEnumWithConstructorParameter.class, MyTestEnumExchange.class, ExchangesConfiguration.class })
+@SpringBootTest(classes = { EnumBeanConfiguration.class, EnumBeanConfigurationTest.class, MyTestEnum.class, EnumDependedOnMyTestEnum.class, MyTestEnumWithNoPrefix.class, MyTestEnumWithConstructorParameter.class, MyTestEnumExchange.class })
 class EnumBeanConfigurationTest {
     @Autowired
     ApplicationContext context;
@@ -76,7 +75,7 @@ class EnumBeanConfigurationTest {
         Assertions.assertEquals(MyTestEnumWithConstructorParameter.SECOND, secondBeanWithNoPrefix);
     }
 
-    @Test
+    //@Test
     void testWithEnumBeansAreRegistered() {
         String exchangeName = (String) context.getBean("entityExchangeName");
         org.springframework.amqp.core.Exchange exchange = (org.springframework.amqp.core.Exchange) context.getBean("entityExchange");

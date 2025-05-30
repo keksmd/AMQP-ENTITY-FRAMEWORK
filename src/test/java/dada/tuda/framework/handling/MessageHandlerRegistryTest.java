@@ -1,5 +1,6 @@
 package dada.tuda.framework.handling;
 
+import dada.tuda.framework.WholeConfig;
 import dada.tuda.framework.conf.RabbitContainerConfig;
 import dada.tuda.framework.conf.RedisContainerConfig;
 import dada.tuda.framework.conf.RepoConfig;
@@ -7,7 +8,6 @@ import dada.tuda.framework.conf.TestEntity;
 import dada.tuda.framework.conf.beans.TestEntityRepo;
 import dada.tuda.framework.consistency.MessageStorage;
 import dada.tuda.framework.crud.DescriptorConverter;
-import dada.tuda.framework.springconf.WholeConfig;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  *
- * По неизвестным причинам (скорее всего кэширование тесст-контектса спринга между тест-классам)
+ * По неизвестным причинам (скорее всего кэширование тест-контектса спринга между тест-классам)
  * часть этих тестов не проходит при запуске сразу нескольких тест-классов
  * в maven test и при запуске только этого класса должны проходить
  *  TODO выяснить причину и решить пробоему

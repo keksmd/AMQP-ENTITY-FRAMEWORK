@@ -1,6 +1,7 @@
 package dada.tuda.framework.repositories.cancel;
 
 import dada.tuda.framework.facade.MessagingEntittyRepository;
+import dada.tuda.framework.normalization.messages.CancelPayload;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 

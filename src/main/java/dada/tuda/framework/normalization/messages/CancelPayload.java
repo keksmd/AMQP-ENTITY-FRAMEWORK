@@ -1,4 +1,4 @@
-package dada.tuda.framework.repositories.cancel;
+package dada.tuda.framework.normalization.messages;
 
 import dada.tuda.framework.crud.MessagingEntity;
 import dada.tuda.framework.crud.extractor.ObjectId;

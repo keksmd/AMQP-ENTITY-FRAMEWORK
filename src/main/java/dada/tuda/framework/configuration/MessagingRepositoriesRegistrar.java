@@ -1,5 +1,6 @@
-package dada.tuda.framework.crud.listening;
+package dada.tuda.framework.configuration;
 
+import dada.tuda.framework.crud.listening.MessagingRepositoryFactoryBean;
 import dada.tuda.framework.facade.MessagingEntittyRepository;
 import dada.tuda.framework.normalization.types.realizations.EnableMessagingRepositories;
 import lombok.RequiredArgsConstructor;
@@ -8,10 +9,11 @@ import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.env.Environment;
@@ -25,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@Configuration
+@AutoConfiguration(after = RabbitAutoConfiguration.class)
 @RequiredArgsConstructor
 public class MessagingRepositoriesRegistrar implements ImportBeanDefinitionRegistrar, ResourceLoaderAware, EnvironmentAware {
     private ResourceLoader resourceLoader;
@@ -55,7 +57,6 @@ public class MessagingRepositoriesRegistrar implements ImportBeanDefinitionRegis
                             @Override
                             protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDef) {
                                 var meta = beanDef.getMetadata();
-                                // оставляем либо независимые concrete-классы, либо интерфейсы
                                 return meta.isIndependent() &&
                                        (meta.isConcrete() || meta.isInterface());
                             }

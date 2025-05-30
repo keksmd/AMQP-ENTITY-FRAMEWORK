@@ -1,8 +1,8 @@
-package dada.tuda.framework.configuration.auto.rabbit;
+package dada.tuda.framework.configuration;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dada.tuda.framework.configuration.auto.DadaTudaFrameworkProperties;
+import dada.tuda.framework.DadaTudaFrameworkProperties;
 import dada.tuda.framework.consistency.InMemoryIdempotencyProvider;
 import dada.tuda.framework.consistency.MessageStorage;
 import dada.tuda.framework.consistency.mapper.MessageMapper;
@@ -16,13 +16,20 @@ import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.EntityContext;
 import dada.tuda.framework.crud.contexts.EventActionContext;
 import dada.tuda.framework.crud.contexts.ExchangeContext;
+import dada.tuda.framework.crud.contexts.IEventActionContext;
+import dada.tuda.framework.crud.contexts.IEventActionContextImpl;
+import dada.tuda.framework.crud.contexts.MapStoragingQueueNameContext;
+import dada.tuda.framework.crud.contexts.PerServiceQueueStrategy;
 import dada.tuda.framework.crud.contexts.QueueNameContext;
+import dada.tuda.framework.crud.contexts.QueueStrategy;
 import dada.tuda.framework.crud.extractor.OperationIdGenerator;
 import dada.tuda.framework.crud.extractor.RoutingKeyConverter;
 import dada.tuda.framework.crud.extractor.TypeRoutingKeyConverter;
 import dada.tuda.framework.crud.extractor.UUUDOperationIdGenerator;
+import dada.tuda.framework.crud.listening.MessagingContainerAutoRegistrar;
 import dada.tuda.framework.facade.MessageCanceller;
 import dada.tuda.framework.facade.MessageSender;
+import dada.tuda.framework.handling.ExchangesByDomainCreatePostProcessor;
 import dada.tuda.framework.handling.MessageHandler;
 import dada.tuda.framework.handling.MessageHandlerRegistry;
 import dada.tuda.framework.normalization.Header;
@@ -30,36 +37,47 @@ import dada.tuda.framework.normalization.HeadersGenerator;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import dada.tuda.framework.normalization.types.realizations.EntityProducer;
-import dada.tuda.framework.repositories.cancel.CancelPayload;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 import java.util.List;
 import java.util.Set;
 
 @Slf4j
-@Configuration
-@AutoConfigureAfter(RabbitAutoConfiguration.class)
-@Import(TypesRealizationConfig.class)
-public class MessagingConfiguration {
 
+@AutoConfiguration(after = RabbitAutoConfiguration.class)
+
+public class MessagingConfiguration {
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    static BeanDefinitionRegistryPostProcessor ex(@Autowired List<IMessagingDomain> aggregates, ExchangeContext exchangeContext) {
+        return new ExchangesByDomainCreatePostProcessor(aggregates, exchangeContext);
+    }
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
     public AmqpAdmin amqpAdmin(ConnectionFactory connectionFactory) {
         return new RabbitAdmin(connectionFactory);
+    }
+
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    ExchangeContext exchangeProvider(List<TopicExchange> topics) {
+        return new ExchangeContext(topics);
     }
 
     @Bean
@@ -82,6 +100,30 @@ public class MessagingConfiguration {
     }
 
     @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(AmqpAdmin amqpAdmin, IEventActionContext iEventActionContext, QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper) {
+        return new MessagingContainerAutoRegistrar(queueContext, exchangeContext, connectionFactory, domainContext, routingKeyConverter, messageHandlerRegistry, objectMapper, iEventActionContext, amqpAdmin);
+    }
+
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    IEventActionContext iEventActionContext(List<IEventAction> actions) {
+        return new IEventActionContextImpl(actions);
+    }
+
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    QueueNameContext queueContext() {
+        return new MapStoragingQueueNameContext();
+    }
+
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    QueueStrategy queueStrategy(DadaTudaFrameworkProperties properties) {
+        return new PerServiceQueueStrategy(properties);
+    }
+
+    @Bean
     @ConditionalOnMissingBean({ MessageStorage.class })
     @ConditionalOnBean(ConnectionFactory.class)
     MessageStorage inMemory() {
@@ -90,7 +132,7 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public EntityProducer<CancelPayload> myCancelMessageEntityEntityProducer(MessageSender messageSender, EntityContext entityContext, DescriptorConverter descriptorConverter, MessageStorage messageStorage) {
+    public EntityProducer<?> myCancelMessageEntityEntityProducer(MessageSender messageSender, EntityContext entityContext, DescriptorConverter descriptorConverter, MessageStorage messageStorage) {
         return new EntityProducer<>(messageSender, entityContext, descriptorConverter, messageStorage);
     }
 
@@ -130,7 +172,6 @@ public class MessagingConfiguration {
         return new HeadersGenerator(headers);
     }
 
-
     @Bean
     @ConditionalOnMissingBean(RabbitTemplate.class)
     @ConditionalOnBean(ConnectionFactory.class)
@@ -142,7 +183,6 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean({ ObjectMapper.class, ConnectionFactory.class })
-
     public Jackson2JsonMessageConverter jsonMessageConverter(@Autowired ObjectMapper objectMapper) {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
         return new Jackson2JsonMessageConverter(objectMapper);
@@ -164,9 +204,7 @@ public class MessagingConfiguration {
     @ConditionalOnBean(ConnectionFactory.class)
     public MessageMapper messageMapper(DomainContext domainContext,
                                        EventActionContext eventActionContext) {
-        // Получаем «сырую» реализацию
         MessageMapperImpl impl = new MessageMapperImpl();
-        // Внедряем зависимости вручную
         impl.domainContext = domainContext;
         impl.eventActionContext = eventActionContext;
         return impl;
@@ -176,6 +214,11 @@ public class MessagingConfiguration {
     @ConditionalOnBean(ConnectionFactory.class)
     public AutoEntityProducer autoEntityProducerConfiguration(EntityContext entityContext) {
         return new AutoEntityProducer(entityContext);
+    }
+
+    @Configuration
+    @ComponentScan(basePackages = "dada.tuda.framework.normalization.types.realizations")
+    static class TypesRealizationConfig {
     }
 
 }

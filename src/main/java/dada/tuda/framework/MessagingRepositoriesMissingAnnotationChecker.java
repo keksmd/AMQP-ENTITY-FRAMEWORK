@@ -1,4 +1,4 @@
-package dada.tuda.framework.configuration.auto;
+package dada.tuda.framework;
 
 import dada.tuda.framework.facade.MessagingEntittyRepository;
 import org.springframework.beans.factory.SmartInitializingSingleton;

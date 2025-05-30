@@ -1,10 +1,9 @@
 package dada.tuda.framework.facade;
 
-import dada.tuda.framework.repositories.cancel.CancelPayload;
+import dada.tuda.framework.normalization.messages.CancelPayload;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-
 public class MessageCanceller {
 
     private final MessagingEntittyRepository<CancelPayload> repository;

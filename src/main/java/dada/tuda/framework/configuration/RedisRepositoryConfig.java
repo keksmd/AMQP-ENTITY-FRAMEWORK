@@ -1,24 +1,36 @@
-package dada.tuda.framework.configuration.auto.redis;
+package dada.tuda.framework.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dada.tuda.framework.cache.CacheNamesRegistry;
 import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.cache.support.NullValue;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+import java.time.Duration;
 import java.util.Arrays;
 
-
-@Configuration
-public class RedisConnectionConfig {
+@AutoConfiguration(after = RedisAutoConfiguration.class)
+@ConditionalOnClass(RedisConnectionFactory.class)
+public class RedisRepositoryConfig {
     @Bean
     @ConditionalOnBean(name = "objectMapperForRedis", value = RedisConnectionFactory.class)
     public GenericJackson2JsonRedisSerializer serializer(@Qualifier("objectMapperForRedis") ObjectMapper objectMapper) {
@@ -62,8 +74,6 @@ public class RedisConnectionConfig {
             }
         };
     }
-
-
     @Bean
     @ConditionalOnBean(RedisConnectionFactory.class)
     RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory, GenericJackson2JsonRedisSerializer serializer) {
@@ -78,5 +88,38 @@ public class RedisConnectionConfig {
         redis.setEnableDefaultSerializer(true);
         redis.afterPropertiesSet();
         return redis;
+    }
+
+    @Bean
+    @ConditionalOnBean(RedisConnectionFactory.class)
+    RedisCacheManager redisCacheManager(CacheNamesRegistry cacheNamesRegistry, RedisConnectionFactory connectionFactory, RedisCacheConfiguration config) {
+        return RedisCacheManager
+                .builder(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory))
+                .cacheDefaults(config)
+                .initialCacheNames(cacheNamesRegistry.getCacheNames())
+                .build();
+    }
+
+    @Bean
+    @ConditionalOnBean(RedisConnectionFactory.class)
+    RedisCacheConfiguration redisCacheConfiguration(GenericJackson2JsonRedisSerializer serializer, @Value("${spring.cache.redis.time-to-live:#{10*60*1000}}") Integer ttl) {
+        RedisSerializationContext.SerializationPair<String> keySer =
+                RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer());
+        RedisSerializationContext.SerializationPair<Object> valueSer = RedisSerializationContext.SerializationPair.fromSerializer(serializer);
+        return RedisCacheConfiguration
+                .defaultCacheConfig()
+                .entryTtl(Duration.ofSeconds(ttl))
+                .serializeKeysWith(keySer)
+                .serializeValuesWith(valueSer);
+    }
+
+    @Configuration
+    @EnableRedisRepositories(
+            basePackages = "dada.tuda.framework.consistency",
+            enableKeyspaceEvents = RedisKeyValueAdapter.EnableKeyspaceEvents.ON_STARTUP
+    )
+    @ConditionalOnBean(RedisConnectionFactory.class)
+    static class RedisRepositoriesConfig {
+
     }
 }

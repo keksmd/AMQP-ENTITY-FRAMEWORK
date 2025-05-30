@@ -1,6 +1,7 @@
 package dada.tuda.framework.normalization.converters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dada.tuda.framework.WholeConfig;
 import dada.tuda.framework.conf.RabbitContainerConfig;
 import dada.tuda.framework.conf.RedisContainerConfig;
 import dada.tuda.framework.conf.TestEntity;
@@ -11,7 +12,6 @@ import dada.tuda.framework.normalization.messages.JsonNormalMessage;
 import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.types.CancelEventActionTemplate;
 import dada.tuda.framework.normalization.types.realizations.CRUDEventActionTypes;
-import dada.tuda.framework.springconf.WholeConfig;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;

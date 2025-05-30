@@ -1,4 +1,4 @@
-package dada.tuda.framework.configuration.auto.jackson;
+package dada.tuda.framework.configuration;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -6,25 +6,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 import static com.fasterxml.jackson.core.JsonParser.Feature.INCLUDE_SOURCE_IN_LOCATION;
 
-@Configuration
+@AutoConfiguration
 public class JaksonConfiguration {
     @Bean
-    ExecutorService executorService() {
-        return Executors.newCachedThreadPool();
-    }
-
-    @Bean
+    @ConditionalOnBean(RedisConnectionFactory.class)
     public ObjectMapper objectMapperForRedis() {
-
         ObjectMapper mapper = new ObjectMapper();
         var module = new JavaTimeModule();
         mapper.registerModule(module);

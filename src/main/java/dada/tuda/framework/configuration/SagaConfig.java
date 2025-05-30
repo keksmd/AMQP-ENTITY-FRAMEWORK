@@ -1,16 +1,15 @@
-package dada.tuda.framework.configuration.auto.rabbit;
+package dada.tuda.framework.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dada.tuda.framework.configuration.CancelConfig;
-import dada.tuda.framework.configuration.auto.MessagingRepositoriesMissingAnnotationChecker;
+import dada.tuda.framework.MessagingRepositoriesMissingAnnotationChecker;
 import dada.tuda.framework.consistency.MessageRepository;
 import dada.tuda.framework.consistency.MessageStorage;
 import dada.tuda.framework.consistency.RedisCachingIdempotencyProvider;
 import dada.tuda.framework.consistency.mapper.MessageMapper;
 import dada.tuda.framework.normalization.converters.MapToJsonConverter;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -23,7 +22,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 @Configuration
 @Import(CancelConfig.class)
-@AutoConfigureAfter(RabbitAutoConfiguration.class)
+@AutoConfiguration(after = RabbitAutoConfiguration.class)
 
 public class SagaConfig {
     @Bean
@@ -37,9 +36,7 @@ public class SagaConfig {
 
     @Bean
     @ConditionalOnClass(AutoConfigurationPackages.class)
-    @ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
-
-    @ConditionalOnBean({ RedisConnectionFactory.class, ConnectionFactory.class })
+    @ConditionalOnBean({ ConnectionFactory.class })
     MessagingRepositoriesMissingAnnotationChecker checker() {
         return new MessagingRepositoriesMissingAnnotationChecker();
     }

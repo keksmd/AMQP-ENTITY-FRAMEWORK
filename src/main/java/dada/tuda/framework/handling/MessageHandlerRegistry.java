@@ -1,6 +1,6 @@
 package dada.tuda.framework.handling;
 
-import dada.tuda.framework.configuration.auto.DadaTudaFrameworkProperties;
+import dada.tuda.framework.DadaTudaFrameworkProperties;
 import dada.tuda.framework.consistency.MessageStorage;
 import dada.tuda.framework.consistency.mapper.MessageMapper;
 import dada.tuda.framework.facade.MessageCanceller;
