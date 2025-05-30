@@ -5,15 +5,23 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.RabbitMQContainer;
 
 
 @Slf4j
 @TestConfiguration
 @EnableRabbit
+@TestPropertySource(properties = {
+        "spring.rabbitmq.host=localhost",
+        "spring.rabbitmq.port=5672"
+})
+@ImportAutoConfiguration(RabbitAutoConfiguration.class)
 public class RabbitContainerConfig {
     private static final RabbitMQContainer rabbitMQContainer;
 

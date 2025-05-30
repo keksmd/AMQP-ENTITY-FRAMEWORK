@@ -41,7 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,9 +57,7 @@ import java.util.List;
 import java.util.Set;
 
 @Slf4j
-
 @AutoConfiguration(after = RabbitAutoConfiguration.class)
-
 public class MessagingConfiguration {
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
@@ -68,12 +65,6 @@ public class MessagingConfiguration {
         return new ExchangesByDomainCreatePostProcessor(aggregates, exchangeContext);
     }
 
-    @Bean
-    @ConditionalOnBean(ConnectionFactory.class)
-    @ConditionalOnMissingBean(AmqpAdmin.class)
-    public AmqpAdmin amqpAdmin(ConnectionFactory connectionFactory) {
-        return new RabbitAdmin(connectionFactory);
-    }
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)

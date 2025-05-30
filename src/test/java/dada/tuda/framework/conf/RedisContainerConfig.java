@@ -3,6 +3,8 @@ package dada.tuda.framework.conf;
 import com.redis.testcontainers.RedisContainer;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
@@ -14,6 +16,7 @@ import org.springframework.data.redis.repository.configuration.EnableRedisReposi
 @Slf4j
 @TestConfiguration
 @EnableRedisRepositories
+@ImportAutoConfiguration(RedisAutoConfiguration.class)
 public class RedisContainerConfig {
     public static final RedisContainer redisContainer;
 
