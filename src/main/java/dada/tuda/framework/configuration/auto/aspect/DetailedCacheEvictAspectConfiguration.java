@@ -7,6 +7,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 
@@ -14,7 +15,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 @Configuration
 public class DetailedCacheEvictAspectConfiguration {
     @Bean
-    @ConditionalOnBean(RedisConnectionFactory.class)
+    @ConditionalOnBean({ RedisConnectionFactory.class, RedisCacheManager.class })
     public DetailedCacheEvictRedisAspect detailedCacheEvictAspect(CacheManager cacheManager, RedisTemplate<String, ?> redisTemplate) {
         return new DetailedCacheEvictRedisAspect(cacheManager, redisTemplate);
     }
