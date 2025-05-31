@@ -7,18 +7,14 @@ import org.springframework.amqp.core.ExchangeBuilder;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.core.Ordered;
 
 import java.util.List;
 
 @Slf4j
 
-public class ExchangesByDomainCreatePostProcessor implements Ordered, BeanDefinitionRegistryPostProcessor {
+public class ExchangesByDomainCreatePostProcessor implements Ordered, SmartInitializingSingleton {
     private final List<IMessagingDomain> domains;
     private final ExchangeContext exchangeContext;
     private final RabbitAdmin rabbitAdmin;
@@ -30,44 +26,18 @@ public class ExchangesByDomainCreatePostProcessor implements Ordered, BeanDefini
 
     }
 
-
     @Override
     public int getOrder() {
         return Ordered.LOWEST_PRECEDENCE;
     }
 
     @Override
-    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+    public void afterSingletonsInstantiated() {
         for (IMessagingDomain iMessagingDomain : domains) {
-            String exchangeBeanName = iMessagingDomain.getName().toLowerCase() + "Exchange";
             String exchangeName = iMessagingDomain.getExchangeName();
-            if (registry.containsBeanDefinition(exchangeBeanName) || registry.containsBeanDefinition(exchangeName)) {
-                log.warn("Duplicated  exchange name for exchange {} ,named {}", exchangeBeanName, exchangeName);
-            } else {
-                var exchange = registerExchange(exchangeName, exchangeBeanName, registry);
-                registerExchangeName(exchangeName, exchangeBeanName, registry);
-                exchangeContext.registerExchange(exchange);
-                rabbitAdmin.declareExchange(exchange);
-            }
-
+            TopicExchange exchange = ExchangeBuilder.topicExchange(exchangeName).durable(true).build();
+            exchangeContext.registerExchange(exchange);
+            rabbitAdmin.declareExchange(exchange);
         }
     }
-
-    static TopicExchange registerExchange(String exchangeName, String exchangeBeanName, BeanDefinitionRegistry registry) {
-        TopicExchange topic = ExchangeBuilder.topicExchange(exchangeName).durable(true).build();
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(TopicExchange.class,
-                () -> topic);
-        BeanDefinition exchangeBeanDefinition = builder.getBeanDefinition();
-        registry.registerBeanDefinition(exchangeBeanName, exchangeBeanDefinition);
-        return topic;
-    }
-
-    static void registerExchangeName(String exchangeName, String exchangeBeanName, BeanDefinitionRegistry registry) {
-        BeanDefinitionBuilder builder2 = BeanDefinitionBuilder.genericBeanDefinition(String.class,
-                () -> exchangeName);
-
-        BeanDefinition nameBeanDefinition = builder2.getBeanDefinition();
-        registry.registerBeanDefinition(exchangeBeanName + "Name", nameBeanDefinition);
-    }
-
 }

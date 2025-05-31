@@ -43,8 +43,8 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitTemplateCustomizer;
@@ -62,10 +62,9 @@ import java.util.Set;
 public class MessagingConfiguration {
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    static BeanDefinitionRegistryPostProcessor ex(@Autowired List<IMessagingDomain> aggregates, ExchangeContext exchangeContext, ConnectionFactory connectionFactory) {
+    static SmartInitializingSingleton ex(@Autowired List<IMessagingDomain> aggregates, ExchangeContext exchangeContext, ConnectionFactory connectionFactory) {
         return new ExchangesByDomainCreatePostProcessor(connectionFactory, aggregates, exchangeContext);
     }
-
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
