@@ -46,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
+import org.springframework.boot.autoconfigure.amqp.RabbitTemplateCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -164,13 +165,11 @@ public class MessagingConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean(RabbitTemplate.class)
     @ConditionalOnBean(ConnectionFactory.class)
-    public RabbitTemplate rabbitTemplate(@Autowired ConnectionFactory connectionFactory, @Autowired Jackson2JsonMessageConverter converter) {
-        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-        rabbitTemplate.setMessageConverter(converter);
-        return rabbitTemplate;
+    public RabbitTemplateCustomizer rabbitTemplateCustomizer(Jackson2JsonMessageConverter converter) {
+        return rabbitTemplate -> rabbitTemplate.setMessageConverter(converter);
     }
+
 
     @Bean
     @ConditionalOnBean({ ObjectMapper.class, ConnectionFactory.class })
