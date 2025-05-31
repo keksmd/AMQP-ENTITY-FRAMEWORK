@@ -11,11 +11,11 @@ public interface EntityContext {
 
     void registerDomainMembership(IMessagingDomain domain, Class clazz);
 
-    void registerObjectIdExtractor(Function<Object, String> domainExtractor, Class clazz);
+    void registerObjectIdExtractor(Function<Object, String> domainExtractor, Class clazz, String field);
 
-    void registerActorIdExtractor(Function<Object, String> domainExtractor, Class clazz);
+    void registerActorIdExtractor(Function<Object, String> domainExtractor, Class clazz, String field);
 
-    void registerOperationIdExtractor(Function<Object, String> domainExtractor, Class clazz);
+    void registerOperationIdExtractor(Function<Object, String> domainExtractor, Class clazz, String field);
 
 
     MessagingEntityDescriptor getDescriptorByMessagingEntityClass(Class<?> clz);

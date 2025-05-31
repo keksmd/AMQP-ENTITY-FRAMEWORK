@@ -70,12 +70,12 @@ class EntityProducerTest {
         HeadersGenerator headersGenerator = mock(HeadersGenerator.class);
         routingKeyConverter = new TypeRoutingKeyConverter(List.of(d));
 
-        descriptorConverter = new DescriptorConverter(objectMapper, () -> "opID");
-
-
         mapper = new MessageMapperImpl();
         mapper.domainContext = new AnnotationDomainContext(Set.of(d));
+        mapper.domainContext.init();
         mapper.eventActionContext = new EventActionContext(Arrays.stream(CRUDEventActionTypes.values()).map(c -> (IEventAction) c).toList());
+
+        descriptorConverter = new DescriptorConverter(objectMapper, () -> "opID", mapper);
 
         MessageSender messageSender = new MessageSender(rabbitTemplate, exchangeContext, objectMapper, mapper, headersGenerator, routingKeyConverter);
         entityProducer = new EntityProducer<>(messageSender, entityContext, descriptorConverter, messageStorage);

@@ -136,8 +136,8 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public DescriptorConverter descriptorConverter(ObjectMapper objectMapper, OperationIdGenerator operationIdGenerator) {
-        return new DescriptorConverter(objectMapper, operationIdGenerator);
+    public DescriptorConverter descriptorConverter(ObjectMapper objectMapper, OperationIdGenerator operationIdGenerator, MessageMapper mapper) {
+        return new DescriptorConverter(objectMapper, operationIdGenerator, mapper);
     }
 
     @Bean
@@ -184,9 +184,9 @@ public class MessagingConfiguration {
         return new MessagingEntityBeanFactoryPostProcessor(context, domainContext, queueContext);
     }
 
-    @Bean
+    @Bean(initMethod = "init")
     @ConditionalOnBean(ConnectionFactory.class)
-    DomainContext domainContext(Set<IMessagingDomain> domains) {
+    AnnotationDomainContext domainContext(Set<IMessagingDomain> domains) {
         return new AnnotationDomainContext(domains);
     }
 

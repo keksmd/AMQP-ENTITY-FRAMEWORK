@@ -25,19 +25,24 @@ public class AnnotationEntityContext implements EntityContext {
     }
 
     @Override
-    public void registerObjectIdExtractor(Function<Object, String> domainExtractor, Class clazz) {
-        context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor()).setObjectIdExtractor(domainExtractor);
+    public void registerObjectIdExtractor(Function<Object, String> domainExtractor, Class clazz, String field) {
+        var descriptor = context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor());
+        descriptor.setObjectIdExtractor(domainExtractor);
+        descriptor.setObjectIdFiled(field);
     }
 
     @Override
-    public void registerActorIdExtractor(Function<Object, String> domainExtractor, Class clazz) {
-        context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor()).setActorIdExtractor(domainExtractor);
+    public void registerActorIdExtractor(Function<Object, String> domainExtractor, Class clazz, String field) {
+        var descriptor = context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor());
+        descriptor.setActorIdExtractor(domainExtractor);
+        descriptor.setActorIdField(field);
     }
 
     @Override
-    public void registerOperationIdExtractor(Function<Object, String> domainExtractor, Class clazz) {
-        context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor()).setOperationIdExtractor(domainExtractor);
-
+    public void registerOperationIdExtractor(Function<Object, String> domainExtractor, Class clazz, String field) {
+        var descriptor = context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor());
+        descriptor.setOperationIdExtractor(domainExtractor);
+        descriptor.setOperationIdFiled(field);
     }
 
 

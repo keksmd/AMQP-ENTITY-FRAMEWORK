@@ -71,7 +71,7 @@ public class MessagingEntityBeanFactoryPostProcessor<T> implements BeanFactoryPo
                             } catch (IllegalAccessException e) {
                                 throw new RuntimeException(e);
                             }
-                        }, beanClass);
+                        }, beanClass, f.getName());
                     }
                     if (f.isAnnotationPresent(ActorId.class)) {
                         entityContext.registerActorIdExtractor(o -> {
@@ -90,7 +90,7 @@ public class MessagingEntityBeanFactoryPostProcessor<T> implements BeanFactoryPo
                             } catch (IllegalAccessException e) {
                                 throw new RuntimeException(e);
                             }
-                        }, beanClass);
+                        }, beanClass, f.getName());
                     }
                     if (f.isAnnotationPresent(OperaionId.class)) {
                         entityContext.registerOperationIdExtractor(o -> {
@@ -109,7 +109,7 @@ public class MessagingEntityBeanFactoryPostProcessor<T> implements BeanFactoryPo
                             } catch (IllegalAccessException e) {
                                 throw new RuntimeException(e);
                             }
-                        }, beanClass);
+                        }, beanClass, f.getName());
                     }
                 }
                 String[] queues = domainAnnotzated.queues();
