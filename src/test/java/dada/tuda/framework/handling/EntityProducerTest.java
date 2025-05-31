@@ -70,8 +70,8 @@ class EntityProducerTest {
         HeadersGenerator headersGenerator = mock(HeadersGenerator.class);
         routingKeyConverter = new TypeRoutingKeyConverter(List.of(d));
 
-        descriptorConverter = new DescriptorConverter(objectMapper);
-        descriptorConverter.setOperationIdGenerator(() -> "opID");
+        descriptorConverter = new DescriptorConverter(objectMapper, () -> "opID");
+
 
         mapper = new MessageMapperImpl();
         mapper.domainContext = new AnnotationDomainContext(Set.of(d));

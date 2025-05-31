@@ -136,8 +136,8 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public DescriptorConverter descriptorConverter(ObjectMapper objectMapper) {
-        return new DescriptorConverter(objectMapper);
+    public DescriptorConverter descriptorConverter(ObjectMapper objectMapper, OperationIdGenerator operationIdGenerator) {
+        return new DescriptorConverter(objectMapper, operationIdGenerator);
     }
 
     @Bean

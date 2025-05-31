@@ -6,7 +6,6 @@ import dada.tuda.framework.normalization.messages.NormalizedMessage;
 import dada.tuda.framework.normalization.messages.SystemMessage;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 import java.util.Map;
 
@@ -14,8 +13,7 @@ import java.util.Map;
 public class DescriptorConverter {
 
     private final ObjectMapper objectMapper;
-    @Setter
-    private OperationIdGenerator operationIdGenerator;
+    private final OperationIdGenerator operationIdGenerator;
 
     public NormalizedMessage createFromDescriptor(Object entity, IEventAction action, MessagingEntityDescriptor descriptor) {
         NormalizedMessage msg = new SystemMessage();
