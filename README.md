@@ -1,84 +1,66 @@
-This framework is all you need to start declarative DDD with distributed transactions(Saga is implemented) out of box (between services using this framework or adapters)
+This starter is all you need to start declarative DDD with distributed transactions(Saga is implemented) out of box (
+between services using this framework or adapters)
+Now we support only RabbitMQ, but we have a plan to promote Kafka support
 
+Configuration enables automaticaly while you have
+org.springframework.amqp.rabbit.connection.ConnectionFactory bean
+and org.springframework.data.redis.connection.RedisConnectionFactory bean enables caching
 
-Now framework supports only RabbitMQ, but we have a plan to promote Kafka support
+Design PET domain
 
-Enable configuration partitionaly with
-```
-@EnableCustomConfigs(types = { RABBIT, REDIS, TRACING, CACHE, IDEMPOTENCY, CACHE_ANNOTATIONS ,IDEMPOTENCY_SAGAS, SAGAS })
-```
-or entire with 
-```
-@EnableCustomConfigs(types = {ConfigType.ALL})
-```
-
-
-
-
-Design Activity domain and EventType Beans (using EnumBean tool)
 ``` java
-@EnumBean(classnamePrefix = "false",lowercase = "true")
-public enum MessagingAggregate implements IMessagingDomain, IEnum {
-    ACTIVITY
-    @Override
-    public String getName() {
-        return this.name();
-    }
-}
-@EnumBean
-@Getter
-public enum MessagingEventType implements IMessagingEventType, IEnum {
-    ACTIVITY_CREATED_EVENT(ACTIVITY, CREATED, false),
-    ACTIVITY_UPDATED_EVENT(ACTIVITY, UPDATED, false),
-    ACTIVITY_DELETED_EVENT(ACTIVITY, DELETED, false),
-
-    private final IMessagingDomain domain;
-    private final IEventAction actionType;
-    private final boolean query;
-
-    MessagingEventType(IMessagingDomain domain, IEventAction actionType, boolean query) {
-        this.domain = domain;
-        this.actionType = actionType;
-        this.query = query;
-    }
+@Data
+@MessagingEntity(domain = PetMessagePayload.PET_DOMAIN,queues = "pet-queue")
+public class PetMessagePayload {
+    public static final String PET_DOMAIN = "pet";
+    String id;
+    String name;
+    String description;
+    String type;
+    String status;
 }
 ```
 
-Use handler by Messagigng type for handling Event and cancel it (in Saga pipeline)
+Use JPA-like repository to send messages, you need only to extend MessagingEntityRepository interface
+
+``` java
+public interface PetMessageRepository  extends MessagingEntittyRepository<PetMessagePayload> {
+}
+```
+
+Use handler by Domain and ActionType for handling Event and cancel it (in Saga pipeline)
 
 ``` java
 @Component
-@Slf4j
-@RequiredArgsConstructor
-public class ActivityCreatedMessageHandler extends AbstractCancelableCommandMessageHandler {
-    private final ObjectMapper objectMapper;
-    private final LocalActivityCRUDPort localActivityCRUDPort;
+public class CreatePetHandler extends AbstractCancelableCommandMessageHandler {
+    @Autowired
+    private  PetLocalService petLocalService;
+    @Autowired
+    private ObjectMapper objectMapper;
     
+    //Describes message handler can process
     @Override
-    public Boolean canHandle(IMessagingEventType type) {
-        return MessagingEventType.ACTIVITY_CREATED_EVENT.equals(type);
+    public Boolean canHandle(IMessagingDomain domain, IEventAction action) {
+        return domain.getName().equals(PET_DOMAIN) &&
+               action.equals(CRUDEventActionTypes.CREATED);
     }
-
+    //Describes how to handle message
     @Override
-    public void handleCommand(AbstractNormalMessage message) throws Exception{
-        ActivityDto eventDto = objectMapper.convertValue(message.getProperties(), ActivityDto.class);
-        localActivityCRUDPort.save(eventDto);
+    public void handleCommand(NormalMessage message) throws Exception {
+        var payload = message.getPayloadMap();
+        var petToDelete = objectMapper.convertValue(payload, PetEntityDto.class);
+        petLocalService.create(petToDelete);
     }
-
+    
+    //Describes how to cancel message (same as was handled)
     @Override
-    public void cancel(AbstractNormalMessage message) {
-        ActivityDto eventDto = objectMapper.convertValue(message.getProperties(), ActivityDto.class);
-        if (eventDto != null) {
-            localActivityCRUDPort.deleteById(eventDto.getId());
-            log.info("Compensive Transaction for message (Id={}) and event with ID={}", message.getOperationId(), eventDto.getId());
-        } else {
-            log.error("can't convert message to ActivityDto, message: {}", message);
-        }
+    public void cancel(NormalMessage message) {
+        var payload = message.getPayloadMap();
+        var petToDelete = objectMapper.convertValue(payload, PetEntityDto.class);
+        petLocalService.delete(petToDelete.getId());
     }
 }
-
-
-
 ```
 
+More details you can find in the [Demo-Project](https://github.com/keksmd/AMQP-ENTITTY-FRAMEWORK-DEMO)
 

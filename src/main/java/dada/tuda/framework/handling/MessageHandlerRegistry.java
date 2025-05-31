@@ -69,7 +69,6 @@ public class MessageHandlerRegistry {
                 log.warn("operation {} should be canceled: \n {}", message.getOperationId(), e.getMessage());
                 if (Boolean.TRUE.equals(properties.getMessaging().getSaga().isEnabled()) && !message.getActionType().isQuery()) {
                     messageCanceller.cancelOperation("Exception in service: " + serviceName + " " + e.getMessage(), message.getOperationId());
-                    log.warn(e.getMessage());
                     return null;
                 } else {
                     throw e;
@@ -98,9 +97,9 @@ public class MessageHandlerRegistry {
         IMessagingDomain domain = message.getDomain();
         IEventAction action = message.getActionType();
         var keyPair = Pair.of(domain, action);
-        log.info("Getting handler for domain {} and action {}", domain, action);
-        log.info("Handlers cache:{}", cache);
-        log.info("Handlers list:{}", handlers);
+        log.debug("Getting handler for domain {} and action {}", domain, action);
+        log.debug("Handlers cache:{}", cache);
+        log.debug("Handlers list:{}", handlers);
         return cache.computeIfAbsent(keyPair,
                 key ->
                         handlers.stream().filter(handler -> handler.canHandle(key.getFirst(), key.getSecond()))

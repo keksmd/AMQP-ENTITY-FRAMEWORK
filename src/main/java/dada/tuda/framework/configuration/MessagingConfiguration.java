@@ -81,7 +81,7 @@ public class MessagingConfiguration {
     @Bean(initMethod = "init")
     @ConditionalOnBean(ConnectionFactory.class)
     public MessageHandlerRegistry messageHandlerRegistry(ObjectProvider<DadaTudaFrameworkProperties> properties, MessageMapper mapper, List<MessageHandler> handlers, MessageCanceller messageCanceller, MessageStorage messageStorage) {
-        log.info("Creating MessageHandlerRegistry: {}", handlers);
+        log.debug("Creating MessageHandlerRegistry: {}", handlers);
         return new MessageHandlerRegistry(messageStorage, messageCanceller, mapper, handlers, properties);
     }
 
