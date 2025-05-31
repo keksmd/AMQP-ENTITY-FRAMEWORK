@@ -11,6 +11,10 @@ public class DadaTudaFrameworkProperties {
     private MessagingProperties messaging;
     private DomainsProperties domains;
 
+    public DadaTudaFrameworkProperties(MessagingProperties messaging, DomainsProperties domains) {
+        this.messaging = messaging;
+        this.domains = domains;
+    }
 
     @Getter
     @Setter
