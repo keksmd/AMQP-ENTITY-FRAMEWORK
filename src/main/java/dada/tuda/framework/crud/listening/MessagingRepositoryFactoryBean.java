@@ -36,7 +36,7 @@ public class MessagingRepositoryFactoryBean<T>
 
     @Override
     public void afterPropertiesSet() {
-        EntityProducer<T> producer = ctx.getBean(EntityProducer.class);
+        EntityProducer<T> producer = ctx.getBean("entityProducer", EntityProducer.class);
         Class<?> repoIface = repositoryInterface;
         this.proxy = (MessagingEntittyRepository<T>) Proxy.newProxyInstance(
                 repoIface.getClassLoader(),
