@@ -8,8 +8,10 @@ import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.messages.NormalizedMessage;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.util.Pair;
 
@@ -25,10 +27,15 @@ public class MessageHandlerRegistry {
     private final MessageCanceller messageCanceller;
     private final MessageMapper mapper;
     private final List<MessageHandler> handlers;
-    private final DadaTudaFrameworkProperties properties;
-
+    private final ObjectProvider<DadaTudaFrameworkProperties> provider;
+    private DadaTudaFrameworkProperties properties;
     @Value("${spring.application.name}")
     private String serviceName;
+
+    @PostConstruct
+    void init() {
+        properties = provider.getIfAvailable();
+    }
 
     public Object handleMessage(NormalMessage message) throws Exception {
         return this.handleIntenal(mapper.normalize(message));

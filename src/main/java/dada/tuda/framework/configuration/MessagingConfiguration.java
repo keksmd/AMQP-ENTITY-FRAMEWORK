@@ -42,6 +42,7 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -78,9 +79,9 @@ public class MessagingConfiguration {
         return new EventActionContext(actions);
     }
 
-    @Bean
+    @Bean(initMethod = "init")
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessageHandlerRegistry messageHandlerRegistry(DadaTudaFrameworkProperties properties, MessageMapper mapper, List<MessageHandler> handlers, MessageCanceller messageCanceller, MessageStorage messageStorage) {
+    public MessageHandlerRegistry messageHandlerRegistry(ObjectProvider<DadaTudaFrameworkProperties> properties, MessageMapper mapper, List<MessageHandler> handlers, MessageCanceller messageCanceller, MessageStorage messageStorage) {
         log.info("Creating MessageHandlerRegistry: {}", handlers);
         return new MessageHandlerRegistry(messageStorage, messageCanceller, mapper, handlers, properties);
     }
