@@ -1,5 +1,6 @@
 package dada.tuda.framework;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -31,16 +32,19 @@ public class DadaTudaFrameworkProperties {
 
     @Getter
     @Setter
+    @AllArgsConstructor
     public static class DomainsProperties {
         private QueueProperties queue;
 
         @Getter
         @Setter
+        @AllArgsConstructor
         public static class QueueProperties {
             private NamingProperties naming;
 
             @Getter
             @Setter
+
             public static class NamingProperties {
                 private boolean perService;
             }

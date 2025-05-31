@@ -8,7 +8,6 @@ import dada.tuda.framework.crud.contexts.QueueNameContext;
 import dada.tuda.framework.crud.extractor.RoutingKeyConverter;
 import dada.tuda.framework.handling.MessageHandlerRegistry;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Exchange;
@@ -16,10 +15,7 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 
 import java.util.List;
 
@@ -30,7 +26,7 @@ import java.util.List;
  * 2) Слушатели сообщений для всех доменов
  */
 
-public class MessagingContainerAutoRegistrar implements BeanDefinitionRegistryPostProcessor {
+public class MessagingContainerAutoRegistrar implements SmartInitializingSingleton {
     private final QueueNameContext queueContext;
     private final ExchangeContext exchangeContext;
     private final ConnectionFactory connectionFactory;
@@ -55,7 +51,7 @@ public class MessagingContainerAutoRegistrar implements BeanDefinitionRegistryPo
 
 
     @Override
-    public void postProcessBeanDefinitionRegistry(@NotNull BeanDefinitionRegistry registry) throws BeansException {
+    public void afterSingletonsInstantiated() {
         for (var domain : domainContext.getAllDomains()) {
             SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
             container.setConnectionFactory(connectionFactory);
@@ -64,12 +60,10 @@ public class MessagingContainerAutoRegistrar implements BeanDefinitionRegistryPo
             List<Queue> queues = queueNames.stream().map(name -> new Queue(name, true)).toList();
 
             queues.forEach(q -> {
-                registerBeanIfAbsent(registry, q.getName() + "Bean", q);
                 rabbitAdmin.declareQueue(q);
                 for (IEventAction action : iEventActionContext.getAllowedActionsByDomian(domain)) {
                     String routing = routingKeyConverter.toRoutingKey(domain, action);
                     Binding binding = BindingBuilder.bind(q).to(exchange).with(routing).noargs();
-                    registerBeanIfAbsent(registry, domain.getName() + q.getName() + "Binding", binding);
                     rabbitAdmin.declareBinding(binding);
                 }
             });
@@ -79,22 +73,10 @@ public class MessagingContainerAutoRegistrar implements BeanDefinitionRegistryPo
             container.setAutoStartup(true);
             container.start();
 
-            // Регистрируем контейнер
-            BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(SimpleMessageListenerContainer.class, () -> container);
-            registry.registerBeanDefinition(domain.getName().toLowerCase() + "Container", builder.getBeanDefinition());
         }
     }
 
-    private <T> void registerBeanIfAbsent(BeanDefinitionRegistry registry, String name, Object instance) {
-        if (!registry.containsBeanDefinition(name)) {
-            BeanDefinitionBuilder bdb = BeanDefinitionBuilder.genericBeanDefinition((Class<T>) instance.getClass(), () -> (T) instance);
-            registry.registerBeanDefinition(name, bdb.getBeanDefinition());
-        }
-    }
 
-    @Override
-    public void postProcessBeanFactory(org.springframework.beans.factory.config.@NotNull ConfigurableListableBeanFactory beanFactory) {
-    }
 }
 
 
