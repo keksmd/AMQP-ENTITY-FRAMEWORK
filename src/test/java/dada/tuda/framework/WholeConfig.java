@@ -5,7 +5,6 @@ import dada.tuda.framework.configuration.CancelConfig;
 import dada.tuda.framework.configuration.EnumBeanConfiguration;
 import dada.tuda.framework.configuration.JaksonConfiguration;
 import dada.tuda.framework.configuration.MessagingConfiguration;
-import dada.tuda.framework.configuration.MessagingRepositoriesRegistrar;
 import dada.tuda.framework.configuration.MyCacheAspectConfiguration;
 import dada.tuda.framework.configuration.RedisRepositoryConfig;
 import dada.tuda.framework.configuration.SagaConfig;
@@ -25,7 +24,6 @@ import org.springframework.context.annotation.Import;
         BeanUtilsConfig.class,
         CancelConfig.class,
         EnumBeanConfiguration.class,
-        MessagingRepositoriesRegistrar.class,
         PropertiesConfig.class })
 public class WholeConfig {
 }

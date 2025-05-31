@@ -8,4 +8,3 @@ dada.tuda.framework.configuration.RedisRepositoryConfig
 dada.tuda.framework.configuration.BeanUtilsConfig
 dada.tuda.framework.configuration.CancelConfig
 dada.tuda.framework.configuration.EnumBeanConfiguration
-dada.tuda.framework.configuration.MessagingRepositoriesRegistrar
