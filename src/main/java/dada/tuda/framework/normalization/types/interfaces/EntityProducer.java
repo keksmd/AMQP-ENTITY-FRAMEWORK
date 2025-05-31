@@ -21,6 +21,7 @@ public class EntityProducer<Entity> implements MessagingEntittyRepository<Entity
     public <T> T doAction(Entity entity, IEventAction action, boolean forOthersOnly) {
         var descriptor = this.entityContext.getDescriptorByMessagingEntityClass(entity.getClass());
         NormalizedMessage msg = descriptorConverter.createFromDescriptor(entity, action, descriptor);
+        msg.setActionType(action);
         if (forOthersOnly && !action.isQuery()) messageStorage.storeEventAsProcessed(msg);
         if (action.isQuery()) {
             return sender.sendRequestUsingType(msg);

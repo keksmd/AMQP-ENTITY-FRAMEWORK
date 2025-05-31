@@ -10,4 +10,7 @@ public interface DomainContext {
     Set<IMessagingDomain> getAllDomains();
 
     void registerDomain(IMessagingDomain domain);
+
+    default void init() {
+    }
 }

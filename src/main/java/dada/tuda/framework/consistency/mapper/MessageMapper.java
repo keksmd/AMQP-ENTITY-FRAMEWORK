@@ -27,5 +27,7 @@ public abstract class MessageMapper {
 
     @Mapping(target = "actionType", expression = "java(eventActionContext.getByName(message.getActionTypeName()))")
     @Mapping(target = "domain", expression = "java(domainContext.getByName(message.getDomainName()))")
+    @Mapping(ignore = true, target = "actionTypeName")
+    @Mapping(ignore = true, target = "domainName")
     public abstract SystemMessage normalize(NormalMessage message);
 }
