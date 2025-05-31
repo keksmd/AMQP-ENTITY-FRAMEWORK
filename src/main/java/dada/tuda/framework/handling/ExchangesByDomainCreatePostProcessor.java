@@ -2,10 +2,11 @@ package dada.tuda.framework.handling;
 
 import dada.tuda.framework.crud.contexts.ExchangeContext;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.ExchangeBuilder;
 import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -16,10 +17,19 @@ import org.springframework.core.Ordered;
 import java.util.List;
 
 @Slf4j
-@RequiredArgsConstructor
+
 public class ExchangesByDomainCreatePostProcessor implements Ordered, BeanDefinitionRegistryPostProcessor {
     private final List<IMessagingDomain> domains;
     private final ExchangeContext exchangeContext;
+    private final RabbitAdmin rabbitAdmin;
+
+    public ExchangesByDomainCreatePostProcessor(ConnectionFactory connectionFactory, List<IMessagingDomain> domains, ExchangeContext exchangeContext) {
+        this.domains = domains;
+        this.exchangeContext = exchangeContext;
+        this.rabbitAdmin = new RabbitAdmin(connectionFactory);
+
+    }
+
 
     @Override
     public int getOrder() {
@@ -37,6 +47,7 @@ public class ExchangesByDomainCreatePostProcessor implements Ordered, BeanDefini
                 var exchange = registerExchange(exchangeName, exchangeBeanName, registry);
                 registerExchangeName(exchangeName, exchangeBeanName, registry);
                 exchangeContext.registerExchange(exchange);
+                rabbitAdmin.declareExchange(exchange);
             }
 
         }

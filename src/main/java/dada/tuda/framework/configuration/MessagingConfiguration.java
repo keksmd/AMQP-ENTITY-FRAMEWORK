@@ -38,7 +38,6 @@ import dada.tuda.framework.normalization.types.interfaces.EntityProducer;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -61,8 +60,8 @@ import java.util.Set;
 public class MessagingConfiguration {
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    static BeanDefinitionRegistryPostProcessor ex(@Autowired List<IMessagingDomain> aggregates, ExchangeContext exchangeContext) {
-        return new ExchangesByDomainCreatePostProcessor(aggregates, exchangeContext);
+    static BeanDefinitionRegistryPostProcessor ex(@Autowired List<IMessagingDomain> aggregates, ExchangeContext exchangeContext, ConnectionFactory connectionFactory) {
+        return new ExchangesByDomainCreatePostProcessor(connectionFactory, aggregates, exchangeContext);
     }
 
 
@@ -93,8 +92,8 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(AmqpAdmin amqpAdmin, IEventActionContext iEventActionContext, QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper) {
-        return new MessagingContainerAutoRegistrar(queueContext, exchangeContext, connectionFactory, domainContext, routingKeyConverter, messageHandlerRegistry, objectMapper, iEventActionContext, amqpAdmin);
+    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(IEventActionContext iEventActionContext, QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper) {
+        return new MessagingContainerAutoRegistrar(queueContext, exchangeContext, connectionFactory, domainContext, routingKeyConverter, messageHandlerRegistry, objectMapper, iEventActionContext);
     }
 
     @Bean

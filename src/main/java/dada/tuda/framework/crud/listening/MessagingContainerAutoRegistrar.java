@@ -9,13 +9,12 @@ import dada.tuda.framework.crud.extractor.RoutingKeyConverter;
 import dada.tuda.framework.handling.MessageHandlerRegistry;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import jakarta.validation.constraints.NotNull;
-import lombok.RequiredArgsConstructor;
-import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -30,7 +29,7 @@ import java.util.List;
  * 1) Прокси-реализации MessagingEntittyRepository<T> на основе generic-типа
  * 2) Слушатели сообщений для всех доменов
  */
-@RequiredArgsConstructor
+
 public class MessagingContainerAutoRegistrar implements BeanDefinitionRegistryPostProcessor {
     private final QueueNameContext queueContext;
     private final ExchangeContext exchangeContext;
@@ -40,7 +39,19 @@ public class MessagingContainerAutoRegistrar implements BeanDefinitionRegistryPo
     private final MessageHandlerRegistry messageHandlerRegistry;
     private final ObjectMapper objectMapper;
     private final IEventActionContext iEventActionContext;
-    private final AmqpAdmin rabbitAdmin;
+    private final RabbitAdmin rabbitAdmin;
+
+    public MessagingContainerAutoRegistrar(QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper, IEventActionContext iEventActionContext) {
+        this.queueContext = queueContext;
+        this.exchangeContext = exchangeContext;
+        this.connectionFactory = connectionFactory;
+        this.domainContext = domainContext;
+        this.routingKeyConverter = routingKeyConverter;
+        this.messageHandlerRegistry = messageHandlerRegistry;
+        this.objectMapper = objectMapper;
+        this.iEventActionContext = iEventActionContext;
+        this.rabbitAdmin = new RabbitAdmin(connectionFactory);
+    }
 
 
     @Override
