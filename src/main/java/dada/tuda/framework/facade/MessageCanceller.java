@@ -1,6 +1,6 @@
 package dada.tuda.framework.facade;
 
-import dada.tuda.framework.normalization.messages.CancelPayload;
+import dada.tuda.framework.normalization.types.realizations.CancelPayload;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

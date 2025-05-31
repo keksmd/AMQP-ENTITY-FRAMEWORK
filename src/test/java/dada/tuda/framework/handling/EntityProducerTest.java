@@ -75,7 +75,7 @@ class EntityProducerTest {
         mapper.domainContext.init();
         mapper.eventActionContext = new EventActionContext(Arrays.stream(CRUDEventActionTypes.values()).map(c -> (IEventAction) c).toList());
 
-        descriptorConverter = new DescriptorConverter(objectMapper, () -> "opID", mapper);
+        descriptorConverter = new DescriptorConverter(objectMapper, () -> "opID");
 
         MessageSender messageSender = new MessageSender(rabbitTemplate, exchangeContext, objectMapper, mapper, headersGenerator, routingKeyConverter);
         entityProducer = new EntityProducer<>(messageSender, entityContext, descriptorConverter, messageStorage);

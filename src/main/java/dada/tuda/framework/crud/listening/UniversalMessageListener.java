@@ -26,6 +26,7 @@ public class UniversalMessageListener implements MessageListener {
             messageHandlerRegistry.handleMessage(normalMessage);
         } catch (Exception e) {
             log.error("Failed to handle message {}\n{}", raw, e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 }

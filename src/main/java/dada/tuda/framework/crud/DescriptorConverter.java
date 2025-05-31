@@ -1,7 +1,6 @@
 package dada.tuda.framework.crud;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dada.tuda.framework.consistency.mapper.MessageMapper;
 import dada.tuda.framework.crud.extractor.OperationIdGenerator;
 import dada.tuda.framework.normalization.messages.NormalizedMessage;
 import dada.tuda.framework.normalization.messages.SystemMessage;
@@ -14,19 +13,19 @@ import java.util.Map;
 public class DescriptorConverter {
 
     private final ObjectMapper objectMapper;
-    private final MessageMapper mapper;
     @Setter
     private OperationIdGenerator operationIdGenerator;
 
 
-    public DescriptorConverter(ObjectMapper objectMapper, OperationIdGenerator operationIdGenerator, MessageMapper mapper) {
+    public DescriptorConverter(ObjectMapper objectMapper, OperationIdGenerator operationIdGenerator) {
         this.objectMapper = objectMapper;
         this.operationIdGenerator = operationIdGenerator;
-        this.mapper = mapper;
     }
 
     public NormalizedMessage createFromDescriptor(Object entity, IEventAction action, MessagingEntityDescriptor descriptor) {
         NormalizedMessage msg = new SystemMessage();
+
+        Map<String, Object> payload = objectMapper.convertValue(entity, Map.class);
         if (descriptor != null) {
             String actor = null;
             if (descriptor.getActorIdExtractor() != null) {
@@ -47,15 +46,14 @@ public class DescriptorConverter {
             msg.setObjectId(object);
             msg.setOperationId(operation);
             msg.setDomain(descriptor.getDomain());
+            payload.remove(descriptor.getActorIdField());
+            payload.remove(descriptor.getOperationIdFiled());
+            payload.remove(descriptor.getObjectIdFiled());
         }
-        Map<String, Object> payload = objectMapper.convertValue(entity, Map.class);
-        payload.remove(descriptor.getActorIdField());
-        payload.remove(descriptor.getOperationIdFiled());
-        payload.remove(descriptor.getObjectIdFiled());
         msg.setPayloadMap(payload);
         msg.setActionType(action);
-        msg.setDomain(descriptor.getDomain());
-        return mapper.normalize(msg);
+
+        return msg;
     }
 
 }

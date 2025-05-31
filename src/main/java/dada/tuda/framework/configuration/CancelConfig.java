@@ -1,6 +1,6 @@
 package dada.tuda.framework.configuration;
 
-import dada.tuda.framework.normalization.messages.CancelPayload;
+import dada.tuda.framework.normalization.types.realizations.CancelPayload;
 import dada.tuda.framework.normalization.types.realizations.EnableMessagingRepositories;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;

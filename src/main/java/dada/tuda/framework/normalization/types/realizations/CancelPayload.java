@@ -1,4 +1,4 @@
-package dada.tuda.framework.normalization.messages;
+package dada.tuda.framework.normalization.types.realizations;
 
 import dada.tuda.framework.crud.MessagingEntity;
 import dada.tuda.framework.crud.extractor.ObjectId;
