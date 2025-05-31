@@ -5,15 +5,21 @@ import dada.tuda.framework.crud.extractor.OperationIdGenerator;
 import dada.tuda.framework.normalization.messages.NormalizedMessage;
 import dada.tuda.framework.normalization.messages.SystemMessage;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import java.util.Map;
 
-@RequiredArgsConstructor
+
 public class DescriptorConverter {
 
     private final ObjectMapper objectMapper;
-    private final OperationIdGenerator operationIdGenerator;
+    @Setter
+    private OperationIdGenerator operationIdGenerator;
+
+    public DescriptorConverter(ObjectMapper objectMapper, OperationIdGenerator operationIdGenerator) {
+        this.objectMapper = objectMapper;
+        this.operationIdGenerator = operationIdGenerator;
+    }
 
     public NormalizedMessage createFromDescriptor(Object entity, IEventAction action, MessagingEntityDescriptor descriptor) {
         NormalizedMessage msg = new SystemMessage();
