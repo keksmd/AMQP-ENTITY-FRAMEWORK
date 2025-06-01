@@ -33,6 +33,7 @@ public class MyCacheAspectConfiguration {
     ExecutorService executorService() {
         return Executors.newCachedThreadPool();
     }
+
     @Bean
     @ConditionalOnBean({ RedisConnectionFactory.class })
     public CacheWithDetailsAspect cacheWithDetailsAspect(ExecutorService executorService, @Autowired CacheManager cacheManager, RedisTemplate<String, Object> redisTemplate, RedisCacheConfiguration redisCacheConfiguration) {

@@ -23,6 +23,7 @@ public class PetMessagePayload {
 
 Use JPA-like repository to send messages, you need only to extend MessagingEntityRepository interface
 and add `@EnableMessagingRepositories(basePackages = "your.package.with.repositories")` to your configuration class
+
 ``` java
 public interface PetMessageRepository  extends MessagingEntittyRepository<PetMessagePayload> {
 }

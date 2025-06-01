@@ -43,9 +43,11 @@ public class RedisRepositoryConfig {
     public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer(@Qualifier("objectMapperForRedis") ObjectMapper objectMapper) {
         return new GenericJackson2JsonRedisSerializer(objectMapper) {
             private static final byte[] BINARY_NULL;
+
             static {
                 BINARY_NULL = RedisSerializer.java().serialize(NullValue.INSTANCE);
             }
+
             private final GenericJackson2JsonRedisSerializer delegate = new GenericJackson2JsonRedisSerializer(objectMapper);
 
             @Override
@@ -107,6 +109,7 @@ public class RedisRepositoryConfig {
         template.setConnectionFactory(redisConnectionFactory);
         return template;
     }
+
     @Bean
     @ConditionalOnBean(RedisConnectionFactory.class)
     RedisTemplate<String, Object> redisTemplateWithJsonSerializer(RedisConnectionFactory redisConnectionFactory, GenericJackson2JsonRedisSerializer serializer) {
