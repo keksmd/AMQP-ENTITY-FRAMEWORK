@@ -6,19 +6,16 @@ import dada.tuda.framework.consistency.MessageRepository;
 import dada.tuda.framework.consistency.MessageStorage;
 import dada.tuda.framework.consistency.RedisCachingIdempotencyProvider;
 import dada.tuda.framework.consistency.mapper.MessageMapper;
-import dada.tuda.framework.crud.DescriptorConverter;
 import dada.tuda.framework.crud.SimpleDomain;
-import dada.tuda.framework.crud.contexts.CancelEventActionContext;
-import dada.tuda.framework.crud.contexts.EntityContext;
 import dada.tuda.framework.crud.contexts.EventActionContextWithCancel;
 import dada.tuda.framework.crud.contexts.ExchangeContext;
+import dada.tuda.framework.crud.contexts.ICancelEventActionContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.crud.contexts.QueueNameContext;
 import dada.tuda.framework.crud.extractor.RoutingKeyConverter;
 import dada.tuda.framework.facade.MessageCanceller;
 import dada.tuda.framework.facade.MessageSender;
 import dada.tuda.framework.normalization.converters.MapToJsonConverter;
-import dada.tuda.framework.normalization.types.interfaces.EntityProducer;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -72,8 +69,8 @@ public class SagaConfig {
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
     @ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
-    public MessageCanceller eventCanceler(MessageSender sender, CancelEventActionContext actionContext, EntityContext entityContext, DescriptorConverter descriptorConverter, MessageStorage messageStorage) {
-        return new MessageCanceller(new EntityProducer<>(sender, entityContext, descriptorConverter, messageStorage), actionContext);
+    public MessageCanceller eventCanceler(MessageSender sender, ObjectMapper objectMapper, ICancelEventActionContext entityContext) {
+        return new MessageCanceller(entityContext, sender, objectMapper);
     }
 
     @Bean

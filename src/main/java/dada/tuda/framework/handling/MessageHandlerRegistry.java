@@ -6,6 +6,7 @@ import dada.tuda.framework.consistency.mapper.MessageMapper;
 import dada.tuda.framework.facade.MessageCanceller;
 import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.messages.NormalizedMessage;
+import dada.tuda.framework.normalization.types.CancelEventActionTemplate;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import jakarta.annotation.PostConstruct;
@@ -42,7 +43,7 @@ public class MessageHandlerRegistry {
     }
 
     public Object handleIntenal(NormalizedMessage normalizedMessage) throws Exception {
-        if (normalizedMessage.getActionType().isCancel()) {
+        if (normalizedMessage.getActionType() instanceof CancelEventActionTemplate) {
             String reason = (String) normalizedMessage.getPayloadMap().get("reason");
             if (reason != null) {
                 log.warn("operation with id={} is cancelling. \nReason: {}", normalizedMessage.getOperationId(), reason);
@@ -66,8 +67,14 @@ public class MessageHandlerRegistry {
                 }
             } catch (Exception e) {
                 log.warn("operation {} should be canceled: \n {}", normalizedMessage.getOperationId(), e.getMessage());
-                if (Boolean.TRUE.equals(properties.getMessaging().getSaga().isEnabled()) && !normalizedMessage.getActionType().isQuery()) {
-                    messageCanceller.cancelOperation("Exception in service: " + serviceName + " " + e.getMessage(), normalizedMessage.getActionType(), normalizedMessage.getOperationId());
+                if (Boolean.TRUE.equals(properties.getMessaging().getSaga().isEnabled())
+                    && !normalizedMessage.getActionType().isQuery()
+                    && normalizedMessage.getActionType().isCancelable()
+                    && !normalizedMessage.getActionType().isCancel()) {
+                    messageCanceller.cancelOperation("Exception in service: " + serviceName + " " + e.getMessage(),
+                            normalizedMessage.getActionType(),
+                            normalizedMessage.getOperationId(),
+                            normalizedMessage.getDomain());
                     return null;
                 } else {
                     throw e;

@@ -8,5 +8,9 @@ public interface IEventAction {
     default boolean isCancel() {
         return false;
     }
+
+    default boolean isCancelable() {
+        return true;
+    }
 }
 

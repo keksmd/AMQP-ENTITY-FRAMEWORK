@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class EventActionContextWithCancel implements IEventActionContext, CancelEventActionContext {
+public class EventActionContextWithCancel implements IEventActionContext, ICancelEventActionContext {
     private final Map<String, IEventAction> name2actionMap;
     private final QueueNameContext queueNameContext;
     private final SimpleDomain cancelDomain;
@@ -33,6 +33,16 @@ public class EventActionContextWithCancel implements IEventActionContext, Cancel
         this.rabbitAdmin = new RabbitAdmin(connectionFactory);
         for (IEventAction action : values) {
             name2actionMap.put(action.name(), action);
+        }
+    }
+
+    @Override
+    public IEventAction getByName(String name) {
+        if (CancelEventActionTemplate.nameIsCancel(name)) {
+            String originalName = CancelEventActionTemplate.getOriginalNameFromCancel(name);
+            return getOrCreateCancelByAction(name2actionMap.get(originalName));
+        } else {
+            return name2actionMap.get(name);
         }
     }
 
@@ -58,11 +68,6 @@ public class EventActionContextWithCancel implements IEventActionContext, Cancel
             Binding binding = BindingBuilder.bind(queue).to(cancelExchange).with(routingKeyConverter.toRoutingKey(cancelDomain, cancel));
             rabbitAdmin.declareBinding(binding);
         }
-    }
-
-    @Override
-    public IEventAction getByName(String name) {
-        return name2actionMap.get(name);
     }
 
     @Override

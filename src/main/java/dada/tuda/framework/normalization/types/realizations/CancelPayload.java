@@ -1,7 +1,6 @@
 package dada.tuda.framework.normalization.types.realizations;
 
 import dada.tuda.framework.crud.MessagingEntity;
-import dada.tuda.framework.crud.extractor.ObjectId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,6 +11,4 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CancelPayload {
     private String reason;
-    @ObjectId
-    private String operationId;
 }
