@@ -58,7 +58,7 @@ public class SagaConfig {
     @ConditionalOnBean(ConnectionFactory.class)
     @ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
     SimpleDomain cancelDomain() {
-        return new SimpleDomain("cancel");
+        return new SimpleDomain("cancelled");
     }
 
     @Bean
