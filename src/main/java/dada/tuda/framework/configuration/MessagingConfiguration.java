@@ -17,7 +17,6 @@ import dada.tuda.framework.crud.contexts.EntityContext;
 import dada.tuda.framework.crud.contexts.EventActionContext;
 import dada.tuda.framework.crud.contexts.ExchangeContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
-import dada.tuda.framework.crud.contexts.IEventActionContextImpl;
 import dada.tuda.framework.crud.contexts.MapStoragingQueueNameContext;
 import dada.tuda.framework.crud.contexts.PerServiceQueueStrategy;
 import dada.tuda.framework.crud.contexts.QueueNameContext;
@@ -74,7 +73,7 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    EventActionContext eventActionContext(List<IEventAction> actions) {
+    public IEventActionContext iEventActionContext(List<IEventAction> actions) {
         return new EventActionContext(actions);
     }
 
@@ -87,20 +86,8 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessageCanceller eventCanceler(MessageSender sender, EntityContext entityContext, DescriptorConverter descriptorConverter, MessageStorage messageStorage) {
-        return new MessageCanceller(new EntityProducer<>(sender, entityContext, descriptorConverter, messageStorage));
-    }
-
-    @Bean
-    @ConditionalOnBean(ConnectionFactory.class)
     public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(IEventActionContext iEventActionContext, QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper) {
         return new MessagingContainerAutoRegistrar(queueContext, exchangeContext, connectionFactory, domainContext, routingKeyConverter, messageHandlerRegistry, objectMapper, iEventActionContext);
-    }
-
-    @Bean
-    @ConditionalOnBean(ConnectionFactory.class)
-    IEventActionContext iEventActionContext(List<IEventAction> actions) {
-        return new IEventActionContextImpl(actions);
     }
 
     @Bean
@@ -192,8 +179,7 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessageMapper messageMapper(DomainContext domainContext,
-                                       EventActionContext eventActionContext) {
+    public MessageMapper messageMapper(DomainContext domainContext, IEventActionContext eventActionContext) {
         MessageMapperImpl impl = new MessageMapperImpl();
         impl.domainContext = domainContext;
         impl.eventActionContext = eventActionContext;

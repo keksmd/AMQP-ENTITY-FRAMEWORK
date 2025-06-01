@@ -1,32 +1,31 @@
 package dada.tuda.framework.crud.contexts;
 
-import dada.tuda.framework.normalization.types.CancelEventActionTemplate;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
+import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class EventActionContext {
-    private final Map<String, IEventAction> actionMap;
+public class EventActionContext implements IEventActionContext {
+    private final Map<String, IEventAction> name2actionMap;
+
 
     public EventActionContext(List<IEventAction> values) {
-        actionMap = new ConcurrentHashMap<>();
+        name2actionMap = new ConcurrentHashMap<>();
         for (IEventAction action : values) {
-            actionMap.put(action.name(), action);
+            name2actionMap.put(action.name(), action);
         }
     }
 
+    @Override
     public IEventAction getByName(String name) {
-        if (name.endsWith(CancelEventActionTemplate.CANCEL_SUFFIX)) {
-            String nameOfCanceling = name.substring(0, name.length() - CancelEventActionTemplate.CANCEL_SUFFIX.length());
-            IEventAction canceling = actionMap.get(nameOfCanceling);
-            if (canceling == null) {
-                throw new IllegalStateException("No action found for canceling: " + nameOfCanceling);
-            }
-            return actionMap.computeIfAbsent(name, n -> new CancelEventActionTemplate(canceling));
-        } else {
-            return actionMap.get(name);
-        }
+        return name2actionMap.get(name);
+    }
+
+    @Override
+    public List<IEventAction> getAllowedActionsByDomian(IMessagingDomain domain) {
+        return name2actionMap.values().stream().toList();
     }
 }
+

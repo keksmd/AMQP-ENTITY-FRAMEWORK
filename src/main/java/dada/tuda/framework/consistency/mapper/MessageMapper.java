@@ -2,7 +2,7 @@ package dada.tuda.framework.consistency.mapper;
 
 import dada.tuda.framework.crud.MessageJPAEntity;
 import dada.tuda.framework.crud.contexts.DomainContext;
-import dada.tuda.framework.crud.contexts.EventActionContext;
+import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.normalization.messages.JsonNormalMessage;
 import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.messages.SystemMessage;
@@ -17,7 +17,7 @@ public abstract class MessageMapper {
     @Autowired
     public DomainContext domainContext;
     @Autowired
-    public EventActionContext eventActionContext;
+    public IEventActionContext eventActionContext;
 
     public abstract MessageJPAEntity toEntity(NormalMessage message);
 

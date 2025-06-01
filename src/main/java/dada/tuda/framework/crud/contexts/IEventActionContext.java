@@ -6,5 +6,8 @@ import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import java.util.List;
 
 public interface IEventActionContext {
+
+    IEventAction getByName(String name);
+
     List<IEventAction> getAllowedActionsByDomian(IMessagingDomain domain);
 }

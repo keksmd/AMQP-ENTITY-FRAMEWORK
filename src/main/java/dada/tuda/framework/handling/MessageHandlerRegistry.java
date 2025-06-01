@@ -41,41 +41,40 @@ public class MessageHandlerRegistry {
         return this.handleIntenal(mapper.normalize(message));
     }
 
-    public Object handleIntenal(NormalizedMessage message) throws Exception {
-        if (message.getActionType().isCancel()) {
-            String reason = (String) message.getPayloadMap().get("reason");
+    public Object handleIntenal(NormalizedMessage normalizedMessage) throws Exception {
+        if (normalizedMessage.getActionType().isCancel()) {
+            String reason = (String) normalizedMessage.getPayloadMap().get("reason");
             if (reason != null) {
-                log.warn("operation with id={} is cancelling. \nReason: {}", message.getOperationId(), reason);
+                log.warn("operation with id={} is cancelling. \nReason: {}", normalizedMessage.getOperationId(), reason);
             }
-            this.cancelMessage(message);
+            this.cancelMessage(normalizedMessage);
             return null;
         }
 
-        MessageHandler cachedHandler = getHandler(message);
+        MessageHandler cachedHandler = getHandler(normalizedMessage);
 
-        if (!messageStorage.isProcessed(message)) {
+        if (!messageStorage.isProcessed(normalizedMessage)) {
             try {
-                Object returned = cachedHandler.handle(message);
+                Object returned = cachedHandler.handle(normalizedMessage);
                 if ((!properties.getMessaging().isStoreOnlyCancelable() || cachedHandler instanceof CancelableMessageHandler) && messageStorage.isEnabled()) {
-                    messageStorage.storeEventAsProcessed(message);
+                    messageStorage.storeEventAsProcessed(normalizedMessage);
                 }
-                if (message.getActionType().isQuery()) {
+                if (normalizedMessage.getActionType().isQuery()) {
                     return returned;
                 } else {
                     return null;
                 }
-
             } catch (Exception e) {
-                log.warn("operation {} should be canceled: \n {}", message.getOperationId(), e.getMessage());
-                if (Boolean.TRUE.equals(properties.getMessaging().getSaga().isEnabled()) && !message.getActionType().isQuery()) {
-                    messageCanceller.cancelOperation("Exception in service: " + serviceName + " " + e.getMessage(), message.getOperationId());
+                log.warn("operation {} should be canceled: \n {}", normalizedMessage.getOperationId(), e.getMessage());
+                if (Boolean.TRUE.equals(properties.getMessaging().getSaga().isEnabled()) && !normalizedMessage.getActionType().isQuery()) {
+                    messageCanceller.cancelOperation("Exception in service: " + serviceName + " " + e.getMessage(), normalizedMessage.getActionType(), normalizedMessage.getOperationId());
                     return null;
                 } else {
                     throw e;
                 }
             }
         } else {
-            log.warn("operation already processed: {}", message.getOperationId());
+            log.warn("operation already processed: {}", normalizedMessage.getOperationId());
             return null;
         }
     }
