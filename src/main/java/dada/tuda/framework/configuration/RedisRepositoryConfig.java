@@ -1,13 +1,17 @@
 package dada.tuda.framework.configuration;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dada.tuda.framework.cache.CacheNamesRegistry;
 import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.cache.support.NullValue;
@@ -30,19 +34,18 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import java.time.Duration;
 import java.util.Arrays;
 
+import static com.fasterxml.jackson.core.JsonParser.Feature.INCLUDE_SOURCE_IN_LOCATION;
+
 @AutoConfiguration(after = RedisAutoConfiguration.class)
-@ConditionalOnClass(RedisConnectionFactory.class)
 public class RedisRepositoryConfig {
     @Bean
-    @ConditionalOnBean(name = "objectMapperForRedis", value = RedisConnectionFactory.class)
+    @ConditionalOnBean(RedisConnectionFactory.class)
     public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer(@Qualifier("objectMapperForRedis") ObjectMapper objectMapper) {
         return new GenericJackson2JsonRedisSerializer(objectMapper) {
             private static final byte[] BINARY_NULL;
-
             static {
                 BINARY_NULL = RedisSerializer.java().serialize(NullValue.INSTANCE);
             }
-
             private final GenericJackson2JsonRedisSerializer delegate = new GenericJackson2JsonRedisSerializer(objectMapper);
 
             @Override
@@ -75,6 +78,25 @@ public class RedisRepositoryConfig {
                 return !(first == '{' || first == '[' || first == '"');
             }
         };
+    }
+
+    @Bean
+    @ConditionalOnBean(RedisConnectionFactory.class)
+    public ObjectMapper objectMapperForRedis() {
+        ObjectMapper mapper = new ObjectMapper();
+        var module = new JavaTimeModule();
+        mapper.registerModule(module);
+        mapper.activateDefaultTyping(
+                LaissezFaireSubTypeValidator.instance,
+                ObjectMapper.DefaultTyping.EVERYTHING,
+                JsonTypeInfo.As.PROPERTY
+        );
+        mapper.enable(INCLUDE_SOURCE_IN_LOCATION);
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+        mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
+        mapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
+
+        return mapper;
     }
 
     @Bean
