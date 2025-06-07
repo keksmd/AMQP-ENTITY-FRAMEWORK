@@ -4,6 +4,7 @@ dada:
       messaging:
         store-only-cancelable: true
         saga:
+          ttl: 10m
           enabled: false
       domains:
         queue:

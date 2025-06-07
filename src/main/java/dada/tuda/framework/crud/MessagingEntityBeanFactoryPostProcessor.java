@@ -44,9 +44,11 @@ public class MessagingEntityBeanFactoryPostProcessor<T> implements BeanFactoryPo
                 MessagingEntity domainAnnotzated = beanClass.getAnnotation(MessagingEntity.class);
                 String domainName = domainAnnotzated.domain();
                 IMessagingDomain domain = domainContext.getByName(domainName);
-
                 if (domain == null) {
-                    IMessagingDomain newDomain = (new SimpleDomain(domainName));
+                    SimpleDomain newDomain = (new SimpleDomain(domainName));
+                    newDomain
+                            .setCreateDefaultBindings(Boolean.TRUE.toString().equals(domainAnnotzated.createDefaultBindings()))
+                            .setTtl(Long.parseLong(domainAnnotzated.getTtl()));
                     registerDomain(newDomain, registry);
                     entityContext.registerDomainMembership(newDomain, beanClass);
                     domain = newDomain;
@@ -112,6 +114,7 @@ public class MessagingEntityBeanFactoryPostProcessor<T> implements BeanFactoryPo
                         }, beanClass, f.getName());
                     }
                 }
+
                 String[] queues = domainAnnotzated.queues();
                 if (queues != null) {
                     for (String queue : queues) {

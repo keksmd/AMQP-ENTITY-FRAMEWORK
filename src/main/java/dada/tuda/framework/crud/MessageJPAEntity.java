@@ -19,6 +19,7 @@ import org.springframework.data.util.ProxyUtils;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 @RedisHash(value = "event")
 @Getter
@@ -43,18 +44,9 @@ public class MessageJPAEntity implements Serializable, NormalMessage {
     private String operationId;
     @JsonProperty("actorId")
     private String actorId;
-    @TimeToLive
+    @TimeToLive(unit = TimeUnit.MILLISECONDS)
     private Long ttl;
 
-
-    public MessageJPAEntity(NormalMessage msg) {
-        this.objectId = msg.getObjectId();
-        this.operationId = msg.getOperationId();
-        this.domainName = msg.getDomainName();
-        this.actionTypeName = msg.getActionTypeName();
-        this.actorId = msg.getActorId();
-
-    }
 
     @Id
     @org.springframework.data.annotation.Id

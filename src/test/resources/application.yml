@@ -4,11 +4,12 @@ dada:
       messaging:
         store-only-cancelable: false
         saga:
+          ttl: 10m
           enabled: true
       domains:
         queue:
           naming:
-            per-service: false
+            per-service: true
 spring:
   cache:
     redis:
@@ -24,3 +25,10 @@ spring:
     port: 5672
     virtual-host: /
     connection-timeout: 2000
+logging:
+  level:
+    org:
+      springframework:
+        boot:
+          context:
+            properties: DEBUG

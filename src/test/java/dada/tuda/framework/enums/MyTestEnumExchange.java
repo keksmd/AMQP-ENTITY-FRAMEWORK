@@ -11,4 +11,19 @@ public enum MyTestEnumExchange implements IMessagingDomain, IEnum {
     public String getName() {
         return name().toLowerCase();
     }
+
+    @Override
+    public boolean isCreateDefaultBindings() {
+        return true;
+    }
+
+    @Override
+    public Long getTtl() {
+        return 100L;
+    }
+
+    @Override
+    public void setTtl(Long ttl) {
+
+    }
 }

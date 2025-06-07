@@ -1,6 +1,7 @@
 package dada.tuda.framework.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dada.tuda.framework.DadaTudaFrameworkProperties;
 import dada.tuda.framework.MessagingRepositoriesMissingAnnotationChecker;
 import dada.tuda.framework.consistency.MessageRepository;
 import dada.tuda.framework.consistency.MessageStorage;
@@ -54,8 +55,13 @@ public class SagaConfig {
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
     @ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
-    SimpleDomain cancelDomain() {
-        return new SimpleDomain("cancelled");
+    SimpleDomain cancelDomain(DadaTudaFrameworkProperties properties) {
+        var cancel = new SimpleDomain("cancelled").setCreateDefaultBindings(false);
+        var ttl = properties.getMessaging().getSaga().getTtl();
+        if (ttl != null) {
+            cancel.setTtl(ttl.toMillis());
+        }
+        return cancel;
     }
 
     @Bean

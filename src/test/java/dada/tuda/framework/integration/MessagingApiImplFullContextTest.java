@@ -18,7 +18,6 @@ import static org.springframework.test.util.AssertionErrors.assertNotNull;
 @Testcontainers
 @ActiveProfiles("test")
 @TestPropertySource(locations = "classpath:application.yml")
-
 @SpringBootTest(classes = { RabbitContainerConfig.class, RedisContainerConfig.class, MessagingApiImplFullContextTest.class, WholeConfig.class })
 class MessagingApiImplFullContextTest {
     @Autowired

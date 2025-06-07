@@ -2,12 +2,14 @@ package dada.tuda.framework.crud.listening;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dada.tuda.framework.crud.contexts.DomainContext;
+import dada.tuda.framework.crud.contexts.EntityContext;
 import dada.tuda.framework.crud.contexts.ExchangeContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.crud.contexts.QueueNameContext;
 import dada.tuda.framework.crud.extractor.RoutingKeyConverter;
 import dada.tuda.framework.handling.MessageHandlerRegistry;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
+import dada.tuda.framework.normalization.types.realizations.CRUDEventActionTypes;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Exchange;
@@ -37,7 +39,7 @@ public class MessagingContainerAutoRegistrar implements SmartInitializingSinglet
     private final IEventActionContext iEventActionContext;
     private final RabbitAdmin rabbitAdmin;
 
-    public MessagingContainerAutoRegistrar(QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper, IEventActionContext iEventActionContext) {
+    public MessagingContainerAutoRegistrar(QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper, IEventActionContext iEventActionContext, EntityContext entityContext) {
         this.queueContext = queueContext;
         this.exchangeContext = exchangeContext;
         this.connectionFactory = connectionFactory;
@@ -53,21 +55,27 @@ public class MessagingContainerAutoRegistrar implements SmartInitializingSinglet
     @Override
     public void afterSingletonsInstantiated() {
         for (var domain : domainContext.getAllDomains()) {
-            SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-            container.setConnectionFactory(connectionFactory);
             Exchange exchange = exchangeContext.getExchange(domain);
             List<String> queueNames = queueContext.getQueueNameListByDomain(domain);
             List<Queue> queues = queueNames.stream().map(name -> new Queue(name, true)).toList();
 
             queues.forEach(q -> {
                 rabbitAdmin.declareQueue(q);
-                for (IEventAction action : iEventActionContext.getAllowedActionsByDomian(domain)) {
+                var actions = iEventActionContext.getAllowedActionsByDomian(domain);
+                if (!domain.isCreateDefaultBindings()) {
+                    actions = actions.stream()
+                            .filter(a -> !(a instanceof CRUDEventActionTypes))
+                            .toList();
+                }
+                for (IEventAction action : actions) {
                     String routing = routingKeyConverter.toRoutingKey(domain, action);
                     Binding binding = BindingBuilder.bind(q).to(exchange).with(routing).noargs();
                     rabbitAdmin.declareBinding(binding);
                 }
             });
 
+            SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+            container.setConnectionFactory(connectionFactory);
             container.setQueues(queues.toArray(new Queue[0]));
             container.setMessageListener(new UniversalMessageListener(messageHandlerRegistry, objectMapper));
             container.setAutoStartup(true);

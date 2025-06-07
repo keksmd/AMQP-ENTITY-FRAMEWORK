@@ -19,6 +19,7 @@ public abstract class MessageMapper {
     @Autowired
     public IEventActionContext eventActionContext;
 
+    @Mapping(target = "ttl", expression = "java(domainContext.getByName(message.getDomainName()).getTtl())")
     public abstract MessageJPAEntity toEntity(NormalMessage message);
 
     public abstract JsonNormalMessage toMessage(MessageJPAEntity entity);

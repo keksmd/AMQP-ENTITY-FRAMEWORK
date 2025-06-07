@@ -15,6 +15,5 @@ public class MessagingEntityDescriptor {
     private String actorIdField;
     private IMessagingDomain domain;
 
-
 }
 

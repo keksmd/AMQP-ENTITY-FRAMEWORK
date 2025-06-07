@@ -1,10 +1,9 @@
 package dada.tuda.framework.consistency;
 
-import dada.tuda.framework.crud.MessageJPAEntity;
+import dada.tuda.framework.consistency.mapper.MessageMapper;
 import dada.tuda.framework.normalization.messages.NormalMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,9 +11,8 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 public class InMemoryIdempotencyProvider implements MessageStorage {
+    private final MessageMapper mapper;
     private final Map<String, NormalMessage> messages = new HashMap<>();
-    @Value("${spring.cache.redis.time-to-live:300}")
-    private Long messageTtl;
 
     @Override
     public NormalMessage getByID(String operationId) {
@@ -39,8 +37,7 @@ public class InMemoryIdempotencyProvider implements MessageStorage {
     @Override
     public void storeEventAsProcessed(NormalMessage message) {
         try {
-            var entity = new MessageJPAEntity(message);
-            entity.setTtl(messageTtl);
+            var entity = mapper.toEntity(message);
             messages.put(message.getOperationId(), entity);
             log.debug("saved event processed {}", message.getOperationId());
         } catch (Exception e) {

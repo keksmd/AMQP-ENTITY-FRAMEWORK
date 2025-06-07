@@ -17,7 +17,6 @@ public interface EntityContext {
 
     void registerOperationIdExtractor(Function<Object, String> domainExtractor, Class clazz, String field);
 
-
     MessagingEntityDescriptor getDescriptorByMessagingEntityClass(Class<?> clz);
 
 

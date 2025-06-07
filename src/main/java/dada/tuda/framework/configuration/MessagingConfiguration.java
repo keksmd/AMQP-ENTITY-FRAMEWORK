@@ -86,8 +86,8 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(IEventActionContext iEventActionContext, QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper) {
-        return new MessagingContainerAutoRegistrar(queueContext, exchangeContext, connectionFactory, domainContext, routingKeyConverter, messageHandlerRegistry, objectMapper, iEventActionContext);
+    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(EntityContext entityContext, IEventActionContext iEventActionContext, QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper) {
+        return new MessagingContainerAutoRegistrar(queueContext, exchangeContext, connectionFactory, domainContext, routingKeyConverter, messageHandlerRegistry, objectMapper, iEventActionContext, entityContext);
     }
 
     @Bean
@@ -105,8 +105,8 @@ public class MessagingConfiguration {
     @Bean
     @ConditionalOnMissingBean({ MessageStorage.class })
     @ConditionalOnBean(ConnectionFactory.class)
-    MessageStorage inMemory() {
-        return new InMemoryIdempotencyProvider();
+    MessageStorage inMemory(MessageMapper messageMapper) {
+        return new InMemoryIdempotencyProvider(messageMapper);
     }
 
     @Bean

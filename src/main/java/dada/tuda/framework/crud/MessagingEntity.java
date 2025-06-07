@@ -20,5 +20,10 @@ public @interface MessagingEntity {
     @AliasFor("domain")
     String value() default "";
 
+    String createDefaultBindings() default "true";
+
+
     String[] queues() default "";
+
+    String getTtl() default "60000";
 }

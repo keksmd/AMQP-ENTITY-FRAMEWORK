@@ -11,5 +11,11 @@ public interface IMessagingDomain {
 
     String getName();
 
+    boolean isCreateDefaultBindings();
+
+    Long getTtl();
+
+    void setTtl(Long ttl);
+
 
 }

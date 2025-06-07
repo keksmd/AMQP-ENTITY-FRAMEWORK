@@ -1,13 +1,23 @@
 package dada.tuda.framework.crud;
 
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 @Getter
-@AllArgsConstructor
 @EqualsAndHashCode
 public class SimpleDomain implements IMessagingDomain {
     String name;
+    @Setter
+    @Accessors(chain = true)
+    private boolean createDefaultBindings;
+    @Setter
+    private Long ttl;
+
+    public SimpleDomain(String name) {
+        this.name = name;
+    }
+
 }
