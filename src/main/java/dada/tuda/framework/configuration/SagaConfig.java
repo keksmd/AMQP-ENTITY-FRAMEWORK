@@ -6,6 +6,7 @@ import dada.tuda.framework.consistency.MessageRepository;
 import dada.tuda.framework.consistency.MessageStorage;
 import dada.tuda.framework.consistency.RedisCachingIdempotencyProvider;
 import dada.tuda.framework.consistency.mapper.MessageMapper;
+import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.facade.MessageCanceller;
 import dada.tuda.framework.facade.MessageSender;
@@ -45,8 +46,8 @@ public class SagaConfig {
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
     @ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
-    public MessageCanceller eventCanceler(MessageSender sender, ObjectMapper objectMapper, IEventActionContext entityContext) {
-        return new MessageCanceller(entityContext, sender, objectMapper);
+    public MessageCanceller eventCanceler(MessageSender sender, DomainContext domainContext, ObjectMapper objectMapper, IEventActionContext entityContext) {
+        return new MessageCanceller(entityContext, sender, domainContext, objectMapper);
     }
 
     @Bean
