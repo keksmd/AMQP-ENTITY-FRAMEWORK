@@ -1,3 +1,4 @@
+dada.tuda.framework.configuration.PropsConfig
 dada.tuda.framework.configuration.TracingAspectConfiguration
 dada.tuda.framework.configuration.JaksonConfiguration
 dada.tuda.framework.configuration.MyCacheAspectConfiguration
