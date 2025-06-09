@@ -7,7 +7,6 @@ import dada.tuda.framework.consistency.InMemoryIdempotencyProvider;
 import dada.tuda.framework.consistency.MessageStorage;
 import dada.tuda.framework.consistency.mapper.MessageMapper;
 import dada.tuda.framework.consistency.mapper.MessageMapperImpl;
-import dada.tuda.framework.crud.AutoEntityProducer;
 import dada.tuda.framework.crud.DescriptorConverter;
 import dada.tuda.framework.crud.MessagingEntitesByAnnotationRegistrar;
 import dada.tuda.framework.crud.contexts.AnnotationDomainContext;
@@ -188,11 +187,6 @@ public class MessagingConfiguration {
         return impl;
     }
 
-    @Bean
-    @ConditionalOnBean(ConnectionFactory.class)
-    public AutoEntityProducer autoEntityProducerConfiguration(EntityContext entityContext) {
-        return new AutoEntityProducer(entityContext);
-    }
 
     @Configuration
     @ComponentScan(basePackages = "dada.tuda.framework.normalization.types.realizations")
