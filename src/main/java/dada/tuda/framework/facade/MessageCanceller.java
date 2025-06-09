@@ -25,7 +25,7 @@ public class MessageCanceller {
         var action = cancelEventActionContext.getOrCreateCancelByAction(originalAction);
         NormalizedMessage msg = new SystemMessage();
         msg.setPayloadMap(objectMapper.convertValue(entity, Map.class));
-        msg.setDomain(domainContext.getByName(CancelPayload.CANCEL_DOMAIN));
+        msg.setDomain(domain);
         msg.setObjectId(operationId);
         msg.setActionType(action);
         sender.sendUsingType(msg);
