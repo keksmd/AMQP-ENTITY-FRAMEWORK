@@ -13,7 +13,6 @@
         <testcontainers.version>1.21.1</testcontainers.version>
         <java.version>17</java.version>
         <spring-cloud.version>2024.0.0</spring-cloud.version>
-        <springdoc-openapi-ui.version>1.7.0</springdoc-openapi-ui.version>
         <jackson-databind-nullable.version>0.2.1</jackson-databind-nullable.version>
     </properties>
 
@@ -73,11 +72,6 @@
             <version>${jackson-databind-nullable.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
-            <version>${springdoc-openapi-ui.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <version>0.10.2</version>
@@ -110,6 +104,10 @@
             <artifactId>rabbitmq</artifactId>
             <version>${testcontainers.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
     </dependencies>
     <repositories>
