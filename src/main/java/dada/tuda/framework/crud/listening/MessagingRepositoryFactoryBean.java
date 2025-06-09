@@ -4,9 +4,10 @@ import dada.tuda.framework.facade.MessagingEntittyRepository;
 import dada.tuda.framework.normalization.types.interfaces.EntityProducer;
 import dada.tuda.framework.normalization.types.realizations.MessagingEntityRepositoryInvocationHandler;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -16,10 +17,11 @@ import java.lang.reflect.Proxy;
  * Фабрика, которая под капотом создаёт JDK-прокси
  * для интерфейса MessagingEntittyRepository<T>.
  */
+@Slf4j
 public class MessagingRepositoryFactoryBean<T>
         implements FactoryBean<MessagingEntittyRepository<T>>,
         ApplicationContextAware,
-        InitializingBean {
+        SmartInitializingSingleton {
 
     @Setter
     private Class<T> entityType;
@@ -35,7 +37,21 @@ public class MessagingRepositoryFactoryBean<T>
     }
 
     @Override
-    public void afterPropertiesSet() {
+    public MessagingEntittyRepository<T> getObject() {
+        if (this.proxy == null) {
+            log.warn("Proxy resolving with null, forced load ");
+            afterSingletonsInstantiated();
+        }
+        return this.proxy;
+    }
+
+    @Override
+    public Class<?> getObjectType() {
+        return this.repositoryInterface;
+    }
+
+    @Override
+    public void afterSingletonsInstantiated() {
         EntityProducer<T> producer = ctx.getBean("entityProducer", EntityProducer.class);
         Class<?> repoIface = repositoryInterface;
         this.proxy = (MessagingEntittyRepository<T>) Proxy.newProxyInstance(
@@ -43,15 +59,5 @@ public class MessagingRepositoryFactoryBean<T>
                 new Class[]{ repoIface },
                 new MessagingEntityRepositoryInvocationHandler<>(producer, entityType)
         );
-    }
-
-    @Override
-    public MessagingEntittyRepository<T> getObject() {
-        return this.proxy;
-    }
-
-    @Override
-    public Class<?> getObjectType() {
-        return this.repositoryInterface;
     }
 }

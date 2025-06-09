@@ -3,6 +3,7 @@ package dada.tuda.framework.cache;
 import dada.tuda.framework.annotations.CacheWithDetails;
 import dada.tuda.framework.annotations.DetailedCacheEvict;
 import lombok.Getter;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -14,12 +15,19 @@ import java.util.Map;
 import java.util.Set;
 
 @Getter
-public class CacheNamesRegistry implements ApplicationContextAware {
+public class CacheNamesRegistry implements ApplicationContextAware, SmartInitializingSingleton {
 
     private final Set<String> cacheNames = new HashSet<>();
+    private ApplicationContext applicationContext;
+
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+
+    @Override
+    public void afterSingletonsInstantiated() {
         Map<String, Object> beans = applicationContext.getBeansWithAnnotation(Component.class);
         for (Object bean : beans.values()) {
             for (Method method : bean.getClass().getMethods()) {
@@ -36,5 +44,4 @@ public class CacheNamesRegistry implements ApplicationContextAware {
             }
         }
     }
-
 }
