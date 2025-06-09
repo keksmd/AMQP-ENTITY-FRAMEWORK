@@ -7,6 +7,7 @@ import dada.tuda.framework.crud.contexts.ExchangeContext;
 import dada.tuda.framework.crud.extractor.RoutingKeyConverter;
 import dada.tuda.framework.normalization.HeadersGenerator;
 import dada.tuda.framework.normalization.messages.NormalizedMessage;
+import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -23,6 +24,15 @@ public class MessageSender {
 
     public void sendUsingType(NormalizedMessage event) {
         TopicExchange exchange = this.exchangeContext.getExchange(event.getDomain());
+        String routingKey = routingKeyConverter.toRoutingKey(event);
+        this.rabbitTemplate.convertAndSend(exchange.getName(), routingKey, mapper.toMessageFromNormal(event), (message) -> {
+            this.headersGenerator.accept(message.getMessageProperties().getHeaders());
+            return message;
+        });
+    }
+
+    public void sendUsingTypeWithExchangeForOtherDomain(NormalizedMessage event, IMessagingDomain domain) {
+        TopicExchange exchange = this.exchangeContext.getExchange(domain);
         String routingKey = routingKeyConverter.toRoutingKey(event);
         this.rabbitTemplate.convertAndSend(exchange.getName(), routingKey, mapper.toMessageFromNormal(event), (message) -> {
             this.headersGenerator.accept(message.getMessageProperties().getHeaders());

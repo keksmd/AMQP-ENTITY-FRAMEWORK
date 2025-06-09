@@ -28,7 +28,7 @@ public class MessageCanceller {
         msg.setDomain(domain);
         msg.setObjectId(operationId);
         msg.setActionType(action);
-        sender.sendUsingType(msg);
+        sender.sendUsingTypeWithExchangeForOtherDomain(msg, domainContext.getByName(CancelPayload.CANCEL_DOMAIN));
     }
 
 }
