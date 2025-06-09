@@ -15,7 +15,7 @@ public class EventActionContext implements IEventActionContext {
         name2actionMap = new ConcurrentHashMap<>();
         for (IEventAction action : values) {
             name2actionMap.put(action.name(), action);
-            if (action.isCancelable()) {
+            if (action.isCancelable() && !(action instanceof CancelEventActionTemplate) && !action.isQuery()) {
                 getOrCreateCancelByAction(action);
             }
         }

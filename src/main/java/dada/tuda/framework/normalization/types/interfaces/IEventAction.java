@@ -5,10 +5,6 @@ public interface IEventAction {
 
     boolean isQuery();
 
-    default boolean isCancel() {
-        return false;
-    }
-
     default boolean isCancelable() {
         return true;
     }

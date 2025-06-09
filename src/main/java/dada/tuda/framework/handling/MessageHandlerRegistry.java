@@ -70,7 +70,7 @@ public class MessageHandlerRegistry {
                 if (properties.getMessaging().getSaga().isEnabled()
                     && !normalizedMessage.getActionType().isQuery()
                     && normalizedMessage.getActionType().isCancelable()
-                    && !normalizedMessage.getActionType().isCancel()) {
+                    && !(normalizedMessage.getActionType() instanceof CancelEventActionTemplate)) {
                     messageCanceller.cancelOperation("Exception in service: " + serviceName + " " + e.getMessage(),
                             normalizedMessage.getActionType(),
                             normalizedMessage.getOperationId(),

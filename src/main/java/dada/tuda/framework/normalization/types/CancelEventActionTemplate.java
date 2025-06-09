@@ -6,10 +6,14 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode
 public class CancelEventActionTemplate implements IEventAction {
     private static final String CANCEL_SUFFIX = ".cancel";
-    private final IEventAction actionToCancel;
+    private final String name;
 
     public CancelEventActionTemplate(IEventAction actionToCancel) {
-        this.actionToCancel = actionToCancel;
+        name = createNameForCancelByOriginal(actionToCancel.name());
+    }
+
+    public static String createNameForCancelByOriginal(String originalActionName) {
+        return originalActionName + CANCEL_SUFFIX;
     }
 
     public static String getOriginalNameFromCancel(String cancelName) {
@@ -25,11 +29,7 @@ public class CancelEventActionTemplate implements IEventAction {
 
     @Override
     public String name() {
-        return createNameForCancelByOriginal(actionToCancel.name());
-    }
-
-    public static String createNameForCancelByOriginal(String originalActionName) {
-        return originalActionName + CANCEL_SUFFIX;
+        return name;
     }
 
     @Override
@@ -37,8 +37,4 @@ public class CancelEventActionTemplate implements IEventAction {
         return false;
     }
 
-    @Override
-    public boolean isCancel() {
-        return true;
-    }
 }
