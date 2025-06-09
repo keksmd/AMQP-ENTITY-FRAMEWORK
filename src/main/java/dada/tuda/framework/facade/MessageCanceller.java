@@ -1,6 +1,7 @@
 package dada.tuda.framework.facade;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.normalization.messages.NormalizedMessage;
 import dada.tuda.framework.normalization.messages.SystemMessage;
@@ -16,6 +17,7 @@ public class MessageCanceller {
 
     private final IEventActionContext cancelEventActionContext;
     private final MessageSender sender;
+    private final DomainContext domainContext;
     private final ObjectMapper objectMapper;
 
     public void cancelOperation(String reason, IEventAction originalAction, String operationId, IMessagingDomain domain) {
@@ -23,7 +25,7 @@ public class MessageCanceller {
         var action = cancelEventActionContext.getOrCreateCancelByAction(originalAction);
         NormalizedMessage msg = new SystemMessage();
         msg.setPayloadMap(objectMapper.convertValue(entity, Map.class));
-        msg.setDomain(domain);
+        msg.setDomain(domainContext.getByName(CancelPayload.CANCEL_DOMAIN));
         msg.setObjectId(operationId);
         msg.setActionType(action);
         sender.sendUsingType(msg);
