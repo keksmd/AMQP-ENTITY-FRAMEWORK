@@ -8,10 +8,10 @@ import org.springframework.amqp.core.ExchangeBuilder;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 
 @Slf4j
-public class ExchangesByDomainCreator implements InitializingBean {
+public class ExchangesByDomainCreator implements SmartInitializingSingleton {
     private final DomainContext domainContext;
     private final ExchangeContext exchangeContext;
     private final RabbitAdmin rabbitAdmin;
@@ -24,7 +24,7 @@ public class ExchangesByDomainCreator implements InitializingBean {
     }
 
     @Override
-    public void afterPropertiesSet() {
+    public void afterSingletonsInstantiated() {
         for (IMessagingDomain iMessagingDomain : domainContext.getAllDomains()) {
             String exchangeName = iMessagingDomain.getExchangeName();
             TopicExchange exchange = ExchangeBuilder.topicExchange(exchangeName).durable(true).build();

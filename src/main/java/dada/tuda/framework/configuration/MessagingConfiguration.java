@@ -40,8 +40,8 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
@@ -61,7 +61,7 @@ import java.util.List;
 public class MessagingConfiguration {
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public InitializingBean ex(DomainContext domainContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory) {
+    public SmartInitializingSingleton ex(DomainContext domainContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory) {
         return new ExchangesByDomainCreator(connectionFactory, domainContext, exchangeContext);
     }
 
@@ -79,7 +79,7 @@ public class MessagingConfiguration {
 
     @Bean(initMethod = "init")
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessageHandlerRegistry messageHandlerRegistry(ObjectProvider<DadaTudaFrameworkProperties> properties, MessageMapper mapper, List<MessageHandler> handlers, MessageCanceller messageCanceller, MessageStorage messageStorage) {
+    public MessageHandlerRegistry messageHandlerRegistry(ObjectProvider<DadaTudaFrameworkProperties> properties, MessageMapper mapper, List<MessageHandler> handlers, @Autowired(required = false) MessageCanceller messageCanceller, MessageStorage messageStorage) {
         log.debug("Creating MessageHandlerRegistry: {}", handlers);
         return new MessageHandlerRegistry(messageStorage, messageCanceller, mapper, handlers, properties);
     }
