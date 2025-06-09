@@ -46,7 +46,7 @@ public class MessageHandlerRegistry {
         if (normalizedMessage.getActionType() instanceof CancelEventActionTemplate) {
             String reason = (String) normalizedMessage.getPayloadMap().get("reason");
             if (reason != null) {
-                log.warn("operation with id={} is cancelling. \nReason: {}", normalizedMessage.getOperationId(), reason);
+                log.warn("operation with id={} is cancel. Target message is {} \nReason: {}", normalizedMessage.getOperationId(), normalizedMessage.getObjectId(), reason);
             }
             this.cancelMessage(normalizedMessage);
             return null;

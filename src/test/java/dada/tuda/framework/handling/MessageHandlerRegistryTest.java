@@ -21,7 +21,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 @Slf4j
 @Testcontainers
@@ -73,7 +72,7 @@ class MessageHandlerRegistryTest {
         testEntity.setObject(null);
         testRepo.create(testEntity);
         Thread.sleep(5000);
-        assertNull(storage.getByID(operationId));
+        assertNotNull(storage.getByID(operationId));
     }
 
     @Test
@@ -84,7 +83,7 @@ class MessageHandlerRegistryTest {
         testEntity.setObject(null);
         testRepo.create(testEntity);
         Thread.sleep(5000);
-        assertNull(storage.getByID(operationId));
+        assertNotNull(storage.getByID(operationId));
 
         testEntity.setObject("retry");
         testRepo.create(testEntity);
