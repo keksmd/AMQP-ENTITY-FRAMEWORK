@@ -53,7 +53,8 @@ public class MessageHandlerRegistry {
         }
 
         MessageHandler cachedHandler = getHandler(normalizedMessage);
-
+        boolean needsCancel = false;
+        String msg = "";
         if (!messageStorage.isProcessed(normalizedMessage)) {
             try {
                 Object returned = cachedHandler.handle(normalizedMessage);
@@ -71,15 +72,21 @@ public class MessageHandlerRegistry {
                     && !normalizedMessage.getActionType().isQuery()
                     && normalizedMessage.getActionType().isCancelable()
                     && !(normalizedMessage.getActionType() instanceof CancelEventActionTemplate)) {
-                    messageCanceller.cancelOperation("Exception in service: " + serviceName + " " + e.getMessage(),
-                            normalizedMessage.getActionType(),
-                            normalizedMessage.getOperationId(),
-                            normalizedMessage.getDomain());
-                    return null;
+                    needsCancel = true;
+                    msg = e.getMessage();
                 } else {
                     throw e;
                 }
+            } finally {
+                this.messageStorage.storeEventAsProcessed(normalizedMessage);
             }
+            if (needsCancel) {
+                messageCanceller.cancelOperation("Exception in service: " + serviceName + " " + msg,
+                        normalizedMessage.getActionType(),
+                        normalizedMessage.getOperationId(),
+                        normalizedMessage.getDomain());
+            }
+            return null;
         } else {
             log.warn("operation already processed: {}", normalizedMessage.getOperationId());
             return null;
