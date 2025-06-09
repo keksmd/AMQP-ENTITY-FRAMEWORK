@@ -67,7 +67,7 @@ public class MessageHandlerRegistry {
                 }
             } catch (Exception e) {
                 log.warn("operation {} should be canceled: \n {}", normalizedMessage.getOperationId(), e.getMessage());
-                if (Boolean.TRUE.equals(properties.getMessaging().getSaga().isEnabled())
+                if (properties.getMessaging().getSaga().isEnabled()
                     && !normalizedMessage.getActionType().isQuery()
                     && normalizedMessage.getActionType().isCancelable()
                     && !normalizedMessage.getActionType().isCancel()) {

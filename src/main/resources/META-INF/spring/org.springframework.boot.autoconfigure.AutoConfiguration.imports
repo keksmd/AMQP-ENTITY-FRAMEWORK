@@ -1,4 +1,3 @@
-dada.tuda.framework.springconf.PropertiesConfig
 dada.tuda.framework.configuration.TracingAspectConfiguration
 dada.tuda.framework.configuration.JaksonConfiguration
 dada.tuda.framework.configuration.MyCacheAspectConfiguration
