@@ -5,10 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@MessagingEntity(domain = "cancelled", createDefaultBindings = "false")
+@MessagingEntity(domain = CancelPayload.CANCEL_DOMAIN, createDefaultBindings = "false")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class CancelPayload {
+    public static final String CANCEL_DOMAIN = "cancelled";
     private String reason;
 }

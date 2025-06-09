@@ -38,8 +38,10 @@ public class MessagingContainerAutoRegistrar implements SmartInitializingSinglet
     private final ObjectMapper objectMapper;
     private final IEventActionContext iEventActionContext;
     private final RabbitAdmin rabbitAdmin;
+    private final Integer maxConcurrentConsumers;
+    private final Integer concurrentConsumers;
 
-    public MessagingContainerAutoRegistrar(QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper, IEventActionContext iEventActionContext, EntityContext entityContext) {
+    public MessagingContainerAutoRegistrar(QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper, IEventActionContext iEventActionContext, EntityContext entityContext, Integer maxConcurrentConsumers, Integer concurrentConsumers) {
         this.queueContext = queueContext;
         this.exchangeContext = exchangeContext;
         this.connectionFactory = connectionFactory;
@@ -49,6 +51,8 @@ public class MessagingContainerAutoRegistrar implements SmartInitializingSinglet
         this.objectMapper = objectMapper;
         this.iEventActionContext = iEventActionContext;
         this.rabbitAdmin = new RabbitAdmin(connectionFactory);
+        this.maxConcurrentConsumers = maxConcurrentConsumers;
+        this.concurrentConsumers = concurrentConsumers;
     }
 
 
@@ -76,6 +80,8 @@ public class MessagingContainerAutoRegistrar implements SmartInitializingSinglet
 
             SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
             container.setConnectionFactory(connectionFactory);
+            container.setConcurrentConsumers(this.concurrentConsumers);
+            container.setMaxConcurrentConsumers(this.maxConcurrentConsumers);
             container.setQueues(queues.toArray(new Queue[0]));
             container.setMessageListener(new UniversalMessageListener(messageHandlerRegistry, objectMapper));
             container.setAutoStartup(true);

@@ -11,19 +11,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.core.Ordered;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 
 
 @RequiredArgsConstructor
-@Component
-public class MessagingEntityBeanFactoryPostProcessor<T> implements BeanFactoryPostProcessor, BeanDefinitionRegistryPostProcessor, Ordered {
+public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionRegistryPostProcessor {
     private final EntityContext entityContext;
     private final DomainContext domainContext;
     private final QueueNameContext queueContext;
@@ -32,6 +27,7 @@ public class MessagingEntityBeanFactoryPostProcessor<T> implements BeanFactoryPo
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
         String[] beanNames = registry.getBeanDefinitionNames();
+
         for (String beanName : beanNames) {
             BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
             String beanClassName = beanDefinition.getBeanClassName();
@@ -41,20 +37,20 @@ public class MessagingEntityBeanFactoryPostProcessor<T> implements BeanFactoryPo
 
             Class<T> beanClass = (Class<T>) Class.forName(beanClassName);
             if (beanClass.isAnnotationPresent(MessagingEntity.class)) {
+
                 MessagingEntity domainAnnotzated = beanClass.getAnnotation(MessagingEntity.class);
                 String domainName = domainAnnotzated.domain();
                 IMessagingDomain domain = domainContext.getByName(domainName);
+
                 if (domain == null) {
                     SimpleDomain newDomain = (new SimpleDomain(domainName));
-                    newDomain
-                            .setCreateDefaultBindings(Boolean.TRUE.toString().equals(domainAnnotzated.createDefaultBindings()))
-                            .setTtl(Long.parseLong(domainAnnotzated.getTtl()));
-                    registerDomain(newDomain, registry);
-                    entityContext.registerDomainMembership(newDomain, beanClass);
+                    newDomain.setCreateDefaultBindings(Boolean.TRUE.toString().equals(domainAnnotzated.createDefaultBindings())).setTtl(Long.parseLong(domainAnnotzated.getTtl()));
+                    domainContext.registerDomain(newDomain);
                     domain = newDomain;
-                } else {
-                    entityContext.registerDomainMembership(domain, beanClass);
                 }
+
+                entityContext.registerDomainMembership(domain, beanClass);
+
                 for (Field f : beanClass.getDeclaredFields()) {
                     if (f.isAnnotationPresent(ObjectId.class)) {
                         entityContext.registerObjectIdExtractor(o -> {
@@ -121,24 +117,11 @@ public class MessagingEntityBeanFactoryPostProcessor<T> implements BeanFactoryPo
                         if (queue != null && !queue.isEmpty()) {
                             queueContext.registerQueueNameForDomain(queue, domain);
                         }
-
                     }
                 }
             }
 
         }
-    }
-
-    void registerDomain(IMessagingDomain domain, BeanDefinitionRegistry registry) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(IMessagingDomain.class, () -> domain);
-        BeanDefinition exchangeBeanDefinition = builder.getBeanDefinition();
-        registry.registerBeanDefinition(IMessagingDomain.class.getName() + domain.getName(), exchangeBeanDefinition);
-        domainContext.registerDomain(domain);
-    }
-
-    @Override
-    public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
     }
 
 }

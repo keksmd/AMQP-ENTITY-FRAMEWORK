@@ -9,6 +9,7 @@ import dada.tuda.framework.crud.DescriptorConverter;
 import dada.tuda.framework.crud.MessagingEntityDescriptor;
 import dada.tuda.framework.crud.SimpleDomain;
 import dada.tuda.framework.crud.contexts.AnnotationDomainContext;
+import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.EntityContext;
 import dada.tuda.framework.crud.contexts.EventActionContext;
 import dada.tuda.framework.crud.contexts.ExchangeContext;
@@ -28,9 +29,7 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
@@ -68,10 +67,12 @@ class EntityProducerTest {
         rabbitTemplate = mock(RabbitTemplate.class);
         objectMapper = new ObjectMapper();
         HeadersGenerator headersGenerator = mock(HeadersGenerator.class);
-        routingKeyConverter = new TypeRoutingKeyConverter(List.of(d));
+        DomainContext domainContext = new AnnotationDomainContext();
+        domainContext.registerDomain(d);
+        routingKeyConverter = new TypeRoutingKeyConverter(domainContext);
 
         mapper = new MessageMapperImpl();
-        mapper.domainContext = new AnnotationDomainContext(Set.of(d));
+        mapper.domainContext = domainContext;
         mapper.domainContext.init();
         mapper.eventActionContext = new EventActionContext(Arrays.stream(CRUDEventActionTypes.values()).map(c -> (IEventAction) c).toList());
 

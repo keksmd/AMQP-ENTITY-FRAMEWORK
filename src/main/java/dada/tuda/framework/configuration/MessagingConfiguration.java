@@ -9,7 +9,7 @@ import dada.tuda.framework.consistency.mapper.MessageMapper;
 import dada.tuda.framework.consistency.mapper.MessageMapperImpl;
 import dada.tuda.framework.crud.AutoEntityProducer;
 import dada.tuda.framework.crud.DescriptorConverter;
-import dada.tuda.framework.crud.MessagingEntityBeanFactoryPostProcessor;
+import dada.tuda.framework.crud.MessagingEntitesByAnnotationRegistrar;
 import dada.tuda.framework.crud.contexts.AnnotationDomainContext;
 import dada.tuda.framework.crud.contexts.AnnotationEntityContext;
 import dada.tuda.framework.crud.contexts.DomainContext;
@@ -28,22 +28,23 @@ import dada.tuda.framework.crud.extractor.UUUDOperationIdGenerator;
 import dada.tuda.framework.crud.listening.MessagingContainerAutoRegistrar;
 import dada.tuda.framework.facade.MessageCanceller;
 import dada.tuda.framework.facade.MessageSender;
-import dada.tuda.framework.handling.ExchangesByDomainCreatePostProcessor;
+import dada.tuda.framework.handling.ExchangesByDomainCreator;
 import dada.tuda.framework.handling.MessageHandler;
 import dada.tuda.framework.handling.MessageHandlerRegistry;
 import dada.tuda.framework.normalization.Header;
 import dada.tuda.framework.normalization.HeadersGenerator;
 import dada.tuda.framework.normalization.types.interfaces.EntityProducer;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
-import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitTemplateCustomizer;
@@ -54,15 +55,14 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
-import java.util.Set;
 
 @Slf4j
 @AutoConfiguration(after = RabbitAutoConfiguration.class)
 public class MessagingConfiguration {
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    static SmartInitializingSingleton ex(@Autowired List<IMessagingDomain> aggregates, ExchangeContext exchangeContext, ConnectionFactory connectionFactory) {
-        return new ExchangesByDomainCreatePostProcessor(connectionFactory, aggregates, exchangeContext);
+    public InitializingBean ex(DomainContext domainContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory) {
+        return new ExchangesByDomainCreator(connectionFactory, domainContext, exchangeContext);
     }
 
     @Bean
@@ -84,10 +84,12 @@ public class MessagingConfiguration {
         return new MessageHandlerRegistry(messageStorage, messageCanceller, mapper, handlers, properties);
     }
 
+
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(EntityContext entityContext, IEventActionContext iEventActionContext, QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper) {
-        return new MessagingContainerAutoRegistrar(queueContext, exchangeContext, connectionFactory, domainContext, routingKeyConverter, messageHandlerRegistry, objectMapper, iEventActionContext, entityContext);
+    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(@Value("${spring.rabbitmq.listener.simple.concurrency:3}") Integer consumers, @Value("${spring.rabbitmq.listener.simple.max-concurrency:10}") Integer maxConsumers, EntityContext entityContext, IEventActionContext iEventActionContext, QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper) {
+        return new MessagingContainerAutoRegistrar(queueContext, exchangeContext, connectionFactory, domainContext, routingKeyConverter, messageHandlerRegistry, objectMapper, iEventActionContext, entityContext,
+                maxConsumers, consumers);
     }
 
     @Bean
@@ -141,7 +143,7 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    RoutingKeyConverter routingKeyExtractor(List<IMessagingDomain> domains) {
+    RoutingKeyConverter routingKeyExtractor(DomainContext domains) {
         return new TypeRoutingKeyConverter(domains);
     }
 
@@ -167,14 +169,14 @@ public class MessagingConfiguration {
 
     @ConditionalOnBean(ConnectionFactory.class)
     @Bean
-    public MessagingEntityBeanFactoryPostProcessor postProcessor(EntityContext context, DomainContext domainContext, QueueNameContext queueContext) {
-        return new MessagingEntityBeanFactoryPostProcessor(context, domainContext, queueContext);
+    public BeanDefinitionRegistryPostProcessor messagingEntitesByAnnotationRegistrar(EntityContext context, DomainContext domainContext, QueueNameContext queueContext) {
+        return new MessagingEntitesByAnnotationRegistrar(context, domainContext, queueContext);
     }
 
-    @Bean(initMethod = "init")
+    @Bean()
     @ConditionalOnBean(ConnectionFactory.class)
-    AnnotationDomainContext domainContext(Set<IMessagingDomain> domains) {
-        return new AnnotationDomainContext(domains);
+    AnnotationDomainContext domainContext() {
+        return new AnnotationDomainContext();
     }
 
     @Bean

@@ -1,6 +1,5 @@
 package dada.tuda.framework.crud.contexts;
 
-import dada.tuda.framework.crud.SimpleDomain;
 import dada.tuda.framework.crud.extractor.RoutingKeyConverter;
 import dada.tuda.framework.normalization.types.CancelEventActionTemplate;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
@@ -15,19 +14,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static dada.tuda.framework.normalization.types.realizations.CancelPayload.CANCEL_DOMAIN;
+
 public class EventActionContextWithCancel implements IEventActionContext, ICancelEventActionContext {
     private final Map<String, IEventAction> name2actionMap;
     private final QueueNameContext queueNameContext;
-    private final SimpleDomain cancelDomain;
     private final ExchangeContext exchangeContext;
+    private final DomainContext domainContext;
     private final RabbitAdmin rabbitAdmin;
     private final RoutingKeyConverter routingKeyConverter;
+    private IMessagingDomain cancelDomain;
 
-
-    public EventActionContextWithCancel(ConnectionFactory connectionFactory, List<IEventAction> values, QueueNameContext queueNameContext, SimpleDomain cancelDomain, ExchangeContext exchangeContext, RoutingKeyConverter routingKeyConverter) {
+    public EventActionContextWithCancel(ConnectionFactory connectionFactory, List<IEventAction> values, QueueNameContext queueNameContext, DomainContext domainContext, ExchangeContext exchangeContext, RoutingKeyConverter routingKeyConverter) {
         this.queueNameContext = queueNameContext;
-        this.cancelDomain = cancelDomain;
         this.exchangeContext = exchangeContext;
+        this.domainContext = domainContext;
         this.routingKeyConverter = routingKeyConverter;
         name2actionMap = new ConcurrentHashMap<>();
         this.rabbitAdmin = new RabbitAdmin(connectionFactory);
@@ -35,6 +36,7 @@ public class EventActionContextWithCancel implements IEventActionContext, ICance
             name2actionMap.put(action.name(), action);
         }
     }
+
 
     @Override
     public IEventAction getByName(String name) {
@@ -62,11 +64,18 @@ public class EventActionContextWithCancel implements IEventActionContext, ICance
     }
 
     private void addLazyCancelBinding(IEventAction cancel) {
+
         var cancelExchange = exchangeContext.getExchange(cancelDomain);
         for (String qName : queueNameContext.getQueueNameListByDomain(cancelDomain)) {
             Queue queue = new Queue(qName, true);
             Binding binding = BindingBuilder.bind(queue).to(cancelExchange).with(routingKeyConverter.toRoutingKey(cancelDomain, cancel));
             rabbitAdmin.declareBinding(binding);
+        }
+    }
+
+    public void init() {
+        if (cancelDomain == null) {
+            this.cancelDomain = domainContext.getByName(CANCEL_DOMAIN);
         }
     }
 

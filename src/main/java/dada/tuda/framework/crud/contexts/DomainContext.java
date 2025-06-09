@@ -2,12 +2,12 @@ package dada.tuda.framework.crud.contexts;
 
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 
-import java.util.Set;
+import java.util.Collection;
 
 public interface DomainContext {
     IMessagingDomain getByName(String domain);
 
-    Set<IMessagingDomain> getAllDomains();
+    Collection<IMessagingDomain> getAllDomains();
 
     void registerDomain(IMessagingDomain domain);
 

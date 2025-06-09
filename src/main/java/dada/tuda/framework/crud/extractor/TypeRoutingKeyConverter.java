@@ -1,15 +1,14 @@
 package dada.tuda.framework.crud.extractor;
 
+import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.normalization.messages.NormalizedMessage;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import lombok.RequiredArgsConstructor;
 
-import java.util.List;
-
 @RequiredArgsConstructor
 public class TypeRoutingKeyConverter implements RoutingKeyConverter {
-    private final List<IMessagingDomain> domains;
+    private final DomainContext domainContext;
 
     @Override
     public String toRoutingKey(NormalizedMessage message) {
@@ -23,6 +22,6 @@ public class TypeRoutingKeyConverter implements RoutingKeyConverter {
 
     @Override
     public IMessagingDomain getDomainByRoutingKey(String routingKey) {
-        return domains.stream().filter(domain -> domain.getKey().equals(routingKey.split("\\.")[0])).findFirst().orElseThrow(IllegalStateException::new);
+        return domainContext.getAllDomains().stream().filter(domain -> domain.getKey().equals(routingKey.split("\\.")[0])).findFirst().orElseThrow(IllegalStateException::new);
     }
 }
