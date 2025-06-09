@@ -70,7 +70,7 @@ public class MessagingConfiguration {
         return new ExchangeContext(topics);
     }
 
-    @Bean
+    @Bean(initMethod = "init")
     @ConditionalOnBean(ConnectionFactory.class)
     public IEventActionContext iEventActionContext(List<IEventAction> actions) {
         return new EventActionContext(actions);

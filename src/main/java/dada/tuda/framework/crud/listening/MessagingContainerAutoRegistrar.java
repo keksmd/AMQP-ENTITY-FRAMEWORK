@@ -8,8 +8,11 @@ import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.crud.contexts.QueueNameContext;
 import dada.tuda.framework.crud.extractor.RoutingKeyConverter;
 import dada.tuda.framework.handling.MessageHandlerRegistry;
+import dada.tuda.framework.normalization.types.CancelEventActionTemplate;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
+import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import dada.tuda.framework.normalization.types.realizations.CRUDEventActionTypes;
+import dada.tuda.framework.normalization.types.realizations.CancelPayload;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Exchange;
@@ -58,35 +61,45 @@ public class MessagingContainerAutoRegistrar implements SmartInitializingSinglet
 
     @Override
     public void afterSingletonsInstantiated() {
+        IMessagingDomain cancelDomain = domainContext.getByName(CancelPayload.CANCEL_DOMAIN);
         for (var domain : domainContext.getAllDomains()) {
-            Exchange exchange = exchangeContext.getExchange(domain);
-            List<String> queueNames = queueContext.getQueueNameListByDomain(domain);
-            List<Queue> queues = queueNames.stream().map(name -> new Queue(name, true)).toList();
+            if (!CancelPayload.CANCEL_DOMAIN.equals(domain.getName())) {
+                Exchange exchange = exchangeContext.getExchange(domain);
+                List<String> queueNames = queueContext.getQueueNameListByDomain(domain);
+                List<Queue> queues = queueNames.stream().map(name -> new Queue(name, true)).toList();
+                queues.forEach(q -> {
+                    rabbitAdmin.declareQueue(q);
+                    var actions = iEventActionContext.getAllowedActionsByDomian(domain);
+                    if (!domain.isCreateDefaultBindings()) {
+                        actions = actions.stream()
+                                .filter(a -> !(a instanceof CRUDEventActionTypes))
+                                .toList();
+                    }
+                    for (IEventAction action : actions) {
+                        String routing = routingKeyConverter.toRoutingKey(domain, action);
+                        Binding binding;
+                        if (action instanceof CancelEventActionTemplate) {
+                            if (cancelDomain != null) {
+                                binding = BindingBuilder.bind(q).to(exchangeContext.getExchange(cancelDomain)).with(routing);
+                            } else {
+                                throw new IllegalStateException("Cancel domain not exist");
+                            }
+                        } else {
+                            binding = BindingBuilder.bind(q).to(exchange).with(routing).noargs();
+                        }
+                        rabbitAdmin.declareBinding(binding);
+                    }
+                });
 
-            queues.forEach(q -> {
-                rabbitAdmin.declareQueue(q);
-                var actions = iEventActionContext.getAllowedActionsByDomian(domain);
-                if (!domain.isCreateDefaultBindings()) {
-                    actions = actions.stream()
-                            .filter(a -> !(a instanceof CRUDEventActionTypes))
-                            .toList();
-                }
-                for (IEventAction action : actions) {
-                    String routing = routingKeyConverter.toRoutingKey(domain, action);
-                    Binding binding = BindingBuilder.bind(q).to(exchange).with(routing).noargs();
-                    rabbitAdmin.declareBinding(binding);
-                }
-            });
-
-            SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-            container.setConnectionFactory(connectionFactory);
-            container.setConcurrentConsumers(this.concurrentConsumers);
-            container.setMaxConcurrentConsumers(this.maxConcurrentConsumers);
-            container.setQueues(queues.toArray(new Queue[0]));
-            container.setMessageListener(new UniversalMessageListener(messageHandlerRegistry, objectMapper));
-            container.setAutoStartup(true);
-            container.start();
-
+                SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
+                container.setConnectionFactory(connectionFactory);
+                container.setConcurrentConsumers(this.concurrentConsumers);
+                container.setMaxConcurrentConsumers(this.maxConcurrentConsumers);
+                container.setQueues(queues.toArray(new Queue[0]));
+                container.setMessageListener(new UniversalMessageListener(messageHandlerRegistry, objectMapper));
+                container.setAutoStartup(true);
+                container.start();
+            }
         }
     }
 

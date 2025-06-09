@@ -1,7 +1,7 @@
 package dada.tuda.framework.facade;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dada.tuda.framework.crud.contexts.ICancelEventActionContext;
+import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.normalization.messages.NormalizedMessage;
 import dada.tuda.framework.normalization.messages.SystemMessage;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
@@ -14,7 +14,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MessageCanceller {
 
-    private final ICancelEventActionContext cancelEventActionContext;
+    private final IEventActionContext cancelEventActionContext;
     private final MessageSender sender;
     private final ObjectMapper objectMapper;
 
