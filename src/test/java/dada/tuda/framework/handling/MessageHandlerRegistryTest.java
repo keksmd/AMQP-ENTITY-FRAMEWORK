@@ -56,7 +56,6 @@ class MessageHandlerRegistryTest {
     @Test
     void msgSendedAndReaded() throws Exception {
         TestEntity testEntity = new TestEntity();
-        testEntity.setField1(" new  f 1q");
         testEntity.setId("1");
         testEntity.setObject("test");
         testRepo.create(testEntity);
@@ -67,7 +66,6 @@ class MessageHandlerRegistryTest {
     @Test
     void msgSendedAndRCanceled() throws Exception {
         TestEntity testEntity = new TestEntity();
-        testEntity.setField1(" new  f 1q");
         testEntity.setId("2");
         testEntity.setObject(null);
         testRepo.create(testEntity);
@@ -78,7 +76,6 @@ class MessageHandlerRegistryTest {
     @Test
     void msgDuplicatedAndSecondRetried() throws Exception {
         TestEntity testEntity = new TestEntity();
-        testEntity.setField1(" new  f 1q");
         testEntity.setId("3");
         testEntity.setObject(null);
         testRepo.create(testEntity);
@@ -94,7 +91,6 @@ class MessageHandlerRegistryTest {
     @Test
     void msgDuplicatedAndSecondCanceled() throws Exception {
         TestEntity testEntity = new TestEntity();
-        testEntity.setField1(" new  f 1q");
         testEntity.setId("4");
         testEntity.setObject("test");
 

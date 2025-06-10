@@ -1,6 +1,7 @@
 package dada.tuda.framework.crud.contexts;
 
 import dada.tuda.framework.crud.MessagingEntityDescriptor;
+import dada.tuda.framework.crud.extractor.PayloadMap;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 
 import java.util.List;
@@ -22,5 +23,6 @@ public interface EntityContext {
 
     List<Class<?>> getAllTypes();
 
-    <T> void registerPayloadMapExtractor(Function<Object, Object> objectStringFunction, Class<T> beanClass, String name);
+
+    <T> void registerPayloadMapExtractor(Function<Object, Object> payLoadExtractor, Class<T> clazz, String filedName, PayloadMap an);
 }

@@ -52,6 +52,7 @@ public class DescriptorConverter {
                                 payload.putAll(p);
                             } else {
                                 p.putAll(payload);
+                                payload = p;
                             }
                         }
                     } else {

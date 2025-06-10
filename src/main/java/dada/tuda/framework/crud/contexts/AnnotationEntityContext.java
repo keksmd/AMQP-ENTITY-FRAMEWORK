@@ -1,6 +1,7 @@
 package dada.tuda.framework.crud.contexts;
 
 import dada.tuda.framework.crud.MessagingEntityDescriptor;
+import dada.tuda.framework.crud.extractor.PayloadMap;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -57,10 +58,11 @@ public class AnnotationEntityContext implements EntityContext {
     }
 
     @Override
-    public <T> void registerPayloadMapExtractor(Function<Object, Object> payLoadExtractor, Class<T> clazz, String filedName) {
+    public <T> void registerPayloadMapExtractor(Function<Object, Object> payLoadExtractor, Class<T> clazz, String filedName, PayloadMap an) {
         var descriptor = context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor());
         descriptor.setPayLoadExtractor(payLoadExtractor);
         descriptor.setPayload(filedName);
+        descriptor.setPayloadAnnotation(an);
 
     }
 }

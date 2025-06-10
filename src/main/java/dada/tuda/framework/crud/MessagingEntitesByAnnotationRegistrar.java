@@ -120,7 +120,7 @@ public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionR
                             } catch (IllegalAccessException e) {
                                 throw new RuntimeException(e);
                             }
-                        }, beanClass, f.getName());
+                        }, beanClass, f.getName(), f.getAnnotation(PayloadMap.class));
                     }
                 }
 
