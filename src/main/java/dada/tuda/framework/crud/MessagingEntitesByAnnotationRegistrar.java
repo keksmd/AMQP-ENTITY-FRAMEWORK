@@ -5,10 +5,12 @@ import dada.tuda.framework.crud.contexts.EntityContext;
 import dada.tuda.framework.crud.contexts.QueueNameContext;
 import dada.tuda.framework.crud.extractor.ActorId;
 import dada.tuda.framework.crud.extractor.ObjectId;
-import dada.tuda.framework.crud.extractor.OperaionId;
+import dada.tuda.framework.crud.extractor.OperationId;
+import dada.tuda.framework.crud.extractor.PayloadMap;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -22,6 +24,7 @@ public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionR
     private final EntityContext entityContext;
     private final DomainContext domainContext;
     private final QueueNameContext queueContext;
+
 
     @SneakyThrows
     @Override
@@ -90,7 +93,7 @@ public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionR
                             }
                         }, beanClass, f.getName());
                     }
-                    if (f.isAnnotationPresent(OperaionId.class)) {
+                    if (f.isAnnotationPresent(OperationId.class)) {
                         entityContext.registerOperationIdExtractor(o -> {
                             try {
                                 f.setAccessible(true);
@@ -109,19 +112,29 @@ public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionR
                             }
                         }, beanClass, f.getName());
                     }
+                    if (f.isAnnotationPresent(PayloadMap.class)) {
+                        entityContext.registerPayloadMapExtractor(o -> {
+                            try {
+                                f.setAccessible(true);
+                                return f.get(o);
+                            } catch (IllegalAccessException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }, beanClass, f.getName());
+                    }
                 }
 
-                String[] queues = domainAnnotzated.queues();
+                Queue[] queues = domainAnnotzated.queues();
                 if (queues != null) {
-                    for (String queue : queues) {
-                        if (queue != null && !queue.isEmpty()) {
-                            queueContext.registerQueueNameForDomain(queue, domain);
+                    for (Queue queue : queues) {
+                        if (queue != null) {
+                            queueContext.registerQueueForDomain(queue, domain);
                         }
                     }
                 }
             }
-
         }
     }
 
 }
+

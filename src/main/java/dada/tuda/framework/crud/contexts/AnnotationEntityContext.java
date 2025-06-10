@@ -19,27 +19,27 @@ public class AnnotationEntityContext implements EntityContext {
 
 
     @Override
-    public void registerDomainMembership(IMessagingDomain domain, Class clazz) {
+    public <T> void registerDomainMembership(IMessagingDomain domain, Class<T> clazz) {
         context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor())
                 .setDomain(domain);
     }
 
     @Override
-    public void registerObjectIdExtractor(Function<Object, String> domainExtractor, Class clazz, String field) {
+    public <T> void registerObjectIdExtractor(Function<Object, String> domainExtractor, Class<T> clazz, String field) {
         var descriptor = context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor());
         descriptor.setObjectIdExtractor(domainExtractor);
         descriptor.setObjectIdFiled(field);
     }
 
     @Override
-    public void registerActorIdExtractor(Function<Object, String> domainExtractor, Class clazz, String field) {
+    public <T> void registerActorIdExtractor(Function<Object, String> domainExtractor, Class<T> clazz, String field) {
         var descriptor = context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor());
         descriptor.setActorIdExtractor(domainExtractor);
         descriptor.setActorIdField(field);
     }
 
     @Override
-    public void registerOperationIdExtractor(Function<Object, String> domainExtractor, Class clazz, String field) {
+    public <T> void registerOperationIdExtractor(Function<Object, String> domainExtractor, Class<T> clazz, String field) {
         var descriptor = context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor());
         descriptor.setOperationIdExtractor(domainExtractor);
         descriptor.setOperationIdFiled(field);
@@ -47,13 +47,21 @@ public class AnnotationEntityContext implements EntityContext {
 
 
     @Override
-    public MessagingEntityDescriptor getDescriptorByMessagingEntityClass(Class<?> clz) {
+    public <T> MessagingEntityDescriptor getDescriptorByMessagingEntityClass(Class<T> clz) {
         return context.get(clz);
     }
 
     @Override
     public List<Class<?>> getAllTypes() {
         return new ArrayList<>(context.keySet());
+    }
+
+    @Override
+    public <T> void registerPayloadMapExtractor(Function<Object, Object> payLoadExtractor, Class<T> clazz, String filedName) {
+        var descriptor = context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor());
+        descriptor.setPayLoadExtractor(payLoadExtractor);
+        descriptor.setPayload(filedName);
+
     }
 }
 

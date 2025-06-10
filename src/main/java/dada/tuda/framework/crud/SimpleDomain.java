@@ -4,10 +4,12 @@ import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 @Getter
 @EqualsAndHashCode
+@ToString
 public class SimpleDomain implements IMessagingDomain {
     String name;
     @Setter

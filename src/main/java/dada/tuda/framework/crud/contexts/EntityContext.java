@@ -9,16 +9,18 @@ import java.util.function.Function;
 public interface EntityContext {
 
 
-    void registerDomainMembership(IMessagingDomain domain, Class clazz);
+    <T> void registerDomainMembership(IMessagingDomain domain, Class<T> clazz);
 
-    void registerObjectIdExtractor(Function<Object, String> domainExtractor, Class clazz, String field);
+    <T> void registerObjectIdExtractor(Function<Object, String> domainExtractor, Class<T> clazz, String field);
 
-    void registerActorIdExtractor(Function<Object, String> domainExtractor, Class clazz, String field);
+    <T> void registerActorIdExtractor(Function<Object, String> domainExtractor, Class<T> clazz, String field);
 
-    void registerOperationIdExtractor(Function<Object, String> domainExtractor, Class clazz, String field);
+    <T> void registerOperationIdExtractor(Function<Object, String> domainExtractor, Class<T> clazz, String field);
 
-    MessagingEntityDescriptor getDescriptorByMessagingEntityClass(Class<?> clz);
+    <T> MessagingEntityDescriptor getDescriptorByMessagingEntityClass(Class<T> clz);
 
 
     List<Class<?>> getAllTypes();
+
+    <T> void registerPayloadMapExtractor(Function<Object, Object> objectStringFunction, Class<T> beanClass, String name);
 }

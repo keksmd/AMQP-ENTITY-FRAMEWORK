@@ -9,6 +9,7 @@ import dada.tuda.framework.consistency.mapper.MessageMapper;
 import dada.tuda.framework.consistency.mapper.MessageMapperImpl;
 import dada.tuda.framework.crud.DescriptorConverter;
 import dada.tuda.framework.crud.MessagingEntitesByAnnotationRegistrar;
+import dada.tuda.framework.crud.QueueAnnotationParser;
 import dada.tuda.framework.crud.contexts.AnnotationDomainContext;
 import dada.tuda.framework.crud.contexts.AnnotationEntityContext;
 import dada.tuda.framework.crud.contexts.DomainContext;
@@ -52,6 +53,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 import java.util.List;
 
@@ -86,9 +88,15 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(@Value("${spring.rabbitmq.listener.simple.concurrency:3}") Integer consumers, @Value("${spring.rabbitmq.listener.simple.max-concurrency:10}") Integer maxConsumers, EntityContext entityContext, IEventActionContext iEventActionContext, QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper) {
+    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(@Value("${spring.rabbitmq.listener.simple.concurrency:3}") Integer consumers, QueueAnnotationParser annotationParser, @Value("${spring.rabbitmq.listener.simple.max-concurrency:10}") Integer maxConsumers, EntityContext entityContext, IEventActionContext iEventActionContext, QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper) {
         return new MessagingContainerAutoRegistrar(queueContext, exchangeContext, connectionFactory, domainContext, routingKeyConverter, messageHandlerRegistry, objectMapper, iEventActionContext, entityContext,
-                maxConsumers, consumers);
+                maxConsumers, consumers, annotationParser);
+    }
+
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    QueueAnnotationParser annotationParser(Environment environment) {
+        return new QueueAnnotationParser(environment);
     }
 
     @Bean

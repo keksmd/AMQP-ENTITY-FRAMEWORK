@@ -1,6 +1,7 @@
 package dada.tuda.framework.crud.contexts;
 
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
+import org.springframework.amqp.rabbit.annotation.Queue;
 
 import java.util.List;
 
@@ -8,6 +9,8 @@ public interface QueueNameContext {
 
     List<String> getQueueNameListByDomain(IMessagingDomain domain);
 
+    List<Queue> getQueueListByDomain(IMessagingDomain domain);
 
-    void registerQueueNameForDomain(String queue, IMessagingDomain domain);
+
+    void registerQueueForDomain(Queue queue, IMessagingDomain domain);
 }

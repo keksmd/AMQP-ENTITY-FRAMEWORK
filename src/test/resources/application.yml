@@ -11,6 +11,8 @@ dada:
           naming:
             per-service: true
 spring:
+  application:
+    name: "test"
   cache:
     redis:
       time-to-live: 60000
@@ -32,3 +34,5 @@ logging:
         boot:
           context:
             properties: DEBUG
+example-3-queue:
+  name: example-3-queue

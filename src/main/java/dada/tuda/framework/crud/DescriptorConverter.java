@@ -24,36 +24,59 @@ public class DescriptorConverter {
 
     public NormalizedMessage createFromDescriptor(Object entity, IEventAction action, MessagingEntityDescriptor descriptor) {
         NormalizedMessage msg = new SystemMessage();
-
-        Map<String, Object> payload = objectMapper.convertValue(entity, Map.class);
-        if (descriptor != null) {
-            String actor = null;
-            if (descriptor.getActorIdExtractor() != null) {
-                actor = descriptor.getActorIdExtractor().apply(entity);
+        String actor = null;
+        String object = null;
+        String operation = null;
+        Map<String, Object> payload = null;
+        if (entity != null) {
+            payload = objectMapper.convertValue(entity, Map.class);
+            if (descriptor != null) {
+                if (descriptor.getActorIdExtractor() != null) {
+                    actor = descriptor.getActorIdExtractor().apply(entity);
+                }
+                if (descriptor.getObjectIdExtractor() != null) {
+                    object = descriptor.getObjectIdExtractor().apply(entity);
+                }
+                if (descriptor.getOperationIdExtractor() != null) {
+                    operation = descriptor.getOperationIdExtractor().apply(entity);
+                }
+                if (descriptor.getPayLoadExtractor() != null) {
+                    Object extractedPayloadObject = descriptor.getPayLoadExtractor().apply(entity);
+                    if (extractedPayloadObject != null) {
+                        Map<String, Object> p = objectMapper.convertValue(extractedPayloadObject, Map.class);
+                        if ("true".equalsIgnoreCase(descriptor.getPayloadAnnotation().replace())) {
+                            payload = p;
+                        } else {
+                            cleanPayloadMap(payload, descriptor);
+                            if ("true".equalsIgnoreCase(descriptor.getPayloadAnnotation().rewriteValues())) {
+                                payload.putAll(p);
+                            } else {
+                                p.putAll(payload);
+                            }
+                        }
+                    } else {
+                        throw new IllegalStateException("Payload extraction from filed " + descriptor.getPayload() + "failed: " + entity);
+                    }
+                }
             }
-
-            String object = null;
-            if (descriptor.getObjectIdExtractor() != null) {
-                object = descriptor.getObjectIdExtractor().apply(entity);
-            }
-
-            String operation = null;
-            if (descriptor.getOperationIdExtractor() != null) {
-                operation = descriptor.getOperationIdExtractor().apply(entity);
-            }
-            operation = operation != null ? operation : operationIdGenerator.get();
-            msg.setActorId(actor);
-            msg.setObjectId(object);
-            msg.setOperationId(operation);
-            msg.setDomain(descriptor.getDomain());
-            payload.remove(descriptor.getActorIdField());
-            payload.remove(descriptor.getOperationIdFiled());
-            payload.remove(descriptor.getObjectIdFiled());
         }
+        operation = operation != null ? operation : operationIdGenerator.get();
+        msg.setActorId(actor);
+        msg.setObjectId(object);
+        msg.setOperationId(operation);
+        msg.setDomain(descriptor.getDomain());
         msg.setPayloadMap(payload);
         msg.setActionType(action);
 
+
         return msg;
+    }
+
+    private void cleanPayloadMap(Map<String, Object> payload, MessagingEntityDescriptor descriptor) {
+        payload.remove(descriptor.getActorIdField());
+        payload.remove(descriptor.getOperationIdFiled());
+        payload.remove(descriptor.getObjectIdFiled());
+        payload.remove(descriptor.getPayload());
     }
 
 }

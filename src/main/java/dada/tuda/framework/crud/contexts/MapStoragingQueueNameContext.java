@@ -1,6 +1,7 @@
 package dada.tuda.framework.crud.contexts;
 
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
+import org.springframework.amqp.rabbit.annotation.Queue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,19 +11,24 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MapStoragingQueueNameContext implements QueueNameContext {
 
 
-    Map<IMessagingDomain, List<String>> contextNames = new ConcurrentHashMap<>();
+    Map<IMessagingDomain, List<org.springframework.amqp.rabbit.annotation.Queue>> contextNames = new ConcurrentHashMap<>();
 
 
     @Override
     public List<String> getQueueNameListByDomain(IMessagingDomain domain) {
         var names = contextNames.get(domain);
-        return names == null ? new ArrayList<>() : names;
+        return names == null ? new ArrayList<>() : names.stream().map(Queue::name).toList();
 
+    }
+
+    @Override
+    public List<Queue> getQueueListByDomain(IMessagingDomain domain) {
+        return contextNames.get(domain);
     }
 
 
     @Override
-    public void registerQueueNameForDomain(String queue, IMessagingDomain domain) {
+    public void registerQueueForDomain(Queue queue, IMessagingDomain domain) {
         contextNames.computeIfAbsent(domain, domain1 -> new ArrayList<>()).add(queue);
     }
 

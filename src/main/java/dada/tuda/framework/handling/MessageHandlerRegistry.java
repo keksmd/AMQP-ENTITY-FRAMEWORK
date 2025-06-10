@@ -102,6 +102,7 @@ public class MessageHandlerRegistry {
         }
         var cachedHandler = getHandler(mapper.normalize(canceledEvent));
         if (cachedHandler instanceof CancelableMessageHandler cancelableMessageHandler) {
+            log.debug("Handling cancel for  {}.", canceledEvent);
             cancelableMessageHandler.cancel(canceledEvent);
         }
     }

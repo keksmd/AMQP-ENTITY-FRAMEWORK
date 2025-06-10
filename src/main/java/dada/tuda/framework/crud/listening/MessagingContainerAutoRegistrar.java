@@ -1,6 +1,7 @@
 package dada.tuda.framework.crud.listening;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dada.tuda.framework.crud.QueueAnnotationParser;
 import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.EntityContext;
 import dada.tuda.framework.crud.contexts.ExchangeContext;
@@ -43,8 +44,9 @@ public class MessagingContainerAutoRegistrar implements SmartInitializingSinglet
     private final RabbitAdmin rabbitAdmin;
     private final Integer maxConcurrentConsumers;
     private final Integer concurrentConsumers;
+    private final QueueAnnotationParser queueAnnotationParser;
 
-    public MessagingContainerAutoRegistrar(QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper, IEventActionContext iEventActionContext, EntityContext entityContext, Integer maxConcurrentConsumers, Integer concurrentConsumers) {
+    public MessagingContainerAutoRegistrar(QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper, IEventActionContext iEventActionContext, EntityContext entityContext, Integer maxConcurrentConsumers, Integer concurrentConsumers, QueueAnnotationParser queueAnnotationParser) {
         this.queueContext = queueContext;
         this.exchangeContext = exchangeContext;
         this.connectionFactory = connectionFactory;
@@ -56,6 +58,7 @@ public class MessagingContainerAutoRegistrar implements SmartInitializingSinglet
         this.rabbitAdmin = new RabbitAdmin(connectionFactory);
         this.maxConcurrentConsumers = maxConcurrentConsumers;
         this.concurrentConsumers = concurrentConsumers;
+        this.queueAnnotationParser = queueAnnotationParser;
     }
 
 
@@ -65,8 +68,8 @@ public class MessagingContainerAutoRegistrar implements SmartInitializingSinglet
         for (var domain : domainContext.getAllDomains()) {
             if (!CancelPayload.CANCEL_DOMAIN.equals(domain.getName())) {
                 Exchange exchange = exchangeContext.getExchange(domain);
-                List<String> queueNames = queueContext.getQueueNameListByDomain(domain);
-                List<Queue> queues = queueNames.stream().map(name -> new Queue(name, true)).toList();
+                List<org.springframework.amqp.rabbit.annotation.Queue> queueNames = queueContext.getQueueListByDomain(domain);
+                List<Queue> queues = queueNames.stream().map(queueAnnotationParser::parseQueue).toList();
                 queues.forEach(q -> {
                     rabbitAdmin.declareQueue(q);
                     var actions = iEventActionContext.getAllowedActionsByDomian(domain);
