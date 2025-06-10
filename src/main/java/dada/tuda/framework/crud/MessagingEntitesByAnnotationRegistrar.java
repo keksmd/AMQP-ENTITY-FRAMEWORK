@@ -2,7 +2,7 @@ package dada.tuda.framework.crud;
 
 import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.EntityContext;
-import dada.tuda.framework.crud.contexts.QueueNameContext;
+import dada.tuda.framework.crud.contexts.QueueAnnotationContext;
 import dada.tuda.framework.crud.extractor.ActorId;
 import dada.tuda.framework.crud.extractor.ObjectId;
 import dada.tuda.framework.crud.extractor.OperationId;
@@ -10,7 +10,6 @@ import dada.tuda.framework.crud.extractor.PayloadMap;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -23,7 +22,7 @@ import java.lang.reflect.Field;
 public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionRegistryPostProcessor {
     private final EntityContext entityContext;
     private final DomainContext domainContext;
-    private final QueueNameContext queueContext;
+    private final QueueAnnotationContext queueContext;
 
 
     @SneakyThrows
@@ -124,9 +123,9 @@ public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionR
                     }
                 }
 
-                Queue[] queues = domainAnnotzated.queues();
+                ListenableQueue[] queues = domainAnnotzated.queues();
                 if (queues != null) {
-                    for (Queue queue : queues) {
+                    for (ListenableQueue queue : queues) {
                         if (queue != null) {
                             queueContext.registerQueueForDomain(queue, domain);
                         }

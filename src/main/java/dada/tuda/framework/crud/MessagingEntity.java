@@ -1,6 +1,5 @@
 package dada.tuda.framework.crud;
 
-import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +23,7 @@ public @interface MessagingEntity {
     String createDefaultBindings() default "true";
 
 
-    Queue[] queues() default {};
+    ListenableQueue[] queues() default {};
 
     String getTtl() default "60000";
 }

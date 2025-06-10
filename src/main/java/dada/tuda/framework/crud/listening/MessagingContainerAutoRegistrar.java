@@ -1,12 +1,13 @@
 package dada.tuda.framework.crud.listening;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dada.tuda.framework.crud.ListenableQueue;
 import dada.tuda.framework.crud.QueueAnnotationParser;
 import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.EntityContext;
 import dada.tuda.framework.crud.contexts.ExchangeContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
-import dada.tuda.framework.crud.contexts.QueueNameContext;
+import dada.tuda.framework.crud.contexts.QueueAnnotationContext;
 import dada.tuda.framework.crud.extractor.RoutingKeyConverter;
 import dada.tuda.framework.handling.MessageHandlerRegistry;
 import dada.tuda.framework.normalization.types.CancelEventActionTemplate;
@@ -23,6 +24,7 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -33,7 +35,7 @@ import java.util.List;
  */
 
 public class MessagingContainerAutoRegistrar implements SmartInitializingSingleton {
-    private final QueueNameContext queueContext;
+    private final QueueAnnotationContext queueContext;
     private final ExchangeContext exchangeContext;
     private final ConnectionFactory connectionFactory;
     private final DomainContext domainContext;
@@ -46,7 +48,7 @@ public class MessagingContainerAutoRegistrar implements SmartInitializingSinglet
     private final Integer concurrentConsumers;
     private final QueueAnnotationParser queueAnnotationParser;
 
-    public MessagingContainerAutoRegistrar(QueueNameContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper, IEventActionContext iEventActionContext, EntityContext entityContext, Integer maxConcurrentConsumers, Integer concurrentConsumers, QueueAnnotationParser queueAnnotationParser) {
+    public MessagingContainerAutoRegistrar(QueueAnnotationContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper, IEventActionContext iEventActionContext, EntityContext entityContext, Integer maxConcurrentConsumers, Integer concurrentConsumers, QueueAnnotationParser queueAnnotationParser) {
         this.queueContext = queueContext;
         this.exchangeContext = exchangeContext;
         this.connectionFactory = connectionFactory;
@@ -68,9 +70,10 @@ public class MessagingContainerAutoRegistrar implements SmartInitializingSinglet
         for (var domain : domainContext.getAllDomains()) {
             if (!CancelPayload.CANCEL_DOMAIN.equals(domain.getName())) {
                 Exchange exchange = exchangeContext.getExchange(domain);
-                List<org.springframework.amqp.rabbit.annotation.Queue> queueNames = queueContext.getQueueListByDomain(domain);
-                List<Queue> queues = queueNames.stream().map(queueAnnotationParser::parseQueue).toList();
-                queues.forEach(q -> {
+                List<ListenableQueue> queues = queueContext.getQueueListByDomain(domain);
+                ArrayList<Queue> queuesToListen = new ArrayList<>();
+                queues.forEach(qs -> {
+                    var q = queueAnnotationParser.parseQueue(qs.value());
                     rabbitAdmin.declareQueue(q);
                     var actions = iEventActionContext.getAllowedActionsByDomian(domain);
                     if (!domain.isCreateDefaultBindings()) {
@@ -92,13 +95,16 @@ public class MessagingContainerAutoRegistrar implements SmartInitializingSinglet
                         }
                         rabbitAdmin.declareBinding(binding);
                     }
+                    if ("true".equalsIgnoreCase(qs.listen())) {
+                        queuesToListen.add(q);
+                    }
                 });
 
                 SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
                 container.setConnectionFactory(connectionFactory);
                 container.setConcurrentConsumers(this.concurrentConsumers);
                 container.setMaxConcurrentConsumers(this.maxConcurrentConsumers);
-                container.setQueues(queues.toArray(new Queue[0]));
+                container.setQueues(queuesToListen.toArray(new Queue[0]));
                 container.setMessageListener(new UniversalMessageListener(messageHandlerRegistry, objectMapper));
                 container.setAutoStartup(true);
                 container.start();
