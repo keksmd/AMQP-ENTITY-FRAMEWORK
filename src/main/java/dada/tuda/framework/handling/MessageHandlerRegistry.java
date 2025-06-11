@@ -1,5 +1,7 @@
 package dada.tuda.framework.handling;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dada.tuda.framework.DadaTudaFrameworkProperties;
 import dada.tuda.framework.consistency.MessageStorage;
 import dada.tuda.framework.consistency.mapper.MessageMapper;
@@ -15,22 +17,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.util.Pair;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @RequiredArgsConstructor
 @Slf4j
 public class MessageHandlerRegistry {
     private final MessageStorage messageStorage;
-    private final Map<Pair<IMessagingDomain, IEventAction>, MessageHandler> cache = new ConcurrentHashMap<>();
     private final MessageCanceller messageCanceller;
     private final MessageMapper mapper;
     private final IEventActionContext eventActionContext;
     private final List<MessageHandler> handlers;
     private final ObjectProvider<DadaTudaFrameworkProperties> provider;
+    private final ObjectMapper objectMapper;
     private DadaTudaFrameworkProperties properties;
     @Value("${spring.application.name}")
     private String serviceName;
@@ -44,7 +43,7 @@ public class MessageHandlerRegistry {
         return this.handleIntenal(mapper.normalize(message));
     }
 
-    public Object handleIntenal(NormalizedMessage normalizedMessage) throws Exception {
+    public <T> Object handleIntenal(NormalizedMessage normalizedMessage) throws Exception {
         var domain = normalizedMessage.getDomain();
         var action = normalizedMessage.getActionType();
         if (domain != null && action != null && eventActionContext.isAllowedAction(domain, action)) {
@@ -56,12 +55,13 @@ public class MessageHandlerRegistry {
                 this.cancelMessage(normalizedMessage);
                 return null;
             }
-            MessageHandler cachedHandler = getHandler(normalizedMessage);
+            MessageHandler<T> cachedHandler = getHandler(normalizedMessage);
             boolean needsCancel = false;
             String msg = "";
             if (!messageStorage.isProcessed(normalizedMessage)) {
                 try {
-                    Object returned = cachedHandler.handle(normalizedMessage);
+                    Object returned = cachedHandler.handle(normalizedMessage, objectMapper.convertValue(normalizedMessage.getPayloadMap(), new TypeReference<T>() {
+                    }));
                     if ((!properties.getMessaging().isStoreOnlyCancelable() || cachedHandler instanceof CancelableMessageHandler) && messageStorage.isEnabled()) {
                         messageStorage.storeEventAsProcessed(normalizedMessage);
                     }
@@ -101,7 +101,7 @@ public class MessageHandlerRegistry {
         }
     }
 
-    public void cancelMessage(NormalizedMessage message) throws Exception {
+    public <T> void cancelMessage(NormalizedMessage message) throws Exception {
         String eventId = message.getObjectId();
         NormalMessage canceledEvent = messageStorage.getByID(eventId);
         if (canceledEvent == null) {
@@ -109,24 +109,22 @@ public class MessageHandlerRegistry {
             return;
         }
         var cachedHandler = getHandler(mapper.normalize(canceledEvent));
-        if (cachedHandler instanceof CancelableMessageHandler cancelableMessageHandler) {
+        if (cachedHandler instanceof CancelableMessageHandler) {
+            CancelableMessageHandler<T> cancelableMessageHandler = (CancelableMessageHandler<T>) cachedHandler;
             log.debug("Handling cancel for  {}.", canceledEvent);
-            cancelableMessageHandler.cancel(canceledEvent);
+            cancelableMessageHandler.cancel(canceledEvent, objectMapper.convertValue(canceledEvent.getPayloadMap(), new TypeReference<T>() {
+            }));
         }
     }
 
     private MessageHandler getHandler(NormalizedMessage message) {
         IMessagingDomain domain = message.getDomain();
         IEventAction action = message.getActionType();
-        var keyPair = Pair.of(domain, action);
         log.debug("Getting handler for domain {} and action {}", domain, action);
-        log.debug("Handlers cache:{}", cache);
-        log.debug("Handlers list:{}", handlers);
-        return cache.computeIfAbsent(keyPair,
-                key ->
-                        handlers.stream().filter(handler -> handler.canHandle(key.getFirst(), key.getSecond()))
-                                .findFirst()
-                                .orElseThrow(() -> new IllegalStateException("No handler found for keyPair: " + keyPair)));
+
+        return handlers.stream().filter(handler -> handler.canHandle(message))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("No handler found for message %s".formatted(message)));
     }
 
 }

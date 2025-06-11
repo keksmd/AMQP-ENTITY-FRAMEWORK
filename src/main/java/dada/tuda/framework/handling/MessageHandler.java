@@ -1,11 +1,9 @@
 package dada.tuda.framework.handling;
 
 import dada.tuda.framework.normalization.messages.NormalizedMessage;
-import dada.tuda.framework.normalization.types.interfaces.IEventAction;
-import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 
-public interface MessageHandler {
-    Boolean canHandle(IMessagingDomain domain, IEventAction action);
+public interface MessageHandler<T> {
+    boolean canHandle(NormalizedMessage message);
 
-    Object handle(NormalizedMessage message) throws Exception;
+    Object handle(NormalizedMessage message, T payload) throws Exception;
 }
