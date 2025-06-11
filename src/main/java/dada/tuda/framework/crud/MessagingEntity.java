@@ -26,5 +26,5 @@ public @interface MessagingEntity {
 
     Queue[] queues() default {};
 
-    String getTtl() default "60000";
+    String ttl() default "60000";
 }

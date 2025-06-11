@@ -47,7 +47,7 @@ public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionR
 
                 if (domain == null) {
                     SimpleDomain newDomain = (new SimpleDomain(domainName));
-                    newDomain.setCreateDefaultBindings(Boolean.TRUE.toString().equals(domainAnnotzated.createDefaultBindings())).setTtl(Long.parseLong(domainAnnotzated.getTtl()));
+                    newDomain.setCreateDefaultBindings(Boolean.TRUE.toString().equals(domainAnnotzated.createDefaultBindings())).setTtl(Long.parseLong(domainAnnotzated.ttl()));
                     domainContext.registerDomain(newDomain);
                     domain = newDomain;
                 }

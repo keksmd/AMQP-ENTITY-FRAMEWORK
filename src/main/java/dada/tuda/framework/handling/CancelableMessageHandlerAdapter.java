@@ -2,7 +2,7 @@ package dada.tuda.framework.handling;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
-import dada.tuda.framework.normalization.messages.JsonNormalMessage;
+import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.messages.NormalizedMessage;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
@@ -48,23 +48,23 @@ public class CancelableMessageHandlerAdapter extends MessageListenerAdapter impl
     @Override
     protected Object[] buildListenerArguments(Object extractedMessage, Channel channel, Message message) {
 
-        if (extractedMessage instanceof JsonNormalMessage msg) {
+        if (extractedMessage instanceof NormalMessage msg) {
             try {
                 Parameter[] params = delegateMethod.getParameters();
 
                 if (params.length == 1) {
                     Class<?> payloadType = params[0].getType();
-                    if (JsonNormalMessage.class.equals(payloadType)) {
+                    if (NormalMessage.class.isAssignableFrom(payloadType)) {
                         return new Object[]{ msg };
                     }
                     Object payload = objectMapper.convertValue(msg.getPayloadMap(), payloadType);
                     return new Object[]{ payload };
                 } else if (params.length == 2) {
-                    if (JsonNormalMessage.class.equals(params[0].getType())) {
+                    if (NormalMessage.class.isAssignableFrom(params[0].getType())) {
                         Class<?> payloadType = params[1].getType();
                         Object payload = objectMapper.convertValue(msg.getPayloadMap(), payloadType);
                         return new Object[]{ msg, payload };
-                    } else if (JsonNormalMessage.class.equals(params[1].getType())) {
+                    } else if (NormalMessage.class.isAssignableFrom(params[1].getType())) {
                         Class<?> payloadType = params[0].getType();
                         Object payload = objectMapper.convertValue(msg.getPayloadMap(), payloadType);
                         return new Object[]{ msg, payload };

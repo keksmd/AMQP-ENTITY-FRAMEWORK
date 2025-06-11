@@ -29,7 +29,7 @@ import dada.tuda.framework.crud.extractor.UUUDOperationIdGenerator;
 import dada.tuda.framework.crud.listening.MessagingContainerAutoRegistrar;
 import dada.tuda.framework.facade.MessageCanceller;
 import dada.tuda.framework.facade.MessageSender;
-import dada.tuda.framework.handling.DomainHandlersByAnnotationRegistrar;
+import dada.tuda.framework.handling.DomainHandlerInitializer;
 import dada.tuda.framework.handling.ExchangesByDomainCreator;
 import dada.tuda.framework.handling.InternalMessageHandler;
 import dada.tuda.framework.normalization.Header;
@@ -47,13 +47,13 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitTemplateCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -72,11 +72,11 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    BeanFactoryPostProcessor domainHandlersByAnnotationRegistrar(DomainContext domainContext,
-                                                                 IEventActionContext eventActionContext,
-                                                                 HandlerContext handlerContext,
-                                                                 ObjectMapper objectMapper) {
-        return new DomainHandlersByAnnotationRegistrar(domainContext, eventActionContext, handlerContext, objectMapper);
+    SmartInitializingSingleton domainHandlersByAnnotationRegistrar(DomainContext domainContext,
+                                                                   IEventActionContext eventActionContext,
+                                                                   HandlerContext handlerContext,
+                                                                   ObjectMapper objectMapper, ApplicationContext applicationContext) {
+        return new DomainHandlerInitializer(domainContext, applicationContext, handlerContext, eventActionContext, objectMapper);
     }
 
     @Bean

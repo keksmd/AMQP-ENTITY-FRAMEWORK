@@ -19,7 +19,6 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 
 
-
 @RequiredArgsConstructor
 @Slf4j
 public class InternalMessageHandler {
@@ -65,7 +64,7 @@ public class InternalMessageHandler {
                         messageStorage.storeEventAsProcessed(normalizedMessage);
                     }
                 } catch (Exception e) {
-                    log.warn("operation {} should be canceled: \n {}", normalizedMessage.getOperationId(), e.getMessage());
+                    log.warn("operation {} should be canceled: \n {}", normalizedMessage.getOperationId(), e.getCause() != null ? e.getMessage() + ": " + e.getCause().getMessage() : e.getMessage());
                     if (properties.getMessaging().getSaga().isEnabled()
                         && !normalizedMessage.getActionType().isQuery()
                         && normalizedMessage.getActionType().isCancelable()
