@@ -40,8 +40,13 @@ public class RedisCachingIdempotencyProvider implements MessageStorage {
     @Override
     public void storeEventAsProcessed(NormalMessage message) {
         try {
-            messageRepository.save(mapper.toEntity(message));
-            log.debug("saved event processed {}", message.getOperationId());
+            var entity = mapper.toEntity(message);
+            if (entity.getTtl() != 0) {
+                messageRepository.save(entity);
+                log.debug("saved event processed {}", message.getOperationId());
+            } else {
+                log.debug("skipped saving event processed with ttl=0,operationId={}", message.getOperationId());
+            }
         } catch (Exception e) {
             log.error("failed to save event processed", e);
         }

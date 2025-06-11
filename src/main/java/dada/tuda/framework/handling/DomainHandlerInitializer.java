@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -21,6 +22,7 @@ public class DomainHandlerInitializer implements SmartInitializingSingleton {
     private final HandlerContext handlerContext;
     private final IEventActionContext eventActionContext;
     private final ObjectMapper objectMapper;
+    private final Environment environment;
 
     @Override
     public void afterSingletonsInstantiated() {
@@ -29,6 +31,7 @@ public class DomainHandlerInitializer implements SmartInitializingSingleton {
             Class<?> beanClass = AopUtils.getTargetClass(bean);
             DomainHandlers annotation = beanClass.getAnnotation(DomainHandlers.class);
             String domainName = annotation.domain();
+            domainName = environment.resolvePlaceholders(domainName);
             IMessagingDomain domain = domainContext.getByName(domainName);
             for (Method classMethod : beanClass.getDeclaredMethods()) {
                 if (classMethod.isAnnotationPresent(ActionHandler.class)) {
@@ -36,13 +39,14 @@ public class DomainHandlerInitializer implements SmartInitializingSingleton {
                     String[] actions = actionAnnotzated.action();
                     if (actions != null) {
                         for (String action : actions) {
+                            var resolvedAction = environment.resolvePlaceholders(action);
                             classMethod.setAccessible(true);
-                            var actionType = eventActionContext.getByName(action);
+                            var actionType = eventActionContext.getByName(resolvedAction);
                             String cancelName = actionAnnotzated.cancelMethod();
                             Method cancelMethod = null;
 
                             for (Method cancelCandidate : beanClass.getDeclaredMethods()) {
-                                if (cancelName != null && !cancelName.isBlank() && cancelMethod == null && cancelCandidate.getName().equals(action + "Cancel")) {
+                                if (cancelName != null && !cancelName.isBlank() && cancelMethod == null && cancelCandidate.getName().equals(resolvedAction + "Cancel")) {
                                     cancelMethod = cancelCandidate;
                                 }
                                 if (cancelCandidate.getName().equals(cancelName)) {

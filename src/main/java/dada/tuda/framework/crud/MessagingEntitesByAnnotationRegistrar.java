@@ -15,6 +15,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
+import org.springframework.core.env.Environment;
 
 import java.lang.reflect.Field;
 
@@ -24,6 +25,7 @@ public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionR
     private final EntityContext entityContext;
     private final DomainContext domainContext;
     private final QueueAnnotationContext queueContext;
+    private final Environment environment;
 
 
     @SneakyThrows
@@ -43,6 +45,7 @@ public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionR
 
                 MessagingEntity domainAnnotzated = beanClass.getAnnotation(MessagingEntity.class);
                 String domainName = domainAnnotzated.domain();
+                domainName = environment.resolvePlaceholders(domainName);
                 IMessagingDomain domain = domainContext.getByName(domainName);
 
                 if (domain == null) {

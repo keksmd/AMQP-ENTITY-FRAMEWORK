@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@MessagingEntity(domain = CancelPayload.CANCEL_DOMAIN, createDefaultBindings = "false")
+@MessagingEntity(domain = CancelPayload.CANCEL_DOMAIN, createDefaultBindings = "false", ttl = "0")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

@@ -75,8 +75,8 @@ public class MessagingConfiguration {
     SmartInitializingSingleton domainHandlersByAnnotationRegistrar(DomainContext domainContext,
                                                                    IEventActionContext eventActionContext,
                                                                    HandlerContext handlerContext,
-                                                                   ObjectMapper objectMapper, ApplicationContext applicationContext) {
-        return new DomainHandlerInitializer(domainContext, applicationContext, handlerContext, eventActionContext, objectMapper);
+                                                                   ObjectMapper objectMapper, ApplicationContext applicationContext, Environment environment) {
+        return new DomainHandlerInitializer(domainContext, applicationContext, handlerContext, eventActionContext, objectMapper, environment);
     }
 
     @Bean
@@ -195,8 +195,8 @@ public class MessagingConfiguration {
 
     @ConditionalOnBean(ConnectionFactory.class)
     @Bean
-    public BeanDefinitionRegistryPostProcessor messagingEntitesByAnnotationRegistrar(EntityContext context, DomainContext domainContext, QueueAnnotationContext queueContext) {
-        return new MessagingEntitesByAnnotationRegistrar(context, domainContext, queueContext);
+    public BeanDefinitionRegistryPostProcessor messagingEntitesByAnnotationRegistrar(EntityContext context, Environment environment, DomainContext domainContext, QueueAnnotationContext queueContext) {
+        return new MessagingEntitesByAnnotationRegistrar(context, domainContext, queueContext, environment);
     }
 
     @Bean()
