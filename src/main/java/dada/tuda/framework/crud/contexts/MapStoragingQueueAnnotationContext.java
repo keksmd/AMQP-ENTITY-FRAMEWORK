@@ -14,11 +14,9 @@ public class MapStoragingQueueAnnotationContext implements QueueAnnotationContex
     Map<IMessagingDomain, List<Queue>> contextNames = new ConcurrentHashMap<>();
 
 
-
-
     @Override
     public List<Queue> getQueueListByDomain(IMessagingDomain domain) {
-        return contextNames.get(domain);
+        return contextNames.getOrDefault(domain, List.of());
     }
 
 
