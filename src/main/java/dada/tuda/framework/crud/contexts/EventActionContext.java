@@ -32,16 +32,20 @@ public class EventActionContext implements IEventActionContext {
     }
 
     private void populateAction(IEventAction action) {
-
-        if (action instanceof OverallAction overallAction) {
-            defaultActions.add(overallAction);
+        IEventAction computeBy = action;
+        if (action instanceof CancelEventActionTemplate cancel) {
+            computeBy = cancel.getActionToCancel();
         }
-        if (action instanceof DomainSpecialAction specialAction) {
+        if (computeBy instanceof OverallAction) {
+            defaultActions.add(action);
+        }
+        if (computeBy instanceof DomainSpecialAction specialAction) {
             for (String domainName : specialAction.getAllowedDomainNames()) {
                 IMessagingDomain domain = this.domainContext.getByName(domainName);
                 allowedActionsByDomainMap.computeIfAbsent(domain, k -> new ArrayList<>()).add(action);
             }
         }
+
     }
 
     @Override
