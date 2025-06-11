@@ -18,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -55,13 +57,12 @@ public class MessageHandlerRegistry {
                 this.cancelMessage(normalizedMessage);
                 return null;
             }
-            MessageHandler<T> cachedHandler = getHandler(normalizedMessage);
+            MessageHandler<T> cachedHandler = (MessageHandler<T>) getHandler(normalizedMessage);
             boolean needsCancel = false;
             String msg = "";
             if (!messageStorage.isProcessed(normalizedMessage)) {
                 try {
-                    Object returned = cachedHandler.handle(normalizedMessage, objectMapper.convertValue(normalizedMessage.getPayloadMap(), new TypeReference<T>() {
-                    }));
+                    Object returned = cachedHandler.handle(normalizedMessage, (T) objectMapper.convertValue(normalizedMessage.getPayloadMap(), getGenericParameterType(cachedHandler)));
                     if ((!properties.getMessaging().isStoreOnlyCancelable() || cachedHandler instanceof CancelableMessageHandler) && messageStorage.isEnabled()) {
                         messageStorage.storeEventAsProcessed(normalizedMessage);
                     }
@@ -125,6 +126,17 @@ public class MessageHandlerRegistry {
         return handlers.stream().filter(handler -> handler.canHandle(message))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No handler found for message %s".formatted(message)));
+    }
+
+    public static Class<?> getGenericParameterType(Object handler) {
+        Type[] interfaces = handler.getClass().getGenericInterfaces();
+        for (Type iface : interfaces) {
+            if (iface instanceof ParameterizedType pType &&
+                pType.getRawType().equals(MessageHandler.class)) {
+                return (Class<?>) pType.getActualTypeArguments()[0];
+            }
+        }
+        throw new IllegalStateException("Cannot resolve generic type");
     }
 
 }
