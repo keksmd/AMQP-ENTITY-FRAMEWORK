@@ -2,10 +2,10 @@ package dada.tuda.framework.normalization.types.realizations;
 
 import dada.tuda.framework.annotations.EnumBean;
 import dada.tuda.framework.enums.IEnum;
-import dada.tuda.framework.normalization.types.interfaces.IEventAction;
+import dada.tuda.framework.normalization.types.interfaces.OverallAction;
 
 @EnumBean
-public enum CRUDEventActionTypes implements IEventAction, IEnum {
+public enum CRUDEventActionTypes implements OverallAction, IEnum {
     CREATED(false),
     UPDATED(false),
     DELETED(false),

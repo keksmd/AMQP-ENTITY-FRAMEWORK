@@ -16,4 +16,6 @@ public interface IEventActionContext {
     }
 
     List<IEventAction> getAllowedActionsByDomian(IMessagingDomain domain);
+
+    boolean isAllowedAction(IMessagingDomain domain, IEventAction action);
 }

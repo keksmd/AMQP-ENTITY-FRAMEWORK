@@ -10,6 +10,7 @@ import dada.tuda.framework.crud.extractor.PayloadMap;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -123,9 +124,9 @@ public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionR
                     }
                 }
 
-                ListenableQueue[] queues = domainAnnotzated.queues();
+                Queue[] queues = domainAnnotzated.queues();
                 if (queues != null) {
-                    for (ListenableQueue queue : queues) {
+                    for (Queue queue : queues) {
                         if (queue != null) {
                             queueContext.registerQueueForDomain(queue, domain);
                         }

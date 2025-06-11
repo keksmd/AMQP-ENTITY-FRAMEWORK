@@ -2,13 +2,17 @@ package dada.tuda.framework.normalization.types;
 
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 @EqualsAndHashCode
 public class CancelEventActionTemplate implements IEventAction {
     private static final String CANCEL_SUFFIX = ".cancel";
     private final String name;
+    @Getter
+    private final IEventAction actionToCancel;
 
     public CancelEventActionTemplate(IEventAction actionToCancel) {
+        this.actionToCancel = actionToCancel;
         name = createNameForCancelByOriginal(actionToCancel.name());
     }
 

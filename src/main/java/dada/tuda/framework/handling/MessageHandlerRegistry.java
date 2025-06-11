@@ -3,6 +3,7 @@ package dada.tuda.framework.handling;
 import dada.tuda.framework.DadaTudaFrameworkProperties;
 import dada.tuda.framework.consistency.MessageStorage;
 import dada.tuda.framework.consistency.mapper.MessageMapper;
+import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.facade.MessageCanceller;
 import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.messages.NormalizedMessage;
@@ -27,6 +28,7 @@ public class MessageHandlerRegistry {
     private final Map<Pair<IMessagingDomain, IEventAction>, MessageHandler> cache = new ConcurrentHashMap<>();
     private final MessageCanceller messageCanceller;
     private final MessageMapper mapper;
+    private final IEventActionContext eventActionContext;
     private final List<MessageHandler> handlers;
     private final ObjectProvider<DadaTudaFrameworkProperties> provider;
     private DadaTudaFrameworkProperties properties;
@@ -43,52 +45,58 @@ public class MessageHandlerRegistry {
     }
 
     public Object handleIntenal(NormalizedMessage normalizedMessage) throws Exception {
-        if (normalizedMessage.getActionType() instanceof CancelEventActionTemplate) {
-            String reason = (String) normalizedMessage.getPayloadMap().get("reason");
-            if (reason != null) {
-                log.warn("operation with id={} is cancel. Target message is {} \nReason: {}", normalizedMessage.getOperationId(), normalizedMessage.getObjectId(), reason);
-            }
-            this.cancelMessage(normalizedMessage);
-            return null;
-        }
-
-        MessageHandler cachedHandler = getHandler(normalizedMessage);
-        boolean needsCancel = false;
-        String msg = "";
-        if (!messageStorage.isProcessed(normalizedMessage)) {
-            try {
-                Object returned = cachedHandler.handle(normalizedMessage);
-                if ((!properties.getMessaging().isStoreOnlyCancelable() || cachedHandler instanceof CancelableMessageHandler) && messageStorage.isEnabled()) {
-                    messageStorage.storeEventAsProcessed(normalizedMessage);
+        var domain = normalizedMessage.getDomain();
+        var action = normalizedMessage.getActionType();
+        if (domain != null && action != null && eventActionContext.isAllowedAction(domain, action)) {
+            if (normalizedMessage.getActionType() instanceof CancelEventActionTemplate) {
+                String reason = (String) normalizedMessage.getPayloadMap().get("reason");
+                if (reason != null) {
+                    log.warn("operation with id={} is cancel. Target message is {} \nReason: {}", normalizedMessage.getOperationId(), normalizedMessage.getObjectId(), reason);
                 }
-                if (normalizedMessage.getActionType().isQuery()) {
-                    return returned;
-                } else {
-                    return null;
-                }
-            } catch (Exception e) {
-                log.warn("operation {} should be canceled: \n {}", normalizedMessage.getOperationId(), e.getMessage());
-                if (properties.getMessaging().getSaga().isEnabled()
-                    && !normalizedMessage.getActionType().isQuery()
-                    && normalizedMessage.getActionType().isCancelable()
-                    && !(normalizedMessage.getActionType() instanceof CancelEventActionTemplate)) {
-                    needsCancel = true;
-                    msg = e.getMessage();
-                } else {
-                    throw e;
-                }
-            } finally {
-                this.messageStorage.storeEventAsProcessed(normalizedMessage);
+                this.cancelMessage(normalizedMessage);
+                return null;
             }
-            if (needsCancel) {
-                messageCanceller.cancelOperation("Exception in service: " + serviceName + " " + msg,
-                        normalizedMessage.getActionType(),
-                        normalizedMessage.getOperationId(),
-                        normalizedMessage.getDomain());
+            MessageHandler cachedHandler = getHandler(normalizedMessage);
+            boolean needsCancel = false;
+            String msg = "";
+            if (!messageStorage.isProcessed(normalizedMessage)) {
+                try {
+                    Object returned = cachedHandler.handle(normalizedMessage);
+                    if ((!properties.getMessaging().isStoreOnlyCancelable() || cachedHandler instanceof CancelableMessageHandler) && messageStorage.isEnabled()) {
+                        messageStorage.storeEventAsProcessed(normalizedMessage);
+                    }
+                    if (normalizedMessage.getActionType().isQuery()) {
+                        return returned;
+                    } else {
+                        return null;
+                    }
+                } catch (Exception e) {
+                    log.warn("operation {} should be canceled: \n {}", normalizedMessage.getOperationId(), e.getMessage());
+                    if (properties.getMessaging().getSaga().isEnabled()
+                        && !normalizedMessage.getActionType().isQuery()
+                        && normalizedMessage.getActionType().isCancelable()
+                        && !(normalizedMessage.getActionType() instanceof CancelEventActionTemplate)) {
+                        needsCancel = true;
+                        msg = e.getMessage();
+                    } else {
+                        throw e;
+                    }
+                } finally {
+                    this.messageStorage.storeEventAsProcessed(normalizedMessage);
+                }
+                if (needsCancel) {
+                    messageCanceller.cancelOperation("Exception in service: " + serviceName + " " + msg,
+                            normalizedMessage.getActionType(),
+                            normalizedMessage.getOperationId(),
+                            normalizedMessage.getDomain());
+                }
+                return null;
+            } else {
+                log.warn("operation already processed: {}", normalizedMessage.getOperationId());
+                return null;
             }
-            return null;
         } else {
-            log.warn("operation already processed: {}", normalizedMessage.getOperationId());
+            log.warn("Action {} in domain {} is not allowed by eventActionContext.", action, domain);
             return null;
         }
     }

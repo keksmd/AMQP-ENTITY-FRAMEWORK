@@ -38,8 +38,10 @@ import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,23 +76,23 @@ public class MessagingConfiguration {
 
     @Bean(initMethod = "init")
     @ConditionalOnBean(ConnectionFactory.class)
-    public IEventActionContext iEventActionContext(List<IEventAction> actions) {
-        return new EventActionContext(actions);
+    public IEventActionContext iEventActionContext(List<IEventAction> actions, DomainContext domainContext) {
+        return new EventActionContext(actions, domainContext);
     }
 
     @Bean(initMethod = "init")
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessageHandlerRegistry messageHandlerRegistry(ObjectProvider<DadaTudaFrameworkProperties> properties, MessageMapper mapper, List<MessageHandler> handlers, @Autowired(required = false) MessageCanceller messageCanceller, MessageStorage messageStorage) {
+    public MessageHandlerRegistry messageHandlerRegistry(ObjectProvider<DadaTudaFrameworkProperties> properties, IEventActionContext actionContext, MessageMapper mapper, List<MessageHandler> handlers, @Autowired(required = false) MessageCanceller messageCanceller, MessageStorage messageStorage) {
         log.debug("Creating MessageHandlerRegistry: {}", handlers);
-        return new MessageHandlerRegistry(messageStorage, messageCanceller, mapper, handlers, properties);
+        return new MessageHandlerRegistry(messageStorage, messageCanceller, mapper, actionContext, handlers, properties);
     }
 
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(@Value("${spring.rabbitmq.listener.simple.concurrency:3}") Integer consumers, QueueAnnotationParser annotationParser, @Value("${spring.rabbitmq.listener.simple.max-concurrency:10}") Integer maxConsumers, EntityContext entityContext, IEventActionContext iEventActionContext, QueueAnnotationContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper) {
-        return new MessagingContainerAutoRegistrar(queueContext, exchangeContext, connectionFactory, domainContext, routingKeyConverter, messageHandlerRegistry, objectMapper, iEventActionContext, entityContext,
-                maxConsumers, consumers, annotationParser);
+    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(@Value("${spring.rabbitmq.listener.simple.concurrency:3}") Integer consumers, QueueAnnotationParser annotationParser, @Value("${spring.rabbitmq.listener.simple.max-concurrency:10}") Integer maxConsumers, MessageConverter converter, IEventActionContext iEventActionContext, QueueAnnotationContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper) {
+        return new MessagingContainerAutoRegistrar(domainContext, queueContext, exchangeContext, new RabbitAdmin(connectionFactory), iEventActionContext, routingKeyConverter, connectionFactory, messageHandlerRegistry, annotationParser, objectMapper,
+                consumers, maxConsumers, converter);
     }
 
     @Bean

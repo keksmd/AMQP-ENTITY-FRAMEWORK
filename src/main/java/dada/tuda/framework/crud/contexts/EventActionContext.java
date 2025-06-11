@@ -1,40 +1,69 @@
 package dada.tuda.framework.crud.contexts;
 
 import dada.tuda.framework.normalization.types.CancelEventActionTemplate;
+import dada.tuda.framework.normalization.types.interfaces.DomainSpecialAction;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
+import dada.tuda.framework.normalization.types.interfaces.OverallAction;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class EventActionContext implements IEventActionContext {
     private final Map<String, IEventAction> name2actionMap;
+    private final Map<IMessagingDomain, List<IEventAction>> allowedActionsByDomainMap;
+    private final List<IEventAction> defaultActions;
+    private final DomainContext domainContext;
 
-    public EventActionContext(List<IEventAction> values) {
+    public EventActionContext(List<IEventAction> values, DomainContext domainContext) {
+        this.domainContext = domainContext;
+        defaultActions = new ArrayList<>();
+        allowedActionsByDomainMap = new ConcurrentHashMap<>();
         name2actionMap = new ConcurrentHashMap<>();
         for (IEventAction action : values) {
-            name2actionMap.put(action.name(), action);
+            name2actionMap.putIfAbsent(action.name(), action);
+            populateAction(action);
             if (action.isCancelable() && !(action instanceof CancelEventActionTemplate) && !action.isQuery()) {
                 getOrCreateCancelByAction(action);
             }
         }
     }
 
+    private void populateAction(IEventAction action) {
+
+        if (action instanceof OverallAction overallAction) {
+            defaultActions.add(overallAction);
+        }
+        if (action instanceof DomainSpecialAction specialAction) {
+            for (String domainName : specialAction.getAllowedDomainNames()) {
+                IMessagingDomain domain = this.domainContext.getByName(domainName);
+                allowedActionsByDomainMap.computeIfAbsent(domain, k -> new ArrayList<>()).add(action);
+            }
+        }
+    }
+
     @Override
     public IEventAction getByName(String name) {
-        if (CancelEventActionTemplate.nameIsCancel(name)) {
-            String originalName = CancelEventActionTemplate.getOriginalNameFromCancel(name);
-            return getOrCreateCancelByAction(name2actionMap.get(originalName));
-        } else {
-            return name2actionMap.get(name);
-        }
+        return name2actionMap.computeIfAbsent(name, k -> {
+            if (CancelEventActionTemplate.nameIsCancel(name)) {
+                String originalName = CancelEventActionTemplate.getOriginalNameFromCancel(name);
+                return getOrCreateCancelByAction(name2actionMap.get(originalName));
+            }
+            throw new IllegalArgumentException("Action with name " + name + " not found");
+        });
+
     }
 
     @Override
     public CancelEventActionTemplate getOrCreateCancelByAction(IEventAction action) {
         String cancelName = CancelEventActionTemplate.createNameForCancelByOriginal(action.name());
-        var act = name2actionMap.computeIfAbsent(cancelName, name -> new CancelEventActionTemplate(action));
+        var act = name2actionMap.computeIfAbsent(cancelName, name -> {
+            var a = new CancelEventActionTemplate(action);
+            populateAction(a);
+            return a;
+        });
         if (act instanceof CancelEventActionTemplate cancelEventActionTemplate) {
             return cancelEventActionTemplate;
         } else {
@@ -45,7 +74,14 @@ public class EventActionContext implements IEventActionContext {
 
     @Override
     public List<IEventAction> getAllowedActionsByDomian(IMessagingDomain domain) {
-        return name2actionMap.values().stream().toList();
+        List<IEventAction> defaults = new ArrayList<>(defaultActions);
+        defaults.addAll(allowedActionsByDomainMap.getOrDefault(domain, List.of()));
+        return defaults;
+    }
+
+    @Override
+    public boolean isAllowedAction(IMessagingDomain domain, IEventAction action) {
+        return defaultActions.contains(action) || allowedActionsByDomainMap.getOrDefault(domain, List.of()).contains(action);
     }
 
 }
