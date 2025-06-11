@@ -1,10 +1,9 @@
 package dada.tuda.framework.handling;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dada.tuda.framework.DadaTudaFrameworkProperties;
 import dada.tuda.framework.consistency.MessageStorage;
 import dada.tuda.framework.consistency.mapper.MessageMapper;
+import dada.tuda.framework.crud.contexts.HandlerContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.facade.MessageCanceller;
 import dada.tuda.framework.normalization.messages.NormalMessage;
@@ -15,23 +14,21 @@ import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.List;
+
 
 @RequiredArgsConstructor
 @Slf4j
-public class MessageHandlerRegistry {
+public class InternalMessageHandler {
     private final MessageStorage messageStorage;
     private final MessageCanceller messageCanceller;
     private final MessageMapper mapper;
     private final IEventActionContext eventActionContext;
-    private final List<MessageHandler> handlers;
+    private final HandlerContext handlerContext;
     private final ObjectProvider<DadaTudaFrameworkProperties> provider;
-    private final ObjectMapper objectMapper;
     private DadaTudaFrameworkProperties properties;
     @Value("${spring.application.name}")
     private String serviceName;
@@ -41,11 +38,11 @@ public class MessageHandlerRegistry {
         properties = provider.getIfAvailable();
     }
 
-    public Object handleMessage(NormalMessage message) throws Exception {
-        return this.handleIntenal(mapper.normalize(message));
+    public Object handleMessage(NormalMessage message, Message raw) throws Exception {
+        return this.handleIntenal(mapper.normalize(message), raw);
     }
 
-    public <T> Object handleIntenal(NormalizedMessage normalizedMessage) throws Exception {
+    public Object handleIntenal(NormalizedMessage normalizedMessage, Message raw) throws Exception {
         var domain = normalizedMessage.getDomain();
         var action = normalizedMessage.getActionType();
         if (domain != null && action != null && eventActionContext.isAllowedAction(domain, action)) {
@@ -57,19 +54,15 @@ public class MessageHandlerRegistry {
                 this.cancelMessage(normalizedMessage);
                 return null;
             }
-            MessageHandler<T> cachedHandler = (MessageHandler<T>) getHandler(normalizedMessage);
+
             boolean needsCancel = false;
             String msg = "";
             if (!messageStorage.isProcessed(normalizedMessage)) {
                 try {
-                    Object returned = cachedHandler.handle(normalizedMessage, (T) objectMapper.convertValue(normalizedMessage.getPayloadMap(), getGenericParameterType(cachedHandler)));
+                    CancelableMessageHandlerAdapter cachedHandler = getHandler(normalizedMessage);
+                    cachedHandler.handle(normalizedMessage, raw);
                     if ((!properties.getMessaging().isStoreOnlyCancelable() || cachedHandler instanceof CancelableMessageHandler) && messageStorage.isEnabled()) {
                         messageStorage.storeEventAsProcessed(normalizedMessage);
-                    }
-                    if (normalizedMessage.getActionType().isQuery()) {
-                        return returned;
-                    } else {
-                        return null;
                     }
                 } catch (Exception e) {
                     log.warn("operation {} should be canceled: \n {}", normalizedMessage.getOperationId(), e.getMessage());
@@ -109,34 +102,17 @@ public class MessageHandlerRegistry {
             log.error("Operation with id {} cannot be cancelled because it is not stored before.", eventId);
             return;
         }
-        var cachedHandler = getHandler(mapper.normalize(canceledEvent));
-        if (cachedHandler instanceof CancelableMessageHandler) {
-            CancelableMessageHandler<T> cancelableMessageHandler = (CancelableMessageHandler<T>) cachedHandler;
-            log.debug("Handling cancel for  {}.", canceledEvent);
-            cancelableMessageHandler.cancel(canceledEvent, objectMapper.convertValue(canceledEvent.getPayloadMap(), new TypeReference<T>() {
-            }));
-        }
+        CancelableMessageHandlerAdapter cachedHandler = getHandler(mapper.normalize(canceledEvent));
+
+        log.debug("Handling cancel for  {}.", canceledEvent);
+        cachedHandler.cancel(mapper.normalize(canceledEvent));
     }
 
-    private MessageHandler getHandler(NormalizedMessage message) {
+    private CancelableMessageHandlerAdapter getHandler(NormalizedMessage message) {
         IMessagingDomain domain = message.getDomain();
         IEventAction action = message.getActionType();
         log.debug("Getting handler for domain {} and action {}", domain, action);
-
-        return handlers.stream().filter(handler -> handler.canHandle(message))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("No handler found for message %s".formatted(message)));
-    }
-
-    public static Class<?> getGenericParameterType(Object handler) {
-        Type[] interfaces = handler.getClass().getGenericInterfaces();
-        for (Type iface : interfaces) {
-            if (iface instanceof ParameterizedType pType &&
-                pType.getRawType().equals(MessageHandler.class)) {
-                return (Class<?>) pType.getActualTypeArguments()[0];
-            }
-        }
-        throw new IllegalStateException("Cannot resolve generic type");
+        return handlerContext.getHandler(message);
     }
 
 }

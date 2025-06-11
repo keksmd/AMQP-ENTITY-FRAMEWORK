@@ -16,6 +16,7 @@ import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.EntityContext;
 import dada.tuda.framework.crud.contexts.EventActionContext;
 import dada.tuda.framework.crud.contexts.ExchangeContext;
+import dada.tuda.framework.crud.contexts.HandlerContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.crud.contexts.MapStoragingQueueAnnotationContext;
 import dada.tuda.framework.crud.contexts.PerServiceQueueStrategy;
@@ -29,8 +30,7 @@ import dada.tuda.framework.crud.listening.MessagingContainerAutoRegistrar;
 import dada.tuda.framework.facade.MessageCanceller;
 import dada.tuda.framework.facade.MessageSender;
 import dada.tuda.framework.handling.ExchangesByDomainCreator;
-import dada.tuda.framework.handling.MessageHandler;
-import dada.tuda.framework.handling.MessageHandlerRegistry;
+import dada.tuda.framework.handling.InternalMessageHandler;
 import dada.tuda.framework.normalization.Header;
 import dada.tuda.framework.normalization.HeadersGenerator;
 import dada.tuda.framework.normalization.types.interfaces.EntityProducer;
@@ -82,16 +82,22 @@ public class MessagingConfiguration {
 
     @Bean(initMethod = "init")
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessageHandlerRegistry messageHandlerRegistry(ObjectProvider<DadaTudaFrameworkProperties> properties, ObjectMapper objectMapper, IEventActionContext actionContext, MessageMapper mapper, List<MessageHandler> handlers, @Autowired(required = false) MessageCanceller messageCanceller, MessageStorage messageStorage) {
-        log.debug("Creating MessageHandlerRegistry: {}", handlers);
-        return new MessageHandlerRegistry(messageStorage, messageCanceller, mapper, actionContext, handlers, properties, objectMapper);
+    public InternalMessageHandler messageHandlerRegistry(ObjectProvider<DadaTudaFrameworkProperties> properties, IEventActionContext actionContext, MessageMapper mapper, @Autowired(required = false) MessageCanceller messageCanceller, HandlerContext handlerContext, MessageStorage messageStorage) {
+
+        return new InternalMessageHandler(messageStorage, messageCanceller, mapper, actionContext, handlerContext, properties);
+    }
+
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    HandlerContext handlerContext() {
+        return new HandlerContext();
     }
 
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(@Value("${spring.rabbitmq.listener.simple.concurrency:3}") Integer consumers, QueueAnnotationParser annotationParser, @Value("${spring.rabbitmq.listener.simple.max-concurrency:10}") Integer maxConsumers, MessageConverter converter, IEventActionContext iEventActionContext, QueueAnnotationContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, MessageHandlerRegistry messageHandlerRegistry, ObjectMapper objectMapper) {
-        return new MessagingContainerAutoRegistrar(domainContext, queueContext, exchangeContext, new RabbitAdmin(connectionFactory), iEventActionContext, routingKeyConverter, connectionFactory, messageHandlerRegistry, annotationParser, objectMapper,
+    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(@Value("${spring.rabbitmq.listener.simple.concurrency:3}") Integer consumers, QueueAnnotationParser annotationParser, @Value("${spring.rabbitmq.listener.simple.max-concurrency:10}") Integer maxConsumers, MessageConverter converter, IEventActionContext iEventActionContext, QueueAnnotationContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, InternalMessageHandler internalMessageHandler, ObjectMapper objectMapper) {
+        return new MessagingContainerAutoRegistrar(domainContext, queueContext, exchangeContext, new RabbitAdmin(connectionFactory), iEventActionContext, routingKeyConverter, connectionFactory, internalMessageHandler, annotationParser, objectMapper,
                 consumers, maxConsumers, converter);
     }
 

@@ -15,8 +15,6 @@ public class BeanUtilsConfig {
         var util = new BeanUtility();
         util.setApplicationContext(applicationContext);
         return util;
-
-
     }
 }
 

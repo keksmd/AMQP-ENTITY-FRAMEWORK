@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  *  TODO выяснить причину и решить пробоему
  */
 
-class MessageHandlerRegistryTest {
+class InternalMessageHandlerTest {
 
     String operationId;
     @Autowired

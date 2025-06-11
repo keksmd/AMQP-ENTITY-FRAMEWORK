@@ -1,0 +1,103 @@
+package dada.tuda.framework.handling;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rabbitmq.client.Channel;
+import dada.tuda.framework.normalization.messages.JsonNormalMessage;
+import dada.tuda.framework.normalization.messages.NormalizedMessage;
+import dada.tuda.framework.normalization.types.interfaces.IEventAction;
+import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.listener.adapter.InvocationResult;
+import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+
+public class CancelableMessageHandlerAdapter extends MessageListenerAdapter implements Cancelable, MessageHandler {
+    private final ObjectMapper objectMapper;
+    private final Method delegateMethod;
+    private final IMessagingDomain messagingDomain;
+    private final IEventAction eventAction;
+    private Method cancelDelegateMethod;
+
+    public CancelableMessageHandlerAdapter(IEventAction iEventAction, IMessagingDomain iMessagingDomain, ObjectMapper objectMapper, Method delegateMethod, Object delegateObject) {
+        super(delegateObject, delegateMethod.getName());
+        this.objectMapper = objectMapper;
+        this.delegateMethod = delegateMethod;
+        messagingDomain = iMessagingDomain;
+        eventAction = iEventAction;
+    }
+
+    public CancelableMessageHandlerAdapter(IEventAction iEventAction, IMessagingDomain iMessagingDomain, ObjectMapper objectMapper, Method delegateMethod, Method cancelDelegateMethod, Object delegateObject) {
+        super(delegateObject, delegateMethod.getName());
+        this.objectMapper = objectMapper;
+        this.delegateMethod = delegateMethod;
+        this.cancelDelegateMethod = cancelDelegateMethod;
+        messagingDomain = iMessagingDomain;
+        eventAction = iEventAction;
+    }
+
+    @Override
+    public void cancel(NormalizedMessage message) throws Exception {
+        if (cancelDelegateMethod != null && message.getActionType() != null && message.getActionType().isCancelable()) {
+            Object[] listenerArguments = buildListenerArguments(message, null, null);
+            invokeListenerMethod(cancelDelegateMethod.getName(), listenerArguments, null);
+        }
+    }
+
+    @Override
+    protected Object[] buildListenerArguments(Object extractedMessage, Channel channel, Message message) {
+
+        if (extractedMessage instanceof JsonNormalMessage msg) {
+            try {
+                Parameter[] params = delegateMethod.getParameters();
+
+                if (params.length == 1) {
+                    Class<?> payloadType = params[0].getType();
+                    if (JsonNormalMessage.class.equals(payloadType)) {
+                        return new Object[]{ msg };
+                    }
+                    Object payload = objectMapper.convertValue(msg.getPayloadMap(), payloadType);
+                    return new Object[]{ payload };
+                } else if (params.length == 2) {
+                    if (JsonNormalMessage.class.equals(params[0].getType())) {
+                        Class<?> payloadType = params[1].getType();
+                        Object payload = objectMapper.convertValue(msg.getPayloadMap(), payloadType);
+                        return new Object[]{ msg, payload };
+                    } else if (JsonNormalMessage.class.equals(params[1].getType())) {
+                        Class<?> payloadType = params[0].getType();
+                        Object payload = objectMapper.convertValue(msg.getPayloadMap(), payloadType);
+                        return new Object[]{ msg, payload };
+                    } else {
+                        throw new IllegalArgumentException("Invalid parameter signature in method " + delegateMethod.getName());
+                    }
+                } else {
+                    throw new IllegalArgumentException("Unsupported handler method signature: " + delegateMethod.getName());
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to build listener arguments", e);
+            }
+        } else return new Object[]{ extractedMessage };
+    }
+
+    @Override
+    public boolean canHandle(NormalizedMessage message) {
+        return message.getActionType() != null &&
+               message.getDomain() != null &&
+               messagingDomain.equals(message.getDomain()) &&
+               eventAction.equals(message.getActionType());
+    }
+
+    @Override
+    public void handle(NormalizedMessage message, Message rawMessage) throws Exception {
+        Object[] listenerArguments = buildListenerArguments(message, null, null);
+        Object result = invokeListenerMethod(delegateMethod.getName(), listenerArguments, null);
+        if (result != null && message.getActionType() != null && message.getActionType().isQuery()) {
+            handleResult(new InvocationResult(result, null, null, null, null), rawMessage, null);
+        } else {
+            logger.trace("No result object given - no result to handle");
+        }
+    }
+
+
+}
