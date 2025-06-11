@@ -86,7 +86,7 @@ class EntityProducerTest {
     void testPersist() {
         NormalMessage message = new JsonNormalMessage();
         message.setOperationId("opID");
-        message.setActionTypeName(CRUDEventActionTypes.CREATED.name());
+        message.setActionTypeName(CRUDEventActionTypes.CREATED.getName());
         message.setDomainName(d.getName());
         message.setPayloadMap(objectMapper.convertValue(entity, Map.class));
 
@@ -101,7 +101,7 @@ class EntityProducerTest {
 
         NormalMessage expected = new JsonNormalMessage();
         expected.setOperationId("opID");
-        expected.setActionTypeName(CRUDEventActionTypes.DELETED.name());
+        expected.setActionTypeName(CRUDEventActionTypes.DELETED.getName());
         expected.setPayloadMap(objectMapper.convertValue(entity, Map.class));
         expected.setDomainName(d.getName());
 

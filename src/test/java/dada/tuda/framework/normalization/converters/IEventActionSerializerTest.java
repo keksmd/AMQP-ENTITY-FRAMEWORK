@@ -46,7 +46,7 @@ class NormalMessageSerializerTest {
     private static Stream<JsonNormalMessage> provideStringsForIsBlank() {
         var p1 = prototype();
         var p2 = prototype();
-        p2.setActionTypeName(new CancelEventActionTemplate(CRUDEventActionTypes.DELETED).name());
+        p2.setActionTypeName(new CancelEventActionTemplate(CRUDEventActionTypes.DELETED).getName());
 
         return Stream.of(p1, p2);
     }
@@ -57,7 +57,7 @@ class NormalMessageSerializerTest {
                 "actor-123",
                 Map.of("key1", "value1"),
                 "example",
-                CRUDEventActionTypes.CREATED.name());
+                CRUDEventActionTypes.CREATED.getName());
     }
 
     @BeforeEach

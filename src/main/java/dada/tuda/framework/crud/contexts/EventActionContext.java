@@ -23,7 +23,7 @@ public class EventActionContext implements IEventActionContext {
         allowedActionsByDomainMap = new ConcurrentHashMap<>();
         name2actionMap = new ConcurrentHashMap<>();
         for (IEventAction action : values) {
-            name2actionMap.putIfAbsent(action.name(), action);
+            name2actionMap.putIfAbsent(action.getName().toLowerCase(), action);
             populateAction(action);
             if (action.isCancelable() && !(action instanceof CancelEventActionTemplate) && !action.isQuery()) {
                 getOrCreateCancelByAction(action);
@@ -46,7 +46,10 @@ public class EventActionContext implements IEventActionContext {
 
     @Override
     public IEventAction getByName(String name) {
-        return name2actionMap.computeIfAbsent(name, k -> {
+        if (name == null) {
+            return null;
+        }
+        return name2actionMap.computeIfAbsent(name.toLowerCase(), k -> {
             if (CancelEventActionTemplate.nameIsCancel(name)) {
                 String originalName = CancelEventActionTemplate.getOriginalNameFromCancel(name);
                 return getOrCreateCancelByAction(name2actionMap.get(originalName));
@@ -58,7 +61,7 @@ public class EventActionContext implements IEventActionContext {
 
     @Override
     public CancelEventActionTemplate getOrCreateCancelByAction(IEventAction action) {
-        String cancelName = CancelEventActionTemplate.createNameForCancelByOriginal(action.name());
+        String cancelName = CancelEventActionTemplate.createNameForCancelByOriginal(action.getName());
         var act = name2actionMap.computeIfAbsent(cancelName, name -> {
             var a = new CancelEventActionTemplate(action);
             populateAction(a);

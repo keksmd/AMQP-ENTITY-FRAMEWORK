@@ -12,12 +12,12 @@ public class TypeRoutingKeyConverter implements RoutingKeyConverter {
 
     @Override
     public String toRoutingKey(NormalizedMessage message) {
-        return message.getDomain().getKey() + "." + message.getActionType().name().toLowerCase();
+        return message.getDomain().getKey() + "." + message.getActionType().getName().toLowerCase();
     }
 
     @Override
     public String toRoutingKey(IMessagingDomain domain, IEventAction action) {
-        return domain.getKey() + "." + action.name().toLowerCase();
+        return domain.getKey() + "." + action.getName().toLowerCase();
     }
 
     @Override

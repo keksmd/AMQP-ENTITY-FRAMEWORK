@@ -45,15 +45,36 @@ public class DomainHandlersByAnnotationRegistrar implements BeanFactoryPostProce
                 DomainHandlers domainAnnotzated = beanClass.getAnnotation(DomainHandlers.class);
                 String domainName = domainAnnotzated.domain();
                 IMessagingDomain domain = domainContext.getByName(domainName);
-                for (Method f : beanClass.getDeclaredMethods()) {
-                    if (f.isAnnotationPresent(ActionHandler.class)) {
-                        ActionHandler actionAnnotzated = beanClass.getAnnotation(ActionHandler.class);
+                for (Method classMethod : beanClass.getDeclaredMethods()) {
+                    if (classMethod.isAnnotationPresent(ActionHandler.class)) {
+                        ActionHandler actionAnnotzated = classMethod.getAnnotation(ActionHandler.class);
                         String[] actions = actionAnnotzated.action();
                         if (actions != null) {
                             for (String action : actions) {
-                                f.setAccessible(true);
+                                classMethod.setAccessible(true);
                                 var actionType = eventActionContext.getByName(action);
-                                handlerContext.addHandler(domain, actionType, new CancelableMessageHandlerAdapter(actionType, domain, objectMapper, f, beanFactory.getBean(beanName)));
+                                String cancelName = actionAnnotzated.cancelMethod();
+                                Method cancelMethod = null;
+                                if (cancelName != null && !cancelName.isBlank()) {
+                                    for (Method cancelCandidate : beanClass.getDeclaredMethods()) {
+                                        if (cancelMethod == null && cancelCandidate.getName().equals(action + "Cancel")) {
+                                            cancelMethod = cancelCandidate;
+                                        }
+                                        if (cancelCandidate.getName().equals(cancelName)) {
+                                            cancelMethod = cancelCandidate;
+                                        }
+                                    }
+                                }
+                                if (cancelMethod != null) {
+                                    handlerContext.addHandler(domain, actionType,
+                                            new CancelableMessageHandlerAdapter(actionType, domain, objectMapper, classMethod, cancelMethod, beanFactory.getBean(beanName)));
+
+                                } else {
+                                    handlerContext.addHandler(domain, actionType,
+                                            new CancelableMessageHandlerAdapter(actionType, domain, objectMapper, classMethod, beanFactory.getBean(beanName)));
+
+                                }
+
                             }
                         }
                     }

@@ -19,7 +19,7 @@ public class SystemMessage implements NormalizedMessage {
 
     @Override
     public String getActionTypeName() {
-        return actionType.name();
+        return actionType.getName();
     }
 
     @Override

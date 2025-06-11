@@ -18,6 +18,11 @@ public enum CRUDEventActionTypes implements OverallAction, IEnum {
     }
 
     @Override
+    public String getName() {
+        return this.name().toLowerCase();
+    }
+
+    @Override
     public boolean isQuery() {
         return query;
     }

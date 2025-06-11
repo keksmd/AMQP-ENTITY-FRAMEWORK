@@ -59,13 +59,13 @@ public class DescriptorConverter {
                         throw new IllegalStateException("Payload extraction from filed " + descriptor.getPayload() + "failed: " + entity);
                     }
                 }
+                msg.setDomain(descriptor.getDomain());
             }
         }
         operation = operation != null ? operation : operationIdGenerator.get();
         msg.setActorId(actor);
         msg.setObjectId(object);
         msg.setOperationId(operation);
-        msg.setDomain(descriptor.getDomain());
         msg.setPayloadMap(payload);
         msg.setActionType(action);
 

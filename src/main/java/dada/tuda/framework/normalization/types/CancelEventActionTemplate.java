@@ -13,7 +13,7 @@ public class CancelEventActionTemplate implements IEventAction {
 
     public CancelEventActionTemplate(IEventAction actionToCancel) {
         this.actionToCancel = actionToCancel;
-        name = createNameForCancelByOriginal(actionToCancel.name());
+        name = createNameForCancelByOriginal(actionToCancel.getName());
     }
 
     public static String createNameForCancelByOriginal(String originalActionName) {
@@ -32,7 +32,7 @@ public class CancelEventActionTemplate implements IEventAction {
     }
 
     @Override
-    public String name() {
+    public String getName() {
         return name;
     }
 
