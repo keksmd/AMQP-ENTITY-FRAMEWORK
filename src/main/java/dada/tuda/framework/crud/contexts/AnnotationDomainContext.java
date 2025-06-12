@@ -13,6 +13,9 @@ public class AnnotationDomainContext implements DomainContext {
 
     @Override
     public IMessagingDomain getByName(String domainName) {
+        if (domainName == null) {
+            return null;
+        }
         return map.get(domainName);
     }
 

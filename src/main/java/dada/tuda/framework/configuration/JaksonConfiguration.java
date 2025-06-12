@@ -17,12 +17,11 @@ public class JaksonConfiguration {
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         var module = new JavaTimeModule();
-        mapper.registerModule(module);
-        mapper.enable(INCLUDE_SOURCE_IN_LOCATION);
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
-        mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
-        mapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
-
+        mapper = mapper.registerModule(module);
+        mapper = mapper.enable(INCLUDE_SOURCE_IN_LOCATION);
+        mapper = mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper = mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
+        mapper = mapper.enable(DeserializationFeature.READ_ENUMS_USING_TO_STRING);
         return mapper;
     }
 

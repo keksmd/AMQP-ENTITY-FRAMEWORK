@@ -34,6 +34,7 @@ import dada.tuda.framework.handling.ExchangesByDomainCreator;
 import dada.tuda.framework.handling.InternalMessageHandler;
 import dada.tuda.framework.normalization.Header;
 import dada.tuda.framework.normalization.HeadersGenerator;
+import dada.tuda.framework.normalization.PayloadConverter;
 import dada.tuda.framework.normalization.types.interfaces.EntityProducer;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import lombok.extern.slf4j.Slf4j;
@@ -75,8 +76,14 @@ public class MessagingConfiguration {
     SmartInitializingSingleton domainHandlersByAnnotationRegistrar(DomainContext domainContext,
                                                                    IEventActionContext eventActionContext,
                                                                    HandlerContext handlerContext,
-                                                                   ObjectMapper objectMapper, ApplicationContext applicationContext, Environment environment) {
-        return new DomainHandlerInitializer(domainContext, applicationContext, handlerContext, eventActionContext, objectMapper, environment);
+                                                                   ApplicationContext applicationContext, PayloadConverter payloadConverter, Environment environment) {
+        return new DomainHandlerInitializer(domainContext, applicationContext, handlerContext, eventActionContext, environment, payloadConverter);
+    }
+
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    PayloadConverter payloadConverter(EntityContext entityContext, ObjectMapper objectMapper) {
+        return new PayloadConverter(entityContext, objectMapper);
     }
 
     @Bean
@@ -157,8 +164,8 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessageSender eventSender(ExchangeContext exchangeContext, MessageMapper mapper, RabbitTemplate rabbitTemplate, RoutingKeyConverter routingKeyConverter, HeadersGenerator headersGenerator, ObjectMapper objectMapper) {
-        return new MessageSender(rabbitTemplate, exchangeContext, objectMapper, mapper, headersGenerator, routingKeyConverter);
+    public MessageSender eventSender(ExchangeContext exchangeContext, MessageMapper mapper, RabbitTemplate rabbitTemplate, PayloadConverter payloadConverter, RoutingKeyConverter routingKeyConverter, HeadersGenerator headersGenerator, ObjectMapper objectMapper) {
+        return new MessageSender(rabbitTemplate, exchangeContext, objectMapper, mapper, headersGenerator, payloadConverter, routingKeyConverter);
     }
 
     @Bean

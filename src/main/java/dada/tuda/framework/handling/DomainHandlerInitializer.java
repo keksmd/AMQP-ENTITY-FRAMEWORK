@@ -1,9 +1,9 @@
 package dada.tuda.framework.handling;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.HandlerContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
+import dada.tuda.framework.normalization.PayloadConverter;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +22,8 @@ public class DomainHandlerInitializer implements SmartInitializingSingleton {
     private final ApplicationContext ctx;
     private final HandlerContext handlerContext;
     private final IEventActionContext eventActionContext;
-    private final ObjectMapper objectMapper;
     private final Environment environment;
+    private final PayloadConverter payloadConverter;
 
     public void afterSingletonsInstantiated() {
         Map<String, Object> beans = ctx.getBeansWithAnnotation(DomainHandlers.class);
@@ -75,17 +75,20 @@ public class DomainHandlerInitializer implements SmartInitializingSingleton {
 
                     if (cancelMethod != null) {
                         log.debug("Registering cancelable handler for action '{}' with cancel method '{}'", resolvedAction, cancelMethod.getName());
-                        handlerContext.addHandler(domain, actionType,
-                                new CancelableMessageHandlerAdapter(objectMapper, classMethod, cancelMethod, bean));
+                        handlerContext.addHandler(domain, actionType, new CancelableMessageHandlerAdapter(classMethod, bean, payloadConverter));
+                        handlerContext.addHandler(domain, eventActionContext.getOrCreateCancelByAction(actionType),
+                                new CancelableMessageHandlerAdapter(cancelMethod, bean, payloadConverter));
                     } else {
                         log.debug("Registering handler for action '{}' without cancel method", resolvedAction);
                         handlerContext.addHandler(domain, actionType,
-                                new CancelableMessageHandlerAdapter(objectMapper, classMethod, bean));
+                                new CancelableMessageHandlerAdapter(classMethod, bean, payloadConverter));
+
                     }
                 }
             }
         }
     }
+
 }
 
 

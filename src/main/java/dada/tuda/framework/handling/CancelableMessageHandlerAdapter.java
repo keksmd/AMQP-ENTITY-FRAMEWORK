@@ -1,7 +1,7 @@
 package dada.tuda.framework.handling;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
+import dada.tuda.framework.normalization.PayloadConverter;
 import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.messages.NormalizedMessage;
 import org.springframework.amqp.core.Message;
@@ -12,34 +12,29 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
 public class CancelableMessageHandlerAdapter extends MessageListenerAdapter implements Cancelable, MessageHandler {
-    private final ObjectMapper objectMapper;
     private final Method delegateMethod;
-    private Method cancelDelegateMethod;
+    private final PayloadConverter payloadConverter;
 
-    public CancelableMessageHandlerAdapter(ObjectMapper objectMapper, Method delegateMethod, Object delegateObject) {
+    public CancelableMessageHandlerAdapter(Method delegateMethod, Object delegateObject, PayloadConverter payloadConverter) {
         super(delegateObject, delegateMethod.getName());
-        this.objectMapper = objectMapper;
         this.delegateMethod = delegateMethod;
-    }
-
-    public CancelableMessageHandlerAdapter(ObjectMapper objectMapper, Method delegateMethod, Method cancelDelegateMethod, Object delegateObject) {
-        super(delegateObject, delegateMethod.getName());
-        this.objectMapper = objectMapper;
-        this.delegateMethod = delegateMethod;
-        this.cancelDelegateMethod = cancelDelegateMethod;
+        this.payloadConverter = payloadConverter;
     }
 
     @Override
-    public void cancel(NormalizedMessage message) throws Exception {
-        if (cancelDelegateMethod != null && message.getActionType() != null && message.getActionType().isCancelable()) {
-            Object[] listenerArguments = buildListenerArguments(message, null, null);
-            invokeListenerMethod(cancelDelegateMethod.getName(), listenerArguments, null);
+    public Object handle(NormalizedMessage message, Message rawMessage) throws Exception {
+        Object[] listenerArguments = buildListenerArguments(message, null, null);
+        Object result = invokeListenerMethod(delegateMethod.getName(), listenerArguments, null);
+        if (result != null && message.getActionType() != null && message.getActionType().isQuery()) {
+            handleResult(new InvocationResult(result, null, null, null, null), rawMessage, null);
+        } else {
+            logger.trace("No result object given - no result to handle");
         }
+        return result;
     }
 
     @Override
     protected Object[] buildListenerArguments(Object extractedMessage, Channel channel, Message message) {
-
         if (extractedMessage instanceof NormalMessage msg) {
             try {
                 Parameter[] params = delegateMethod.getParameters();
@@ -49,16 +44,16 @@ public class CancelableMessageHandlerAdapter extends MessageListenerAdapter impl
                     if (NormalMessage.class.isAssignableFrom(payloadType)) {
                         return new Object[]{ msg };
                     }
-                    Object payload = objectMapper.convertValue(msg.getPayloadMap(), payloadType);
+                    Object payload = payloadConverter.convertPayload(msg.getPayloadMap(), payloadType);
                     return new Object[]{ payload };
                 } else if (params.length == 2) {
                     if (NormalMessage.class.isAssignableFrom(params[0].getType())) {
                         Class<?> payloadType = params[1].getType();
-                        Object payload = objectMapper.convertValue(msg.getPayloadMap(), payloadType);
+                        Object payload = payloadConverter.convertPayload(msg.getPayloadMap(), payloadType);
                         return new Object[]{ msg, payload };
                     } else if (NormalMessage.class.isAssignableFrom(params[1].getType())) {
                         Class<?> payloadType = params[0].getType();
-                        Object payload = objectMapper.convertValue(msg.getPayloadMap(), payloadType);
+                        Object payload = payloadConverter.convertPayload(msg.getPayloadMap(), payloadType);
                         return new Object[]{ msg, payload };
                     } else {
                         throw new IllegalArgumentException("Invalid parameter signature in method " + delegateMethod.getName());
@@ -72,16 +67,13 @@ public class CancelableMessageHandlerAdapter extends MessageListenerAdapter impl
         } else return new Object[]{ extractedMessage };
     }
 
+
     @Override
-    public Object handle(NormalizedMessage message, Message rawMessage) throws Exception {
-        Object[] listenerArguments = buildListenerArguments(message, null, null);
-        Object result = invokeListenerMethod(delegateMethod.getName(), listenerArguments, null);
-        if (result != null && message.getActionType() != null && message.getActionType().isQuery()) {
-            handleResult(new InvocationResult(result, null, null, null, null), rawMessage, null);
-        } else {
-            logger.trace("No result object given - no result to handle");
+    public void cancel(NormalizedMessage message) throws Exception {
+        if (delegateMethod != null && message.getActionType() != null && message.getActionType().isCancelable()) {
+            Object[] listenerArguments = buildListenerArguments(message, null, null);
+            invokeListenerMethod(delegateMethod.getName(), listenerArguments, null);
         }
-        return result;
     }
 
 

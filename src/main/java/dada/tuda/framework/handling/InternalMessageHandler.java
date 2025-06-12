@@ -114,7 +114,12 @@ public class InternalMessageHandler {
         }
 
         NormalizedMessage normalized = mapper.normalize(canceledEvent);
-        CancelableMessageHandlerAdapter handler = getHandler(normalized);
+        CancelableMessageHandlerAdapter handler = getHandler(message);
+        if (handler == null) {
+            log.error("No handler found for canceling operation with id {} in domain {} and action {}.",
+                    eventId, message.getDomain(), message.getActionType());
+            return;
+        }
 
         log.debug("Handling cancel for stored event: {}", canceledEvent);
         handler.cancel(normalized);
