@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
 import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.messages.NormalizedMessage;
-import dada.tuda.framework.normalization.types.interfaces.IEventAction;
-import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.listener.adapter.InvocationResult;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
@@ -16,25 +14,19 @@ import java.lang.reflect.Parameter;
 public class CancelableMessageHandlerAdapter extends MessageListenerAdapter implements Cancelable, MessageHandler {
     private final ObjectMapper objectMapper;
     private final Method delegateMethod;
-    private final IMessagingDomain messagingDomain;
-    private final IEventAction eventAction;
     private Method cancelDelegateMethod;
 
-    public CancelableMessageHandlerAdapter(IEventAction iEventAction, IMessagingDomain iMessagingDomain, ObjectMapper objectMapper, Method delegateMethod, Object delegateObject) {
+    public CancelableMessageHandlerAdapter(ObjectMapper objectMapper, Method delegateMethod, Object delegateObject) {
         super(delegateObject, delegateMethod.getName());
         this.objectMapper = objectMapper;
         this.delegateMethod = delegateMethod;
-        messagingDomain = iMessagingDomain;
-        eventAction = iEventAction;
     }
 
-    public CancelableMessageHandlerAdapter(IEventAction iEventAction, IMessagingDomain iMessagingDomain, ObjectMapper objectMapper, Method delegateMethod, Method cancelDelegateMethod, Object delegateObject) {
+    public CancelableMessageHandlerAdapter(ObjectMapper objectMapper, Method delegateMethod, Method cancelDelegateMethod, Object delegateObject) {
         super(delegateObject, delegateMethod.getName());
         this.objectMapper = objectMapper;
         this.delegateMethod = delegateMethod;
         this.cancelDelegateMethod = cancelDelegateMethod;
-        messagingDomain = iMessagingDomain;
-        eventAction = iEventAction;
     }
 
     @Override

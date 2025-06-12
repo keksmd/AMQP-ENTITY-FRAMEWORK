@@ -7,10 +7,9 @@ import dada.tuda.framework.normalization.messages.NormalizedMessage;
 @DomainHandlers(domain = "example")
 public class MyHandler {
     @ActionHandler(action = "created")
-    public Object handle(NormalizedMessage message) throws Exception {
+    public void handle(NormalizedMessage message) throws Exception {
         if (message.getObjectId() == null) {
             throw new IllegalStateException("object id is null");
         }
-        return null;
     }
 }

@@ -23,7 +23,7 @@ public enum MyTestEnumExchange implements IMessagingDomain, IEnum {
     }
 
     @Override
-    public void setTtl(Long ttl) {
-
+    public IMessagingDomain setTtl(Long ttl) {
+        return this;
     }
 }

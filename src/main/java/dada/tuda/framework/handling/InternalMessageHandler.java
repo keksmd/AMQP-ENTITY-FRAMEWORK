@@ -44,70 +44,80 @@ public class InternalMessageHandler {
     public Object handleIntenal(NormalizedMessage normalizedMessage, Message raw) throws Exception {
         var domain = normalizedMessage.getDomain();
         var action = normalizedMessage.getActionType();
-        if (domain != null && action != null && eventActionContext.isAllowedAction(domain, action)) {
-            if (normalizedMessage.getActionType() instanceof CancelEventActionTemplate) {
-                String reason = (String) normalizedMessage.getPayloadMap().get("reason");
-                if (reason != null) {
-                    log.warn("operation with id={} is cancel. Target message is {} \nReason: {}", normalizedMessage.getOperationId(), normalizedMessage.getObjectId(), reason);
-                }
-                this.cancelMessage(normalizedMessage);
-                return null;
-            }
-            boolean needsCancel = false;
-            String msg = "";
-            if (!messageStorage.isProcessed(normalizedMessage)) {
-                try {
-                    CancelableMessageHandlerAdapter handler = getHandler(normalizedMessage);
-                    var ans = handler.handle(normalizedMessage, raw);
-                    if ((!properties.getMessaging().isStoreOnlyCancelable() || handler instanceof CancelableMessageHandler) && messageStorage.isEnabled()) {
-                        messageStorage.storeEventAsProcessed(normalizedMessage);
-                    }
-                    if (normalizedMessage.getActionType().isQuery()) {
-                        return ans;
-                    }
 
-                } catch (Exception e) {
-                    log.warn("operation {} should be canceled: \n {}", normalizedMessage.getOperationId(), e.getCause() != null ? e.getMessage() + ": " + e.getCause().getMessage() : e.getMessage());
-                    if (properties.getMessaging().getSaga().isEnabled()
-                        && !normalizedMessage.getActionType().isQuery()
-                        && normalizedMessage.getActionType().isCancelable()
-                        && !(normalizedMessage.getActionType() instanceof CancelEventActionTemplate)) {
-                        needsCancel = true;
-                        msg = e.getCause() == null ? e.getMessage() : (e.getMessage() + ": " + e.getCause().getMessage());
-                    } else {
-                        throw e;
-                    }
-                } finally {
-                    this.messageStorage.storeEventAsProcessed(normalizedMessage);
-                }
-                if (needsCancel) {
-                    messageCanceller.cancelOperation("Exception in service: " + serviceName + " " + msg,
-                            normalizedMessage.getActionType(),
-                            normalizedMessage.getOperationId(),
-                            normalizedMessage.getDomain());
-                }
-                return null;
-            } else {
-                log.warn("operation already processed: {}", normalizedMessage.getOperationId());
-                return null;
-            }
-        } else {
+        if (domain == null || action == null) {
+            log.warn("Normalized message has null domain or action: domain={}, action={}", domain, action);
+            return null;
+        }
+        if (!eventActionContext.isAllowedAction(domain, action)) {
             log.warn("Action {} in domain {} is not allowed by eventActionContext.", action, domain);
             return null;
         }
+        if (action instanceof CancelEventActionTemplate) {
+            String reason = (String) normalizedMessage.getPayloadMap().get("reason");
+            if (reason != null) {
+                log.warn("Operation with id={} is being cancelled. Target message: {}. Reason: {}",
+                        normalizedMessage.getOperationId(), normalizedMessage.getObjectId(), reason);
+            }
+            this.cancelMessage(normalizedMessage);
+            return null;
+        }
+        if (messageStorage.isProcessed(normalizedMessage)) {
+            log.warn("Operation already processed: {}", normalizedMessage.getOperationId());
+            return null;
+        }
+        boolean needsCancel = false;
+        String cancelMessage = "";
+        try {
+            CancelableMessageHandlerAdapter handler = getHandler(normalizedMessage);
+            Object result = handler.handle(normalizedMessage, raw);
+            if (action.isQuery()) {
+                return result;
+            }
+
+        } catch (Exception e) {
+            String errorMessage = e.getCause() != null
+                    ? e.getMessage() + ": " + e.getCause().getMessage()
+                    : e.getMessage();
+            log.warn("Exception during handling of operation {}. Suggesting cancel. Error: {}",
+                    normalizedMessage.getOperationId(), errorMessage);
+
+            if (properties.getMessaging().getSaga().isEnabled()
+                && !action.isQuery()
+                && action.isCancelable()) {
+                needsCancel = true;
+                cancelMessage = errorMessage;
+            } else {
+                throw e; // Re-throw if not eligible for cancel
+            }
+        }
+        messageStorage.storeEventAsProcessed(normalizedMessage);
+        if (needsCancel) {
+            log.warn("Triggering cancel for operation {} in domain {} due to internal exception.",
+                    normalizedMessage.getOperationId(), domain);
+            messageCanceller.cancelOperation("Exception in service: " + serviceName + " " + cancelMessage,
+                    action,
+                    normalizedMessage.getOperationId(),
+                    domain);
+        }
+
+        return null;
     }
 
     public <T> void cancelMessage(NormalizedMessage message) throws Exception {
         String eventId = message.getObjectId();
         NormalMessage canceledEvent = messageStorage.getByID(eventId);
+
         if (canceledEvent == null) {
-            log.error("Operation with id {} cannot be cancelled because it is not stored before.", eventId);
+            log.error("Cannot cancel operation with id {} because it was not found in storage.", eventId);
             return;
         }
-        CancelableMessageHandlerAdapter cachedHandler = getHandler(mapper.normalize(canceledEvent));
 
-        log.debug("Handling cancel for  {}.", canceledEvent);
-        cachedHandler.cancel(mapper.normalize(canceledEvent));
+        NormalizedMessage normalized = mapper.normalize(canceledEvent);
+        CancelableMessageHandlerAdapter handler = getHandler(normalized);
+
+        log.debug("Handling cancel for stored event: {}", canceledEvent);
+        handler.cancel(normalized);
     }
 
     private CancelableMessageHandlerAdapter getHandler(NormalizedMessage message) {

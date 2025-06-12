@@ -11,5 +11,4 @@ public interface MessageStorage {
 
     void storeEventAsProcessed(NormalMessage message);
 
-    boolean isEnabled();
 }

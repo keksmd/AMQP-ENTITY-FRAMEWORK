@@ -15,7 +15,7 @@ public interface IMessagingDomain {
 
     Long getTtl();
 
-    void setTtl(Long ttl);
+    IMessagingDomain setTtl(Long ttl);
 
 
 }

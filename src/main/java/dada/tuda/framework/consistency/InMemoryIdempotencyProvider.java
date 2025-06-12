@@ -45,9 +45,6 @@ public class InMemoryIdempotencyProvider implements MessageStorage {
         }
     }
 
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
+
 }
 

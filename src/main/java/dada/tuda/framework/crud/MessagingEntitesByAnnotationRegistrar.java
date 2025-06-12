@@ -10,6 +10,7 @@ import dada.tuda.framework.crud.extractor.PayloadMap;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -19,7 +20,7 @@ import org.springframework.core.env.Environment;
 
 import java.lang.reflect.Field;
 
-
+@Slf4j
 @RequiredArgsConstructor
 public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionRegistryPostProcessor {
     private final EntityContext entityContext;
@@ -34,109 +35,100 @@ public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionR
         String[] beanNames = registry.getBeanDefinitionNames();
 
         for (String beanName : beanNames) {
-            BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
-            String beanClassName = beanDefinition.getBeanClassName();
-            if (beanClassName == null) {
-                continue;
-            }
+            try {
+                BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
+                String beanClassName = beanDefinition.getBeanClassName();
+                if (beanClassName == null) {
+                    log.debug("Bean '{}' has no class name, skipping.", beanName);
+                    continue;
+                }
+                Class<T> beanClass;
+                try {
+                    beanClass = (Class<T>) Class.forName(beanClassName);
+                } catch (ClassNotFoundException | NoClassDefFoundError e) {
+                    log.warn("Failed to load class '{}' for bean '{}': {}", beanClassName, beanName, e.getMessage());
+                    continue;
+                }
+                if (!beanClass.isAnnotationPresent(MessagingEntity.class)) {
+                    continue;
+                }
+                MessagingEntity domainAnnotated = beanClass.getAnnotation(MessagingEntity.class);
+                String domainName = environment.resolvePlaceholders(domainAnnotated.domain()).trim();
+                if (domainName.isBlank()) {
+                    log.warn("Resolved blank domain name for bean '{}', skipping.", beanName);
+                    continue;
+                }
 
-            Class<T> beanClass = (Class<T>) Class.forName(beanClassName);
-            if (beanClass.isAnnotationPresent(MessagingEntity.class)) {
-
-                MessagingEntity domainAnnotzated = beanClass.getAnnotation(MessagingEntity.class);
-                String domainName = domainAnnotzated.domain();
-                domainName = environment.resolvePlaceholders(domainName);
                 IMessagingDomain domain = domainContext.getByName(domainName);
-
                 if (domain == null) {
-                    SimpleDomain newDomain = (new SimpleDomain(domainName));
-                    newDomain.setCreateDefaultBindings(Boolean.TRUE.toString().equals(domainAnnotzated.createDefaultBindings())).setTtl(Long.parseLong(domainAnnotzated.ttl()));
-                    domainContext.registerDomain(newDomain);
-                    domain = newDomain;
+                    log.debug("Creating new domain: {}", domainName);
+                    domain = new SimpleDomain(domainName)
+                            .setCreateDefaultBindings(Boolean.TRUE.toString().equals(domainAnnotated.createDefaultBindings()))
+                            .setTtl(Long.parseLong(domainAnnotated.ttl()));
+                    domainContext.registerDomain(domain);
                 }
 
                 entityContext.registerDomainMembership(domain, beanClass);
 
-                for (Field f : beanClass.getDeclaredFields()) {
-                    if (f.isAnnotationPresent(ObjectId.class)) {
-                        entityContext.registerObjectIdExtractor(o -> {
-                            try {
-                                f.setAccessible(true);
-                                Object value = f.get(o);
-                                if (value == null) {
-                                    return null;
+                for (Field field : beanClass.getDeclaredFields()) {
+                    field.setAccessible(true);
+                    try {
+                        if (field.isAnnotationPresent(ObjectId.class)) {
+                            log.debug("Registering ObjectId extractor for {}.{}", beanClass.getSimpleName(), field.getName());
+                            entityContext.registerObjectIdExtractor(getExtractor(field), beanClass, field.getName());
+                        }
+                        if (field.isAnnotationPresent(ActorId.class)) {
+                            log.debug("Registering ActorId extractor for {}.{}", beanClass.getSimpleName(), field.getName());
+                            entityContext.registerActorIdExtractor(getExtractor(field), beanClass, field.getName());
+                        }
+                        if (field.isAnnotationPresent(OperationId.class)) {
+                            log.debug("Registering OperationId extractor for {}.{}", beanClass.getSimpleName(), field.getName());
+                            entityContext.registerOperationIdExtractor(getExtractor(field), beanClass, field.getName());
+                        }
+                        if (field.isAnnotationPresent(PayloadMap.class)) {
+                            log.debug("Registering PayloadMap extractor for {}.{}", beanClass.getSimpleName(), field.getName());
+                            entityContext.registerPayloadMapExtractor(o -> {
+                                try {
+                                    return field.get(o);
+                                } catch (IllegalAccessException e) {
+                                    throw new RuntimeException(e);
                                 }
-                                if (f.getType().isPrimitive()) {
-                                    return String.valueOf(value);
-                                } else if (f.getType().equals(String.class)) {
-                                    return (String) value;
-                                }
-                                return f.get(o).toString();
-                            } catch (IllegalAccessException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }, beanClass, f.getName());
-                    }
-                    if (f.isAnnotationPresent(ActorId.class)) {
-                        entityContext.registerActorIdExtractor(o -> {
-                            try {
-                                f.setAccessible(true);
-                                Object value = f.get(o);
-                                if (value == null) {
-                                    return null;
-                                }
-                                if (f.getType().isPrimitive()) {
-                                    return String.valueOf(value);
-                                } else if (f.getType().equals(String.class)) {
-                                    return (String) value;
-                                }
-                                return f.get(o).toString();
-                            } catch (IllegalAccessException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }, beanClass, f.getName());
-                    }
-                    if (f.isAnnotationPresent(OperationId.class)) {
-                        entityContext.registerOperationIdExtractor(o -> {
-                            try {
-                                f.setAccessible(true);
-                                Object value = f.get(o);
-                                if (value == null) {
-                                    return null;
-                                }
-                                if (f.getType().isPrimitive()) {
-                                    return String.valueOf(value);
-                                } else if (f.getType().equals(String.class)) {
-                                    return (String) value;
-                                }
-                                return f.get(o).toString();
-                            } catch (IllegalAccessException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }, beanClass, f.getName());
-                    }
-                    if (f.isAnnotationPresent(PayloadMap.class)) {
-                        entityContext.registerPayloadMapExtractor(o -> {
-                            try {
-                                f.setAccessible(true);
-                                return f.get(o);
-                            } catch (IllegalAccessException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }, beanClass, f.getName(), f.getAnnotation(PayloadMap.class));
+                            }, beanClass, field.getName(), field.getAnnotation(PayloadMap.class));
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to register extractor for field {}.{}: {}", beanClass.getSimpleName(), field.getName(), e.getMessage(), e);
                     }
                 }
 
-                Queue[] queues = domainAnnotzated.queues();
+                Queue[] queues = domainAnnotated.queues();
                 if (queues != null) {
                     for (Queue queue : queues) {
                         if (queue != null) {
+                            log.debug("Registering queue {} for domain {}", queue.name(), domainName);
                             queueContext.registerQueueForDomain(queue, domain);
                         }
                     }
                 }
+
+            } catch (Exception e) {
+                log.warn("Unexpected error during processing bean '{}': {}", beanName, e.getMessage(), e);
             }
         }
+    }
+
+    private static <T> java.util.function.Function<T, String> getExtractor(Field field) {
+        return o -> {
+            try {
+                Object value = field.get(o);
+                if (value == null) return null;
+                if (field.getType().isPrimitive() || field.getType().equals(String.class)) {
+                    return String.valueOf(value);
+                }
+                return value.toString();
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        };
     }
 
 }

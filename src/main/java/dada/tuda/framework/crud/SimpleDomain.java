@@ -16,6 +16,7 @@ public class SimpleDomain implements IMessagingDomain {
     @Accessors(chain = true)
     private boolean createDefaultBindings;
     @Setter
+    @Accessors(chain = true)
     private Long ttl;
 
     public SimpleDomain(String name) {

@@ -53,8 +53,4 @@ public class RedisCachingIdempotencyProvider implements MessageStorage {
     }
 
 
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
 }
