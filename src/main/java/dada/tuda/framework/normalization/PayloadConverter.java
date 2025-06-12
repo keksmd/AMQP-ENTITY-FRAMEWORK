@@ -19,17 +19,18 @@ public class PayloadConverter {
         T payload = objectMapper.convertValue(payloadMap, payloadType);
         if (descriptor != null) {
             String payloadName = descriptor.getPayload();
-            try {
-                Field payloadFiled = payloadType.getDeclaredField(payloadName);
-                payloadFiled.setAccessible(true);
-                payloadMap.remove(descriptor.getActorIdField());
-                payloadMap.remove(descriptor.getObjectIdFiled());
-                payloadMap.remove(descriptor.getOperationIdFiled());
-                payloadFiled.set(payload, payloadMap);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
+            if (payloadName != null) {
+                try {
+                    Field payloadFiled = payloadType.getDeclaredField(payloadName);
+                    payloadFiled.setAccessible(true);
+                    payloadMap.remove(descriptor.getActorIdField());
+                    payloadMap.remove(descriptor.getObjectIdFiled());
+                    payloadMap.remove(descriptor.getOperationIdFiled());
+                    payloadFiled.set(payload, payloadMap);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
 
+                }
             }
-
         }
 
         return payload;
