@@ -1,11 +1,12 @@
 package dada.tuda.framework.facade;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dada.tuda.framework.consistency.mapper.MessageMapper;
 import dada.tuda.framework.crud.contexts.ExchangeContext;
 import dada.tuda.framework.crud.extractor.RoutingKeyConverter;
 import dada.tuda.framework.normalization.HeadersGenerator;
+import dada.tuda.framework.normalization.PayloadConverter;
+import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.messages.NormalizedMessage;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class MessageSender {
     private final ObjectMapper objectMapper;
     private final MessageMapper mapper;
     private final HeadersGenerator headersGenerator;
+    private final PayloadConverter payloadConverter;
     private final RoutingKeyConverter routingKeyConverter;
 
 
@@ -40,11 +42,9 @@ public class MessageSender {
         });
     }
 
-    public <T> T sendRequestUsingType(NormalizedMessage event) {
+    public <T> T sendRequestUsingType(NormalizedMessage event, Class<T> responseType) {
         TopicExchange exchange = this.exchangeContext.getExchange(event.getDomain());
-
         String routingKey = routingKeyConverter.toRoutingKey(event);
-
         Object response = this.rabbitTemplate.convertSendAndReceive(exchange.getName(), routingKey, mapper.toMessageFromNormal(event), (message) -> {
             this.headersGenerator.accept(message.getMessageProperties().getHeaders());
             return message;
@@ -52,8 +52,12 @@ public class MessageSender {
         if (response == null) {
             throw new RuntimeException("No request response: ");
         } else {
-            return this.objectMapper.convertValue(response, new TypeReference<>() {
-            });
+            if (response instanceof NormalMessage normalMessage) {
+                return payloadConverter.convertPayload(normalMessage.getPayloadMap(), responseType);
+            } else {
+                return this.objectMapper.convertValue(response, responseType);
+            }
+
         }
     }
 

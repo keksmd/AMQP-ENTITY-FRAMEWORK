@@ -78,7 +78,7 @@ class EntityProducerTest {
 
         descriptorConverter = new DescriptorConverter(objectMapper, () -> "opID");
 
-        MessageSender messageSender = new MessageSender(rabbitTemplate, exchangeContext, objectMapper, mapper, headersGenerator, routingKeyConverter);
+        MessageSender messageSender = new MessageSender(rabbitTemplate, exchangeContext, objectMapper, mapper, headersGenerator, null, routingKeyConverter);
         entityProducer = new EntityProducer<>(messageSender, entityContext, descriptorConverter, messageStorage);
     }
 

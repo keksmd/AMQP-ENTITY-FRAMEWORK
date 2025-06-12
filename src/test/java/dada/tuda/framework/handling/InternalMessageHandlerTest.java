@@ -20,7 +20,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @Slf4j
 @Testcontainers
@@ -64,6 +66,14 @@ class InternalMessageHandlerTest {
     }
 
     @Test
+    void requestSendedAndReaded() throws Exception {
+        TestEntity testEntity = new TestEntity();
+        testEntity.setObject("test");
+        TestEntity ans = testRepo.request(testEntity, TestEntity.class);
+        assertEquals("test", ans.getId());
+    }
+
+    @Test
     void msgSendedAndRCanceled() throws Exception {
         TestEntity testEntity = new TestEntity();
         testEntity.setId("2");
@@ -71,10 +81,13 @@ class InternalMessageHandlerTest {
         testRepo.create(testEntity);
         Thread.sleep(5000);
         assertNotNull(storage.getByID(operationId));
+        var cancel = storage.getByID(operationId + "-cancel");
+        assertNotNull(cancel);
+        assertEquals(testEntity.getId(), cancel.getPayloadMap().get("CANCELLATION"));
     }
 
     @Test
-    void msgDuplicatedAndSecondRetried() throws Exception {
+    void msgDuplicatedAndSecondNotRetried() throws Exception {
         TestEntity testEntity = new TestEntity();
         testEntity.setId("3");
         testEntity.setObject(null);
@@ -85,7 +98,10 @@ class InternalMessageHandlerTest {
         testEntity.setObject("retry");
         testRepo.create(testEntity);
         Thread.sleep(5000);
-        assertNotNull(storage.getByID(operationId));
+        var saved = storage.getByID(operationId);
+        assertNotNull(saved);
+        assertNull(saved.getObjectId());
+
     }
 
     @Test
@@ -94,12 +110,12 @@ class InternalMessageHandlerTest {
         testEntity.setId("4");
         testEntity.setObject("test");
 
-        testRepo.create(testEntity);
+        testRepo.delete(testEntity);
         Thread.sleep(5000);
         assertNotNull(storage.getByID(operationId));
         assert (storage.isProcessedById(operationId));
         testEntity.setObject("test2");
-        testRepo.create(testEntity);
+        testRepo.delete(testEntity);
         Thread.sleep(5000);
         assert ("test".equals(storage.getByID(operationId).getObjectId()));
     }

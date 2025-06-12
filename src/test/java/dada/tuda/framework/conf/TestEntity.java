@@ -13,7 +13,6 @@ import java.util.Map;
 public class TestEntity {
     @PayloadMap()
     private Object bim = Map.of("field1", "f1");
-    // private String field1 = "f1";
     private String id;
     @ObjectId
     private String object;

@@ -18,33 +18,36 @@ public class EntityProducer<Entity> implements MessagingEntittyRepository<Entity
     private final MessageStorage messageStorage;
 
     @Override
-    public <T> T doAction(Entity entity, IEventAction action, boolean forOthersOnly) {
+    public <T> T doQuery(Entity entity, IEventAction action, boolean forOthersOnly, Class<T> responseType) {
         var descriptor = this.entityContext.getDescriptorByMessagingEntityClass(entity.getClass());
         NormalizedMessage msg = descriptorConverter.createFromDescriptor(entity, action, descriptor);
         msg.setActionType(action);
         if (forOthersOnly && !action.isQuery()) messageStorage.storeEventAsProcessed(msg);
-        if (action.isQuery()) {
-            return sender.sendRequestUsingType(msg);
-        } else {
-            sender.sendUsingType(msg);
-            return null;
-        }
+        return sender.sendRequestUsingType(msg, responseType);
+
     }
 
     @Override
     public void create(Entity entity, boolean forOtherOnly) {
-        this.doAction(entity, CRUDEventActionTypes.CREATED, forOtherOnly);
+        this.doCommand(entity, CRUDEventActionTypes.CREATED, forOtherOnly);
+    }
+
+    @Override
+    public void doCommand(Entity entity, IEventAction action, boolean forOthersOnly) {
+        var descriptor = this.entityContext.getDescriptorByMessagingEntityClass(entity.getClass());
+        NormalizedMessage msg = descriptorConverter.createFromDescriptor(entity, action, descriptor);
+        msg.setActionType(action);
+        if (forOthersOnly && !action.isQuery()) messageStorage.storeEventAsProcessed(msg);
+        sender.sendUsingType(msg);
     }
 
     @Override
     public void delete(Entity entity, boolean forOtherOnly) {
-        this.doAction(entity, CRUDEventActionTypes.DELETED, forOtherOnly);
+        this.doCommand(entity, CRUDEventActionTypes.DELETED, forOtherOnly);
     }
-
 
     @Override
-    public <T> T request(Entity entity) {
-        return doAction(entity, CRUDEventActionTypes.REQUESTED);
+    public <T> T request(Entity entity, Class<T> responseType, boolean forOthersOnly) {
+        return this.doQuery(entity, CRUDEventActionTypes.REQUESTED, forOthersOnly, responseType);
     }
-
 }
