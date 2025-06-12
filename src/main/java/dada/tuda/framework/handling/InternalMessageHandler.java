@@ -53,16 +53,19 @@ public class InternalMessageHandler {
                 this.cancelMessage(normalizedMessage);
                 return null;
             }
-
             boolean needsCancel = false;
             String msg = "";
             if (!messageStorage.isProcessed(normalizedMessage)) {
                 try {
-                    CancelableMessageHandlerAdapter cachedHandler = getHandler(normalizedMessage);
-                    cachedHandler.handle(normalizedMessage, raw);
-                    if ((!properties.getMessaging().isStoreOnlyCancelable() || cachedHandler instanceof CancelableMessageHandler) && messageStorage.isEnabled()) {
+                    CancelableMessageHandlerAdapter handler = getHandler(normalizedMessage);
+                    var ans = handler.handle(normalizedMessage, raw);
+                    if ((!properties.getMessaging().isStoreOnlyCancelable() || handler instanceof CancelableMessageHandler) && messageStorage.isEnabled()) {
                         messageStorage.storeEventAsProcessed(normalizedMessage);
                     }
+                    if (normalizedMessage.getActionType().isQuery()) {
+                        return ans;
+                    }
+
                 } catch (Exception e) {
                     log.warn("operation {} should be canceled: \n {}", normalizedMessage.getOperationId(), e.getCause() != null ? e.getMessage() + ": " + e.getCause().getMessage() : e.getMessage());
                     if (properties.getMessaging().getSaga().isEnabled()
@@ -70,7 +73,7 @@ public class InternalMessageHandler {
                         && normalizedMessage.getActionType().isCancelable()
                         && !(normalizedMessage.getActionType() instanceof CancelEventActionTemplate)) {
                         needsCancel = true;
-                        msg = e.getMessage();
+                        msg = e.getCause() == null ? e.getMessage() : (e.getMessage() + ": " + e.getCause().getMessage());
                     } else {
                         throw e;
                     }

@@ -11,6 +11,6 @@ public class MyHandler {
         if (message.getObjectId() == null) {
             throw new IllegalStateException("object id is null");
         }
-        return new Object();
+        return null;
     }
 }

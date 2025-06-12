@@ -20,7 +20,13 @@ public class UniversalMessageListener {
         Object result = internalMessageHandler.handleMessage(message, raw);
         if (result != null && !(result instanceof JsonNormalMessage)) {
             var ans = new JsonNormalMessage();
-            ans.setPayloadMap(objectMapper.convertValue(result, Map.class));
+            if (result.getClass().equals(Object.class)) {
+                log.debug("Object cannot be serialized,set empty props as payloadMap");
+                ans.setPayloadMap(Map.of());
+            } else {
+                ans.setPayloadMap(objectMapper.convertValue(result, Map.class));
+                log.debug("Answer recognized as map-convertable, set parameter-map as payloadMap");
+            }
             return ans;
         }
         return result;

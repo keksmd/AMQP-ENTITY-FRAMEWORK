@@ -81,15 +81,7 @@ public class CancelableMessageHandlerAdapter extends MessageListenerAdapter impl
     }
 
     @Override
-    public boolean canHandle(NormalizedMessage message) {
-        return message.getActionType() != null &&
-               message.getDomain() != null &&
-               messagingDomain.equals(message.getDomain()) &&
-               eventAction.equals(message.getActionType());
-    }
-
-    @Override
-    public void handle(NormalizedMessage message, Message rawMessage) throws Exception {
+    public Object handle(NormalizedMessage message, Message rawMessage) throws Exception {
         Object[] listenerArguments = buildListenerArguments(message, null, null);
         Object result = invokeListenerMethod(delegateMethod.getName(), listenerArguments, null);
         if (result != null && message.getActionType() != null && message.getActionType().isQuery()) {
@@ -97,6 +89,7 @@ public class CancelableMessageHandlerAdapter extends MessageListenerAdapter impl
         } else {
             logger.trace("No result object given - no result to handle");
         }
+        return result;
     }
 
 
