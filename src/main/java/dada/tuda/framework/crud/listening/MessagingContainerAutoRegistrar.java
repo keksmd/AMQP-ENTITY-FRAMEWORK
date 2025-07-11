@@ -130,7 +130,7 @@ public class MessagingContainerAutoRegistrar implements SmartLifecycle {
                 var adapter = new MessageListenerAdapter(delegate, "handleMessage") {
                     @Override
                     protected Object[] buildListenerArguments(Object extractedMessage, Channel channel, Message message) {
-                        return new Object[]{ extractedMessage, message };
+                        return new Object[]{ extractedMessage };
                     }
                 };
                 adapter.setMessageConverter(messageConverter);

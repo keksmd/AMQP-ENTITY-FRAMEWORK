@@ -75,13 +75,13 @@ public class DomainHandlerInitializer implements SmartInitializingSingleton {
 
                     if (cancelMethod != null) {
                         log.debug("Registering cancelable handler for action '{}' with cancel method '{}'", resolvedAction, cancelMethod.getName());
-                        handlerContext.addHandler(domain, actionType, new CancelableMessageHandlerAdapter(classMethod, bean, payloadConverter));
+                        handlerContext.addHandler(domain, actionType, new CancelableMessageHandlerAdapter(classMethod, bean, payloadConverter, eventActionContext));
                         handlerContext.addHandler(domain, eventActionContext.getOrCreateCancelByAction(actionType),
-                                new CancelableMessageHandlerAdapter(cancelMethod, bean, payloadConverter));
+                                new CancelableMessageHandlerAdapter(cancelMethod, bean, payloadConverter, eventActionContext));
                     } else {
                         log.debug("Registering handler for action '{}' without cancel method", resolvedAction);
                         handlerContext.addHandler(domain, actionType,
-                                new CancelableMessageHandlerAdapter(classMethod, bean, payloadConverter));
+                                new CancelableMessageHandlerAdapter(classMethod, bean, payloadConverter, eventActionContext));
 
                     }
                 }

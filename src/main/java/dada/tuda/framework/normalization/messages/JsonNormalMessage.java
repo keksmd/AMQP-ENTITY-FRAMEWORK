@@ -38,7 +38,6 @@ public class JsonNormalMessage implements NormalMessage {
     private String operationId;
     @JsonProperty("actorId")
     private String actorId;
-
     public JsonNormalMessage(@Nullable String objectId, @Nullable String actorId, @NotNull Map<String, Object> payloadMap, String domain, String actionType) {
         this.objectId = objectId;
         this.payloadMap = payloadMap;

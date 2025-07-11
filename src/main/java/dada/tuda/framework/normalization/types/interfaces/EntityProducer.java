@@ -5,9 +5,11 @@ import dada.tuda.framework.crud.DescriptorConverter;
 import dada.tuda.framework.crud.contexts.EntityContext;
 import dada.tuda.framework.facade.MessageSender;
 import dada.tuda.framework.facade.MessagingEntittyRepository;
-import dada.tuda.framework.normalization.messages.NormalizedMessage;
+import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.types.realizations.CRUDEventActionTypes;
 import lombok.RequiredArgsConstructor;
+
+import java.util.concurrent.TimeoutException;
 
 
 @RequiredArgsConstructor
@@ -18,13 +20,12 @@ public class EntityProducer<Entity> implements MessagingEntittyRepository<Entity
     private final MessageStorage messageStorage;
 
     @Override
-    public <T> T doQuery(Entity entity, IEventAction action, boolean forOthersOnly, Class<T> responseType) {
+    public void doCommand(Entity entity, IEventAction action, boolean forOthersOnly) {
         var descriptor = this.entityContext.getDescriptorByMessagingEntityClass(entity.getClass());
-        NormalizedMessage msg = descriptorConverter.createFromDescriptor(entity, action, descriptor);
-        msg.setActionType(action);
+        NormalMessage msg = descriptorConverter.createFromDescriptor(entity, action, descriptor);
+        msg.setActionTypeName(action.getName());
         if (forOthersOnly && !action.isQuery()) messageStorage.storeEventAsProcessed(msg);
-        return sender.sendRequestUsingType(msg, responseType);
-
+        sender.sendUsingType(msg);
     }
 
     @Override
@@ -33,12 +34,13 @@ public class EntityProducer<Entity> implements MessagingEntittyRepository<Entity
     }
 
     @Override
-    public void doCommand(Entity entity, IEventAction action, boolean forOthersOnly) {
+    public <T> T doQuery(Entity entity, IEventAction action, boolean forOthersOnly, Class<T> responseType) throws TimeoutException {
         var descriptor = this.entityContext.getDescriptorByMessagingEntityClass(entity.getClass());
-        NormalizedMessage msg = descriptorConverter.createFromDescriptor(entity, action, descriptor);
-        msg.setActionType(action);
+        NormalMessage msg = descriptorConverter.createFromDescriptor(entity, action, descriptor);
+        msg.setActionTypeName(action.getName());
         if (forOthersOnly && !action.isQuery()) messageStorage.storeEventAsProcessed(msg);
-        sender.sendUsingType(msg);
+        return sender.sendRequestUsingType(msg, responseType);
+
     }
 
     @Override
@@ -47,7 +49,7 @@ public class EntityProducer<Entity> implements MessagingEntittyRepository<Entity
     }
 
     @Override
-    public <T> T request(Entity entity, Class<T> responseType, boolean forOthersOnly) {
+    public <T> T request(Entity entity, Class<T> responseType, boolean forOthersOnly) throws TimeoutException {
         return this.doQuery(entity, CRUDEventActionTypes.REQUESTED, forOthersOnly, responseType);
     }
 }

@@ -3,18 +3,15 @@ package dada.tuda.framework.handling;
 import dada.tuda.framework.DadaTudaFrameworkProperties;
 import dada.tuda.framework.consistency.MessageStorage;
 import dada.tuda.framework.consistency.mapper.MessageMapper;
+import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.HandlerContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.facade.MessageCanceller;
 import dada.tuda.framework.normalization.messages.NormalMessage;
-import dada.tuda.framework.normalization.messages.NormalizedMessage;
 import dada.tuda.framework.normalization.types.CancelEventActionTemplate;
-import dada.tuda.framework.normalization.types.interfaces.IEventAction;
-import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -27,6 +24,7 @@ public class InternalMessageHandler {
     private final MessageMapper mapper;
     private final IEventActionContext eventActionContext;
     private final HandlerContext handlerContext;
+    private final DomainContext domainContext;
     private final ObjectProvider<DadaTudaFrameworkProperties> provider;
     private DadaTudaFrameworkProperties properties;
     @Value("${spring.application.name}")
@@ -37,13 +35,9 @@ public class InternalMessageHandler {
         properties = provider.getIfAvailable();
     }
 
-    public Object handleMessage(NormalMessage message, Message raw) throws Exception {
-        return this.handleIntenal(mapper.normalize(message), raw);
-    }
-
-    public Object handleIntenal(NormalizedMessage normalizedMessage, Message raw) throws Exception {
-        var domain = normalizedMessage.getDomain();
-        var action = normalizedMessage.getActionType();
+    public Object handleMessage(NormalMessage normalizedMessage) throws Exception {
+        var domain = domainContext.getByName(normalizedMessage.getDomainName());
+        var action = this.eventActionContext.getByName(normalizedMessage.getActionTypeName());
 
         if (domain == null || action == null) {
             log.warn("Normalized message has null domain or action: domain={}, action={}", domain, action);
@@ -70,7 +64,7 @@ public class InternalMessageHandler {
         String cancelMessage = "";
         try {
             CancelableMessageHandlerAdapter handler = getHandler(normalizedMessage);
-            Object result = handler.handle(normalizedMessage, raw);
+            Object result = handler.handle(normalizedMessage);
             if (action.isQuery()) {
                 return result;
             }
@@ -109,7 +103,7 @@ public class InternalMessageHandler {
         return null;
     }
 
-    public <T> void cancelMessage(NormalizedMessage message) throws Exception {
+    public <T> void cancelMessage(NormalMessage message) throws Exception {
         String eventId = message.getObjectId();
         NormalMessage canceledEvent = messageStorage.getByID(eventId);
 
@@ -117,23 +111,22 @@ public class InternalMessageHandler {
             log.error("Cannot cancel operation with id {} because it was not found in storage.", eventId);
             return;
         }
+        var action = this.eventActionContext.getByName(canceledEvent.getActionTypeName());
+        if (action != null && action.isCancelable()) {
+            CancelableMessageHandlerAdapter handler = getHandler(message);
+            if (handler == null) {
+                log.error("No handler found for canceling operation with id {} in domain {} and action {}.",
+                        eventId, message.getDomainName(), message.getActionTypeName());
+                return;
+            }
 
-        NormalizedMessage normalized = mapper.normalize(canceledEvent);
-        CancelableMessageHandlerAdapter handler = getHandler(message);
-        if (handler == null) {
-            log.error("No handler found for canceling operation with id {} in domain {} and action {}.",
-                    eventId, message.getDomain(), message.getActionType());
-            return;
+            log.debug("Handling cancel for stored event: {}", canceledEvent);
+            handler.cancel(canceledEvent);
         }
-
-        log.debug("Handling cancel for stored event: {}", canceledEvent);
-        handler.cancel(normalized);
     }
 
-    private CancelableMessageHandlerAdapter getHandler(NormalizedMessage message) {
-        IMessagingDomain domain = message.getDomain();
-        IEventAction action = message.getActionType();
-        log.debug("Getting handler for domain {} and action {}", domain, action);
+    private CancelableMessageHandlerAdapter getHandler(NormalMessage message) {
+        log.debug("Getting handler for domain {} and action {}", message.getDomainName(), message.getActionTypeName());
         return handlerContext.getHandler(message);
     }
 

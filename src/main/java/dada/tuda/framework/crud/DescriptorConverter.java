@@ -2,8 +2,8 @@ package dada.tuda.framework.crud;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dada.tuda.framework.crud.extractor.OperationIdGenerator;
-import dada.tuda.framework.normalization.messages.NormalizedMessage;
-import dada.tuda.framework.normalization.messages.SystemMessage;
+import dada.tuda.framework.normalization.messages.JsonNormalMessage;
+import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import lombok.Setter;
 
@@ -22,8 +22,8 @@ public class DescriptorConverter {
         this.operationIdGenerator = operationIdGenerator;
     }
 
-    public NormalizedMessage createFromDescriptor(Object entity, IEventAction action, MessagingEntityDescriptor descriptor) {
-        NormalizedMessage msg = new SystemMessage();
+    public NormalMessage createFromDescriptor(Object entity, IEventAction action, MessagingEntityDescriptor descriptor) {
+        NormalMessage msg = new JsonNormalMessage();
         String actor = null;
         String object = null;
         String operation = null;
@@ -59,7 +59,7 @@ public class DescriptorConverter {
                         throw new IllegalStateException("Payload extraction from filed " + descriptor.getPayload() + "failed: " + entity);
                     }
                 }
-                msg.setDomain(descriptor.getDomain());
+                msg.setDomainName(descriptor.getDomain().getName());
             }
         }
         operation = operation != null ? operation : operationIdGenerator.get();
@@ -67,7 +67,7 @@ public class DescriptorConverter {
         msg.setObjectId(object);
         msg.setOperationId(operation);
         msg.setPayloadMap(payload);
-        msg.setActionType(action);
+        msg.setActionTypeName(action.getName());
 
 
         return msg;

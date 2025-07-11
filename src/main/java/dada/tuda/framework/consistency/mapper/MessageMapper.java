@@ -5,7 +5,6 @@ import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.normalization.messages.JsonNormalMessage;
 import dada.tuda.framework.normalization.messages.NormalMessage;
-import dada.tuda.framework.normalization.messages.SystemMessage;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -26,9 +25,5 @@ public abstract class MessageMapper {
 
     public abstract JsonNormalMessage toMessageFromNormal(NormalMessage entity);
 
-    @Mapping(target = "actionType", expression = "java(eventActionContext.getByName(message.getActionTypeName()))")
-    @Mapping(target = "domain", expression = "java(domainContext.getByName(message.getDomainName()))")
-    @Mapping(ignore = true, target = "actionTypeName")
-    @Mapping(ignore = true, target = "domainName")
-    public abstract SystemMessage normalize(NormalMessage message);
+
 }

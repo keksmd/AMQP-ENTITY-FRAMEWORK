@@ -1,9 +1,8 @@
 package dada.tuda.framework.handling;
 
-import dada.tuda.framework.normalization.messages.NormalizedMessage;
-import org.springframework.amqp.core.Message;
+import dada.tuda.framework.normalization.messages.NormalMessage;
 
 public interface MessageHandler {
 
-    Object handle(NormalizedMessage message, Message raw) throws Exception;
+    Object handle(NormalMessage message) throws Exception;
 }

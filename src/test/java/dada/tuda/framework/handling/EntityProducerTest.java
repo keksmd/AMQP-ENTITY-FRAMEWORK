@@ -13,10 +13,12 @@ import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.EntityContext;
 import dada.tuda.framework.crud.contexts.EventActionContext;
 import dada.tuda.framework.crud.contexts.ExchangeContext;
+import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.crud.extractor.RoutingKeyConverter;
 import dada.tuda.framework.crud.extractor.TypeRoutingKeyConverter;
 import dada.tuda.framework.facade.MessageSender;
 import dada.tuda.framework.normalization.HeadersGenerator;
+import dada.tuda.framework.normalization.PayloadConverter;
 import dada.tuda.framework.normalization.messages.JsonNormalMessage;
 import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.types.interfaces.EntityProducer;
@@ -70,15 +72,15 @@ class EntityProducerTest {
         DomainContext domainContext = new AnnotationDomainContext();
         domainContext.registerDomain(d);
         routingKeyConverter = new TypeRoutingKeyConverter(domainContext);
-
+        IEventActionContext eventActionContext = new EventActionContext(Arrays.stream(CRUDEventActionTypes.values()).map(c -> (IEventAction) c).toList(), domainContext);
         mapper = new MessageMapperImpl();
         mapper.domainContext = domainContext;
         mapper.domainContext.init();
-        mapper.eventActionContext = new EventActionContext(Arrays.stream(CRUDEventActionTypes.values()).map(c -> (IEventAction) c).toList(), domainContext);
+        mapper.eventActionContext = eventActionContext;
 
         descriptorConverter = new DescriptorConverter(objectMapper, () -> "opID");
 
-        MessageSender messageSender = new MessageSender(rabbitTemplate, exchangeContext, objectMapper, mapper, headersGenerator, null, routingKeyConverter);
+        MessageSender messageSender = new MessageSender(rabbitTemplate, exchangeContext, objectMapper, mapper, domainContext, eventActionContext, headersGenerator, new PayloadConverter(entityContext, new ObjectMapper()), routingKeyConverter);
         entityProducer = new EntityProducer<>(messageSender, entityContext, descriptorConverter, messageStorage);
     }
 

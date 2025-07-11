@@ -100,9 +100,9 @@ public class MessagingConfiguration {
 
     @Bean(initMethod = "init")
     @ConditionalOnBean(ConnectionFactory.class)
-    public InternalMessageHandler messageHandlerRegistry(ObjectProvider<DadaTudaFrameworkProperties> properties, IEventActionContext actionContext, MessageMapper mapper, @Autowired(required = false) MessageCanceller messageCanceller, HandlerContext handlerContext, MessageStorage messageStorage) {
+    public InternalMessageHandler messageHandlerRegistry(ObjectProvider<DadaTudaFrameworkProperties> properties, IEventActionContext eventActionContext, DomainContext domainContext, MessageMapper mapper, @Autowired(required = false) MessageCanceller messageCanceller, HandlerContext handlerContext, MessageStorage messageStorage) {
 
-        return new InternalMessageHandler(messageStorage, messageCanceller, mapper, actionContext, handlerContext, properties);
+        return new InternalMessageHandler(messageStorage, messageCanceller, mapper, eventActionContext, handlerContext, domainContext, properties);
     }
 
     @Bean
@@ -164,8 +164,8 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessageSender eventSender(ExchangeContext exchangeContext, MessageMapper mapper, RabbitTemplate rabbitTemplate, PayloadConverter payloadConverter, RoutingKeyConverter routingKeyConverter, HeadersGenerator headersGenerator, ObjectMapper objectMapper) {
-        return new MessageSender(rabbitTemplate, exchangeContext, objectMapper, mapper, headersGenerator, payloadConverter, routingKeyConverter);
+    public MessageSender eventSender(ExchangeContext exchangeContext, MessageMapper mapper, RabbitTemplate rabbitTemplate, IEventActionContext eventActionContext, DomainContext domainContext, PayloadConverter payloadConverter, RoutingKeyConverter routingKeyConverter, HeadersGenerator headersGenerator, ObjectMapper objectMapper) {
+        return new MessageSender(rabbitTemplate, exchangeContext, objectMapper, mapper, domainContext, eventActionContext, headersGenerator, payloadConverter, routingKeyConverter);
     }
 
     @Bean
