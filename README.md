@@ -1,10 +1,12 @@
-This starter is all you need to start declarative DDD with distributed transactions(Saga is implemented) out of box (
+This starter is all you need to start declarative DDD with distributed transactions(Saga is implemented) out of the
+box (
 between services using this framework or adapters)
 Now we support only RabbitMQ, but we have a plan to promote Kafka support
 
-Configuration enables automaticaly while you have
+Configuration enables automatically while you have
 org.springframework.amqp.rabbit.connection.ConnectionFactory bean
-and org.springframework.data.redis.connection.RedisConnectionFactory bean enables caching
+
+org.springframework.data.redis.connection.RedisConnectionFactory also enables caching
 
 Design PET domain
 
@@ -32,36 +34,34 @@ public interface PetMessageRepository  extends MessagingEntittyRepository<PetMes
 Use handler by Domain and ActionType for handling Event and cancel it (in Saga pipeline)
 
 ``` java
-@Component
-public class CreatePetHandler extends AbstractCancelableCommandMessageHandler {
+
+@DomainHandlers(domain = "example")
+public class MyHandler {
     @Autowired
     private  PetLocalService petLocalService;
-    @Autowired
-    private ObjectMapper objectMapper;
-    
-    //Describes message handler can process
-    @Override
-    public Boolean canHandle(IMessagingDomain domain, IEventAction action) {
-        return domain.getName().equals(PET_DOMAIN) &&
-               action.equals(CRUDEventActionTypes.CREATED);
+
+    @ActionHandler(action = "created", cancelMethod = "cancelCreate")
+    public void  handleCreate(PetDto petDto) {
+        petLocalService.create(petDto);
     }
-    //Describes how to handle message
-    @Override
-    public void handleCommand(NormalMessage message) throws Exception {
-        var payload = message.getPayloadMap();
-        var petToDelete = objectMapper.convertValue(payload, PetEntityDto.class);
-        petLocalService.create(petToDelete);
+
+    @ActionHandler(PetDto petDto)
+    public void handleDelete(PetDto petToRemove) {
+         petLocalService.delete(petDto);
     }
-    
-    //Describes how to cancel message (same as was handled)
-    @Override
-    public void cancel(NormalMessage message) {
-        var payload = message.getPayloadMap();
-        var petToDelete = objectMapper.convertValue(payload, PetEntityDto.class);
-        petLocalService.delete(petToDelete.getId());
+
+    public void cancelCreate(NormalMessage message, PetDto petToRemove) {
+       log.info("deleting pet due to {}",message.getO) 
+       petLocalService.deleteIfExists(petDto.getId());
+    }
+
+    @ActionHandler(action = "requested")
+    public Object handleQuery(NormalMessage message) {
+        return petLocalService.getById(petDto);
     }
 }
+
 ```
 
-More details you can find in the [Demo-Project](https://github.com/keksmd/AMQP-ENTITTY-FRAMEWORK-DEMO)
+More details and examples you can find in the [Demo-Project](https://github.com/keksmd/AMQP-ENTITTY-FRAMEWORK-DEMO)
 
