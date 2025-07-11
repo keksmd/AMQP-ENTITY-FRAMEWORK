@@ -27,8 +27,8 @@ jobs:
       - name: Build and test
         run: mvn clean install -U
 
-      - name: Deploy if not PR
-        if: github.event_name == 'push' && github.event.pull_request == null
+      - name: Deploy if on develop or master (and not PR)
+      - if: github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master')
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
