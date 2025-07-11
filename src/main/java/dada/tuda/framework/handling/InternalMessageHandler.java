@@ -88,7 +88,12 @@ public class InternalMessageHandler {
                 needsCancel = true;
                 cancelMessage = errorMessage;
             } else {
-                throw e; // Re-throw if not eligible for cancel
+                if (action.isQuery()
+                    || !action.isCancelable()) {
+                    log.error("Not eligible for cancel. Error: {}", errorMessage);
+                } else {
+                    throw e;
+                }
             }
         }
         messageStorage.storeEventAsProcessed(normalizedMessage);
