@@ -36,7 +36,7 @@ Use handler by Domain and ActionType for handling Event and cancel it (in Saga p
 ``` java
 
 @DomainHandlers(domain = "example")
-public class MyHandler {
+public class PetHandler {
     @Autowired
     private  PetLocalService petLocalService;
 
