@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -38,7 +37,8 @@ public class JsonNormalMessage implements NormalMessage {
     private String operationId;
     @JsonProperty("actorId")
     private String actorId;
-    public JsonNormalMessage(@Nullable String objectId, @Nullable String actorId, @NotNull Map<String, Object> payloadMap, String domain, String actionType) {
+
+    public JsonNormalMessage(@Nullable String objectId, @Nullable String actorId, Map<String, Object> payloadMap, String domain, String actionType) {
         this.objectId = objectId;
         this.payloadMap = payloadMap;
         this.actorId = actorId;
@@ -48,7 +48,7 @@ public class JsonNormalMessage implements NormalMessage {
     }
 
 
-    public JsonNormalMessage(@Nullable String objectId, @NotNull Map<String, Object> payloadMap, String domain, String actionType) {
+    public JsonNormalMessage(@Nullable String objectId, Map<String, Object> payloadMap, String domain, String actionType) {
         this.objectId = objectId;
         this.payloadMap = payloadMap;
         this.domainName = domain;
