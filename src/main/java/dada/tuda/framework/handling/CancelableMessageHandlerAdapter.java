@@ -5,12 +5,15 @@ import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.normalization.PayloadConverter;
 import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.Arrays;
 
+@Slf4j
 public class CancelableMessageHandlerAdapter extends MessageListenerAdapter implements Cancelable, MessageHandler {
     private final Method delegateMethod;
     private final PayloadConverter payloadConverter;
@@ -74,10 +77,16 @@ public class CancelableMessageHandlerAdapter extends MessageListenerAdapter impl
 
     @Override
     public void cancel(NormalMessage message) throws Exception {
-        if (delegateMethod != null && message.getActionTypeName() != null) {
-            Object[] listenerArguments = buildListenerArguments(message, null, null);
-            invokeListenerMethod(delegateMethod.getName(), listenerArguments, null);
+        Object[] listenerArguments = null;
+        try {
+            if (delegateMethod != null && message.getActionTypeName() != null) {
+                listenerArguments = buildListenerArguments(message, null, null);
+                invokeListenerMethod(delegateMethod.getName(), listenerArguments, null);
+            }
+        } catch (Throwable e) {
+            log.error("THIS WILL CAUSE DATA IMPERSISTENSE !!! Failed to cancel during distributed transaction message(id= {} , domain={},action={}) with listener(method={}, args={})", message.getOperationId(), message.getDomainName(), message.getActionTypeName(), delegateMethod.getName(), Arrays.toString(listenerArguments));
         }
+
     }
 
 
