@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -15,6 +16,7 @@ import static com.fasterxml.jackson.core.JsonParser.Feature.INCLUDE_SOURCE_IN_LO
 public class JaksonConfiguration {
     @Bean
     @Primary
+    @ConditionalOnMissingBean(value = ObjectMapper.class, annotation = Primary.class)
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         var module = new JavaTimeModule();
