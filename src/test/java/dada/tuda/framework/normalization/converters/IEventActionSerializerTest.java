@@ -38,6 +38,7 @@ class NormalMessageSerializerTest {
 
 
     @Qualifier("objectMapperForRabbitEntities")
+    @Autowired
     ObjectMapper defaultObjectMapper;
     @Autowired
     private MessageRepository messageRepository;
