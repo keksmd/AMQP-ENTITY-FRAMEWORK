@@ -12,6 +12,7 @@ import dada.tuda.framework.facade.MessageCanceller;
 import dada.tuda.framework.facade.MessageSender;
 import dada.tuda.framework.normalization.converters.MapToJsonConverter;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
@@ -46,14 +47,14 @@ public class SagaConfig {
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
     @ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
-    public MessageCanceller eventCanceler(MessageSender sender, DomainContext domainContext, ObjectMapper objectMapper, IEventActionContext entityContext) {
+    public MessageCanceller eventCanceler(MessageSender sender, DomainContext domainContext, @Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper, IEventActionContext entityContext) {
         return new MessageCanceller(entityContext, sender, domainContext, objectMapper);
     }
 
     @Bean
     @ConditionalOnBean({ RedisConnectionFactory.class, ConnectionFactory.class })
     @ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
-    MapToJsonConverter mapToJsonConverter(ObjectMapper objectMapper) {
+    MapToJsonConverter mapToJsonConverter(@Qualifier("objectMapperForRedis") ObjectMapper objectMapper) {
         return new MapToJsonConverter(objectMapper);
     }
 

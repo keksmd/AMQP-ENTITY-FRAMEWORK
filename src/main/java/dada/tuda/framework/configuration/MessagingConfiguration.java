@@ -1,6 +1,5 @@
 package dada.tuda.framework.configuration;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dada.tuda.framework.DadaTudaFrameworkProperties;
 import dada.tuda.framework.consistency.InMemoryIdempotencyProvider;
@@ -47,6 +46,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -58,6 +58,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.env.Environment;
 
 import java.util.List;
@@ -82,7 +83,7 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    PayloadConverter payloadConverter(EntityContext entityContext, ObjectMapper objectMapper) {
+    PayloadConverter payloadConverter(EntityContext entityContext, @Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper) {
         return new PayloadConverter(entityContext, objectMapper);
     }
 
@@ -114,7 +115,7 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(@Value("${spring.rabbitmq.listener.simple.concurrency:3}") Integer consumers, QueueAnnotationParser annotationParser, @Value("${spring.rabbitmq.listener.simple.max-concurrency:10}") Integer maxConsumers, MessageConverter converter, IEventActionContext iEventActionContext, QueueAnnotationContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, InternalMessageHandler internalMessageHandler, ObjectMapper objectMapper) {
+    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(@Value("${spring.rabbitmq.listener.simple.concurrency:3}") Integer consumers, QueueAnnotationParser annotationParser, @Value("${spring.rabbitmq.listener.simple.max-concurrency:10}") Integer maxConsumers, MessageConverter converter, IEventActionContext iEventActionContext, QueueAnnotationContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, InternalMessageHandler internalMessageHandler, @Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper) {
         return new MessagingContainerAutoRegistrar(domainContext, queueContext, exchangeContext, new RabbitAdmin(connectionFactory), iEventActionContext, routingKeyConverter, connectionFactory, internalMessageHandler, annotationParser, objectMapper,
                 consumers, maxConsumers, converter);
     }
@@ -158,13 +159,13 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public DescriptorConverter descriptorConverter(ObjectMapper objectMapper, OperationIdGenerator operationIdGenerator, MessageMapper mapper) {
+    public DescriptorConverter descriptorConverter(@Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper, OperationIdGenerator operationIdGenerator, MessageMapper mapper) {
         return new DescriptorConverter(objectMapper, operationIdGenerator);
     }
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessageSender eventSender(ExchangeContext exchangeContext, MessageMapper mapper, RabbitTemplate rabbitTemplate, IEventActionContext eventActionContext, DomainContext domainContext, PayloadConverter payloadConverter, RoutingKeyConverter routingKeyConverter, HeadersGenerator headersGenerator, ObjectMapper objectMapper) {
+    public MessageSender eventSender(ExchangeContext exchangeContext, MessageMapper mapper, RabbitTemplate rabbitTemplate, IEventActionContext eventActionContext, DomainContext domainContext, PayloadConverter payloadConverter, RoutingKeyConverter routingKeyConverter, HeadersGenerator headersGenerator, @Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper) {
         return new MessageSender(rabbitTemplate, exchangeContext, objectMapper, mapper, domainContext, eventActionContext, headersGenerator, payloadConverter, routingKeyConverter);
     }
 
@@ -194,16 +195,16 @@ public class MessagingConfiguration {
 
 
     @Bean
-    @ConditionalOnBean({ ObjectMapper.class, ConnectionFactory.class })
-    public Jackson2JsonMessageConverter jsonMessageConverter(@Autowired ObjectMapper objectMapper) {
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+    @ConditionalOnBean({ ConnectionFactory.class })
+    @DependsOn("objectMapperForRabbitEntities")
+    public Jackson2JsonMessageConverter jsonMessageConverter(@Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper) {
         return new Jackson2JsonMessageConverter(objectMapper);
     }
 
     @ConditionalOnBean(ConnectionFactory.class)
     @Bean
     public BeanDefinitionRegistryPostProcessor messagingEntitesByAnnotationRegistrar(EntityContext context, Environment environment, DomainContext domainContext, QueueAnnotationContext queueContext) {
-        return new MessagingEntitesByAnnotationRegistrar(context, domainContext, queueContext, environment);
+        return new MessagingEntitesByAnnotationRegistrar<>(context, domainContext, queueContext, environment);
     }
 
     @Bean()
