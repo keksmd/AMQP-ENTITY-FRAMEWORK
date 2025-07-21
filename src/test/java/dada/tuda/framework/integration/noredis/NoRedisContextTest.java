@@ -1,6 +1,6 @@
 package dada.tuda.framework.integration.noredis;
 
-import dada.tuda.framework.WholeConfig;
+import dada.tuda.framework.WholeAutoConfiguration;
 import dada.tuda.framework.conf.RabbitContainerConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ import static org.springframework.test.util.AssertionErrors.assertNotNull;
 @Testcontainers
 @ActiveProfiles("test")
 @TestPropertySource(locations = "classpath:application.yml")
-@SpringBootTest(classes = { RabbitContainerConfig.class, NoRedisContextTest.class, WholeConfig.class })
+@SpringBootTest(classes = { RabbitContainerConfig.class, NoRedisContextTest.class, WholeAutoConfiguration.class })
 class NoRedisContextTest {
 
     @Autowired

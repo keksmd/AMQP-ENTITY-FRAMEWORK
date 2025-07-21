@@ -1,6 +1,6 @@
 package dada.tuda.framework.integration;
 
-import dada.tuda.framework.WholeConfig;
+import dada.tuda.framework.WholeAutoConfiguration;
 import dada.tuda.framework.conf.RabbitContainerConfig;
 import dada.tuda.framework.conf.RedisContainerConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import static org.springframework.test.util.AssertionErrors.assertNotNull;
 @Testcontainers
 @ActiveProfiles("test")
 @TestPropertySource(locations = "classpath:application.yml")
-@SpringBootTest(classes = { RabbitContainerConfig.class, RedisContainerConfig.class, MessagingApiImplFullContextTest.class, WholeConfig.class })
+@SpringBootTest(classes = { RabbitContainerConfig.class, RedisContainerConfig.class, MessagingApiImplFullContextTest.class, WholeAutoConfiguration.class })
 class MessagingApiImplFullContextTest {
     @Autowired
     ApplicationContext context;

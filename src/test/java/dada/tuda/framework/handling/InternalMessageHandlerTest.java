@@ -1,6 +1,6 @@
 package dada.tuda.framework.handling;
 
-import dada.tuda.framework.WholeConfig;
+import dada.tuda.framework.WholeAutoConfiguration;
 import dada.tuda.framework.conf.RabbitContainerConfig;
 import dada.tuda.framework.conf.RedisContainerConfig;
 import dada.tuda.framework.conf.RepoConfig;
@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
 @TestPropertySource(locations = "classpath:application.yml")
-@SpringBootTest(classes = { RepoConfig.class, TestEntity.class, RabbitContainerConfig.class, RedisContainerConfig.class, WholeConfig.class })
+@SpringBootTest(classes = { RepoConfig.class, TestEntity.class, RabbitContainerConfig.class, RedisContainerConfig.class, WholeAutoConfiguration.class })
 
 /**
  *

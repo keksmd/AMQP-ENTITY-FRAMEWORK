@@ -1,6 +1,6 @@
 package dada.tuda.framework.normalization.types.realizations;
 
-import dada.tuda.framework.configuration.MessagingRepositoriesRegistrar;
+import dada.tuda.framework.handling.MessagingRepositoriesRegistrar;
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.Documented;

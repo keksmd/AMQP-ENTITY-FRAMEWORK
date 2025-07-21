@@ -13,9 +13,6 @@ dada:
 spring:
   application:
     name: "test"
-  cache:
-    redis:
-      time-to-live: 60000
   data:
     redis:
       host: localhost

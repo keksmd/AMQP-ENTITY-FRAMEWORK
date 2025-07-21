@@ -1,4 +1,4 @@
-package dada.tuda.framework.configuration;
+package dada.tuda.framework.handling;
 
 import dada.tuda.framework.crud.listening.MessagingRepositoryFactoryBean;
 import dada.tuda.framework.facade.MessagingEntittyRepository;
@@ -48,8 +48,6 @@ public class MessagingRepositoriesRegistrar implements ImportBeanDefinitionRegis
                 basePackages.addAll(Arrays.asList(pkgs));
             }
             if (!basePackages.isEmpty()) {
-
-
                 ClassPathScanningCandidateComponentProvider scanner =
                         new ClassPathScanningCandidateComponentProvider(false, environment) {
                             @Override

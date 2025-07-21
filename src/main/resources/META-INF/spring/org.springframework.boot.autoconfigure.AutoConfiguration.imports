@@ -1,7 +1,5 @@
 dada.tuda.framework.configuration.PropsConfig
 dada.tuda.framework.configuration.TracingAspectConfiguration
-dada.tuda.framework.configuration.JaksonConfiguration
-dada.tuda.framework.configuration.MyCacheAspectConfiguration
 dada.tuda.framework.configuration.MessagingConfiguration
 dada.tuda.framework.configuration.SagaConfig
 dada.tuda.framework.configuration.RedisRepositoryConfig

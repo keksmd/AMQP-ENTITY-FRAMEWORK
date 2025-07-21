@@ -1,7 +1,7 @@
 package dada.tuda.framework.normalization.converters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dada.tuda.framework.WholeConfig;
+import dada.tuda.framework.WholeAutoConfiguration;
 import dada.tuda.framework.conf.RabbitContainerConfig;
 import dada.tuda.framework.conf.RedisContainerConfig;
 import dada.tuda.framework.conf.TestEntity;
@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Testcontainers
 @TestPropertySource(locations = "classpath:application.yml")
-@SpringBootTest(classes = { TestEntity.class, RabbitContainerConfig.class, RedisContainerConfig.class, NormalMessageSerializerTest.class, WholeConfig.class })
+@SpringBootTest(classes = { TestEntity.class, RabbitContainerConfig.class, RedisContainerConfig.class, NormalMessageSerializerTest.class, WholeAutoConfiguration.class })
 @ActiveProfiles("test") // или укажи правильный профиль, если нужен
 class NormalMessageSerializerTest {
 

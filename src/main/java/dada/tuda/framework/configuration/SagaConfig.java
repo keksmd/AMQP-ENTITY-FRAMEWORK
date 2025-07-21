@@ -21,6 +21,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
@@ -46,6 +47,7 @@ public class SagaConfig {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
+    @DependsOn("objectMapperForRabbitEntities")
     @ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
     public MessageCanceller eventCanceler(MessageSender sender, DomainContext domainContext, @Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper, IEventActionContext entityContext) {
         return new MessageCanceller(entityContext, sender, domainContext, objectMapper);
@@ -53,6 +55,7 @@ public class SagaConfig {
 
     @Bean
     @ConditionalOnBean({ RedisConnectionFactory.class, ConnectionFactory.class })
+    @DependsOn("objectMapperForRedis")
     @ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
     MapToJsonConverter mapToJsonConverter(@Qualifier("objectMapperForRedis") ObjectMapper objectMapper) {
         return new MapToJsonConverter(objectMapper);
