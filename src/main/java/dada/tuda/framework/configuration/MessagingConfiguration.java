@@ -57,6 +57,7 @@ import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitTemplateCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -67,7 +68,7 @@ import org.springframework.core.env.Environment;
 import java.util.List;
 
 @Slf4j
-@AutoConfiguration(after = RabbitAutoConfiguration.class)
+@AutoConfiguration(after = { RabbitAutoConfiguration.class, JacksonAutoConfiguration.class })
 public class MessagingConfiguration {
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)

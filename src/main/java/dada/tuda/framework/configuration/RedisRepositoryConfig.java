@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.cache.support.NullValue;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,7 +29,7 @@ import java.util.Arrays;
 
 import static com.fasterxml.jackson.core.JsonParser.Feature.INCLUDE_SOURCE_IN_LOCATION;
 
-@AutoConfiguration(after = { RedisAutoConfiguration.class })
+@AutoConfiguration(after = { RedisAutoConfiguration.class, JacksonAutoConfiguration.class })
 public class RedisRepositoryConfig {
     @Bean
     @ConditionalOnBean(RedisConnectionFactory.class)
