@@ -1,7 +1,6 @@
 package dada.tuda.framework.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dada.tuda.framework.cache.CacheNamesRegistry;
 import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,8 +13,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
-import org.springframework.data.redis.cache.RedisCacheManager;
-import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -100,17 +97,6 @@ public class RedisRepositoryConfig {
         redis.setEnableDefaultSerializer(true);
         redis.afterPropertiesSet();
         return redis;
-    }
-
-    @Bean
-    @ConditionalOnBean(RedisConnectionFactory.class)
-    @Primary
-    RedisCacheManager redisCacheManagerWithJsonSerializer(CacheNamesRegistry cacheNamesRegistry, RedisConnectionFactory connectionFactory, RedisCacheConfiguration config) {
-        return RedisCacheManager
-                .builder(RedisCacheWriter.nonLockingRedisCacheWriter(connectionFactory))
-                .cacheDefaults(config)
-                .initialCacheNames(cacheNamesRegistry.getCacheNames())
-                .build();
     }
 
     @Bean

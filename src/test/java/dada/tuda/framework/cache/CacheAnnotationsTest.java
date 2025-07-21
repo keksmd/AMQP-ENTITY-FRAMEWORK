@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -34,11 +35,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Testcontainers
 @EnableCaching
 @TestPropertySource(locations = "classpath:application.yml")
-@SpringBootTest(classes = { CacheAnnotationsTest.class, RedisContainerConfig.class, Service.class, WholeConfig.class })
+@SpringBootTest(classes = { CacheAnnotationsTest.class, RedisContainerConfig.class, CacheManagerConfig.class, Service.class, WholeConfig.class })
 public class CacheAnnotationsTest {
     @Autowired
     Service service;
     @Autowired
+    @Qualifier("redisCacheManagerWithJsonSerializer")
     CacheManager cacheManager;
     Dto dto1;
     Dto dto2;
