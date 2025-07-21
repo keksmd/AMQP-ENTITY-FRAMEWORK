@@ -19,7 +19,7 @@ import java.util.concurrent.Executors;
 @AutoConfiguration(after = RedisAutoConfiguration.class)
 public class MyCacheAspectConfiguration {
     @Bean
-    @ConditionalOnBean({ RedisConnectionFactory.class })
+    @ConditionalOnBean({ RedisConnectionFactory.class, CacheManager.class })
     public DetailedCacheEvictRedisAspect detailedCacheEvictAspect(CacheManager cacheManager, RedisTemplate<String, Object> redisTemplate) {
         return new DetailedCacheEvictRedisAspect(cacheManager, redisTemplate);
     }
@@ -35,7 +35,7 @@ public class MyCacheAspectConfiguration {
     }
 
     @Bean
-    @ConditionalOnBean({ RedisConnectionFactory.class })
+    @ConditionalOnBean({ RedisConnectionFactory.class, CacheManager.class })
     public CacheWithDetailsAspect cacheWithDetailsAspect(ExecutorService executorService, @Autowired CacheManager cacheManager, RedisTemplate<String, Object> redisTemplate, RedisCacheConfiguration redisCacheConfiguration) {
         return new CacheWithDetailsAspect(cacheManager, redisTemplate, redisCacheConfiguration, executorService);
     }
