@@ -60,6 +60,8 @@ public class DescriptorConverter {
                     }
                 }
                 msg.setDomainName(descriptor.getDomain().getName());
+            } else {
+                throw new IllegalStateException("Descriptor is null for entity: " + entity);
             }
         }
         operation = operation != null ? operation : operationIdGenerator.get();

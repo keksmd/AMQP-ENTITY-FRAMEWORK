@@ -21,7 +21,7 @@ public interface EntityContext {
     <T> MessagingEntityDescriptor getDescriptorByMessagingEntityClass(Class<T> clz);
 
 
-    List<Class<?>> getAllTypes();
+    List<String> getAllTypes();
 
 
     <T> void registerPayloadMapExtractor(Function<Object, Object> payLoadExtractor, Class<T> clazz, String filedName, PayloadMap an);

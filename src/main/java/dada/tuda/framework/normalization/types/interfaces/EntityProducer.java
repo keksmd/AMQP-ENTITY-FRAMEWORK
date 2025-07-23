@@ -36,6 +36,9 @@ public class EntityProducer<Entity> implements MessagingEntittyRepository<Entity
     @Override
     public <T> T doQuery(Entity entity, IEventAction action, boolean forOthersOnly, Class<T> responseType) throws TimeoutException {
         var descriptor = this.entityContext.getDescriptorByMessagingEntityClass(entity.getClass());
+        if (descriptor == null) {
+            throw new IllegalStateException("Descriptor is null for entity: " + entity);
+        }
         NormalMessage msg = descriptorConverter.createFromDescriptor(entity, action, descriptor);
         msg.setActionTypeName(action.getName());
         if (forOthersOnly && !action.isQuery()) messageStorage.storeEventAsProcessed(msg);

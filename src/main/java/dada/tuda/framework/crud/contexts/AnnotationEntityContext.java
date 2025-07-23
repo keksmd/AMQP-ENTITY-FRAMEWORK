@@ -16,32 +16,32 @@ import java.util.function.Function;
 @Component
 public class AnnotationEntityContext implements EntityContext {
 
-    private final Map<Class<?>, MessagingEntityDescriptor> context = new ConcurrentHashMap<>();
+    private final Map<String, MessagingEntityDescriptor> context = new ConcurrentHashMap<>();
 
 
     @Override
     public <T> void registerDomainMembership(IMessagingDomain domain, Class<T> clazz) {
-        context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor())
+        context.computeIfAbsent(clazz.getName(), key -> new MessagingEntityDescriptor())
                 .setDomain(domain);
     }
 
     @Override
     public <T> void registerObjectIdExtractor(Function<Object, String> domainExtractor, Class<T> clazz, String field) {
-        var descriptor = context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor());
+        var descriptor = context.computeIfAbsent(clazz.getName(), key -> new MessagingEntityDescriptor());
         descriptor.setObjectIdExtractor(domainExtractor);
         descriptor.setObjectIdFiled(field);
     }
 
     @Override
     public <T> void registerActorIdExtractor(Function<Object, String> domainExtractor, Class<T> clazz, String field) {
-        var descriptor = context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor());
+        var descriptor = context.computeIfAbsent(clazz.getName(), key -> new MessagingEntityDescriptor());
         descriptor.setActorIdExtractor(domainExtractor);
         descriptor.setActorIdField(field);
     }
 
     @Override
     public <T> void registerOperationIdExtractor(Function<Object, String> domainExtractor, Class<T> clazz, String field) {
-        var descriptor = context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor());
+        var descriptor = context.computeIfAbsent(clazz.getName(), key -> new MessagingEntityDescriptor());
         descriptor.setOperationIdExtractor(domainExtractor);
         descriptor.setOperationIdFiled(field);
     }
@@ -49,17 +49,25 @@ public class AnnotationEntityContext implements EntityContext {
 
     @Override
     public <T> MessagingEntityDescriptor getDescriptorByMessagingEntityClass(Class<T> clz) {
-        return context.get(clz);
+        if (clz == null) {
+            throw new IllegalArgumentException("Class cannot be null");
+        }
+        var descriptor = context.get(clz.getName());
+        if (descriptor == null) {
+            throw new IllegalStateException("Descriptor not found for class: " + clz.getName());
+        } else {
+            return descriptor;
+        }
     }
 
     @Override
-    public List<Class<?>> getAllTypes() {
+    public List<String> getAllTypes() {
         return new ArrayList<>(context.keySet());
     }
 
     @Override
     public <T> void registerPayloadMapExtractor(Function<Object, Object> payLoadExtractor, Class<T> clazz, String filedName, PayloadMap an) {
-        var descriptor = context.computeIfAbsent(clazz, key -> new MessagingEntityDescriptor());
+        var descriptor = context.computeIfAbsent(clazz.getName(), key -> new MessagingEntityDescriptor());
         descriptor.setPayLoadExtractor(payLoadExtractor);
         descriptor.setPayload(filedName);
         descriptor.setPayloadAnnotation(an);

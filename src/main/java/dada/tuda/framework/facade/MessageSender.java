@@ -30,7 +30,11 @@ public class MessageSender {
     private final RoutingKeyConverter routingKeyConverter;
 
     public void sendUsingType(NormalMessage event) {
-        TopicExchange exchange = this.exchangeContext.getExchange(domainContext.getByName(event.getDomainName()));
+        var domain = domainContext.getByName(event.getDomainName());
+        if (domain == null) {
+            throw new IllegalArgumentException("Domain not found: " + event.getDomainName());
+        }
+        TopicExchange exchange = this.exchangeContext.getExchange(domain);
         String routingKey = toRoutingKey(event);
         this.rabbitTemplate.convertAndSend(exchange.getName(), routingKey, mapper.toMessageFromNormal(event), (message) -> {
             this.headersGenerator.accept(message.getMessageProperties().getHeaders());
@@ -45,6 +49,9 @@ public class MessageSender {
     }
 
     public void sendUsingTypeWithExchangeForOtherDomain(NormalMessage event, IMessagingDomain domain) {
+        if (domain == null) {
+            throw new IllegalArgumentException("Domain not found: " + event.getDomainName());
+        }
         TopicExchange exchange = this.exchangeContext.getExchange(domain);
         String routingKey = toRoutingKey(event);
         this.rabbitTemplate.convertAndSend(exchange.getName(), routingKey, mapper.toMessageFromNormal(event), (message) -> {
@@ -54,6 +61,10 @@ public class MessageSender {
     }
 
     public <T> T sendRequestUsingType(NormalMessage event, Class<T> responseType) throws TimeoutException {
+        var domain = domainContext.getByName(event.getDomainName());
+        if (domain == null) {
+            throw new IllegalArgumentException("Domain not found: " + event.getDomainName());
+        }
         TopicExchange exchange = this.exchangeContext.getExchange(domainContext.getByName(event.getDomainName()));
         String routingKey = toRoutingKey(event);
         Object response = this.rabbitTemplate.convertSendAndReceive(exchange.getName(), routingKey, mapper.toMessageFromNormal(event), (message) -> {
