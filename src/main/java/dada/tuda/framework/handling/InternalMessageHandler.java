@@ -94,7 +94,7 @@ public class InternalMessageHandler {
         if (needsCancel) {
             log.warn("Triggering cancel for operation {} in domain {} due to internal exception.",
                     normalizedMessage.getOperationId(), domain);
-            messageCanceller.cancelOperation("Exception in service: " + serviceName + " " + cancelMessage,
+            messageCanceller.cancelOperation("Exception in receiving service: " + serviceName + " " + cancelMessage,
                     action,
                     normalizedMessage.getOperationId(),
                     domain);
