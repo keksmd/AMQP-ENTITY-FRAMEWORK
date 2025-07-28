@@ -6,18 +6,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import dada.tuda.framework.consistency.MessageRepository;
+import dada.tuda.framework.consistency.MessageStorage;
+import dada.tuda.framework.consistency.RedisCachingIdempotencyProvider;
+import dada.tuda.framework.consistency.mapper.RedisMapper;
+import dada.tuda.framework.consistency.mapper.RedisMapperImpl;
+import dada.tuda.framework.crud.contexts.DomainContext;
 import jakarta.annotation.Nullable;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.cache.support.NullValue;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -29,10 +38,12 @@ import java.util.Arrays;
 
 import static com.fasterxml.jackson.core.JsonParser.Feature.INCLUDE_SOURCE_IN_LOCATION;
 
+@ConditionalOnClass(RedisOperations.class)
 @AutoConfiguration(after = { RedisAutoConfiguration.class, JacksonAutoConfiguration.class })
 public class RedisRepositoryConfig {
     @Bean
     @ConditionalOnBean(RedisConnectionFactory.class)
+    @ConditionalOnClass(RedisOperations.class)
     public GenericJackson2JsonRedisSerializer genericJackson2JsonRedisSerializer(@Qualifier("objectMapperForRedis") ObjectMapper objectMapper) {
         return new GenericJackson2JsonRedisSerializer(objectMapper) {
             private static final byte[] BINARY_NULL;
@@ -76,6 +87,24 @@ public class RedisRepositoryConfig {
     }
 
     @Bean
+    @ConditionalOnClass(RedisOperations.class)
+    public RedisMapper redisMapper(DomainContext domainContext) {
+        var mapper = new RedisMapperImpl();
+        mapper.domainContext = domainContext;
+        return mapper;
+    }
+
+    @Bean
+    @Primary
+    @ConditionalOnBean(RedisConnectionFactory.class)
+    @ConditionalOnClass(RedisOperations.class)
+    //@ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
+    public MessageStorage eventStorager(MessageRepository repo, RedisMapper mapper) {
+        return new RedisCachingIdempotencyProvider(repo, mapper);
+    }
+
+    @Bean
+    @ConditionalOnClass(RedisOperations.class)
     @ConditionalOnBean(RedisConnectionFactory.class)
     public ObjectMapper objectMapperForRedis() {
         ObjectMapper mapper = new ObjectMapper();
@@ -98,6 +127,7 @@ public class RedisRepositoryConfig {
 
 
     @Bean
+    @ConditionalOnClass(RedisOperations.class)
     @ConditionalOnBean(RedisConnectionFactory.class)
     @ConditionalOnMissingBean(name = "redisTemplate")
     public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
@@ -107,6 +137,7 @@ public class RedisRepositoryConfig {
     }
 
     @Bean
+    @ConditionalOnClass(RedisOperations.class)
     @ConditionalOnBean(RedisConnectionFactory.class)
     RedisTemplate<String, Object> redisTemplateWithJsonSerializer(RedisConnectionFactory redisConnectionFactory, GenericJackson2JsonRedisSerializer serializer) {
         var redis = new RedisTemplate<String, Object>();
@@ -124,6 +155,7 @@ public class RedisRepositoryConfig {
 
 
     @Configuration
+    @ConditionalOnClass(RedisOperations.class)
     @EnableRedisRepositories(
             basePackages = "dada.tuda.framework.consistency",
             enableKeyspaceEvents = RedisKeyValueAdapter.EnableKeyspaceEvents.ON_STARTUP

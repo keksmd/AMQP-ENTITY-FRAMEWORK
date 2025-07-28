@@ -2,7 +2,6 @@ package dada.tuda.framework.handling;
 
 import dada.tuda.framework.DadaTudaFrameworkProperties;
 import dada.tuda.framework.consistency.MessageStorage;
-import dada.tuda.framework.consistency.mapper.MessageMapper;
 import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.HandlerContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
@@ -21,7 +20,6 @@ import org.springframework.beans.factory.annotation.Value;
 public class InternalMessageHandler {
     private final MessageStorage messageStorage;
     private final MessageCanceller messageCanceller;
-    private final MessageMapper mapper;
     private final IEventActionContext eventActionContext;
     private final HandlerContext handlerContext;
     private final DomainContext domainContext;

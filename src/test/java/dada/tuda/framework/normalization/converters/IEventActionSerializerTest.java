@@ -7,6 +7,7 @@ import dada.tuda.framework.conf.RedisContainerConfig;
 import dada.tuda.framework.conf.TestEntity;
 import dada.tuda.framework.consistency.MessageRepository;
 import dada.tuda.framework.consistency.mapper.MessageMapper;
+import dada.tuda.framework.consistency.mapper.RedisMapper;
 import dada.tuda.framework.crud.MessageJPAEntity;
 import dada.tuda.framework.normalization.messages.JsonNormalMessage;
 import dada.tuda.framework.normalization.messages.NormalMessage;
@@ -44,6 +45,8 @@ class NormalMessageSerializerTest {
     private MessageRepository messageRepository;
     @Autowired
     private MessageMapper mapper;
+    @Autowired
+    private RedisMapper mapperForRedis;
 
     private static Stream<JsonNormalMessage> provideStringsForIsBlank() {
         var p1 = prototype();
@@ -70,14 +73,14 @@ class NormalMessageSerializerTest {
     @ParameterizedTest
     @MethodSource("provideStringsForIsBlank")
     void testSaveToRepo(JsonNormalMessage original) {
-        MessageJPAEntity entity = mapper.toEntity(original);
+        MessageJPAEntity entity = mapperForRedis.toEntity(original);
         entity = messageRepository.save(entity);
         check(entity, original);
 
         Optional<MessageJPAEntity> fromRepoOpt = messageRepository.findById(entity.getOperationId());
         assertTrue(fromRepoOpt.isPresent());
 
-        JsonNormalMessage restored = mapper.toMessage(fromRepoOpt.get());
+        JsonNormalMessage restored = mapper.toMessageFromNormal(fromRepoOpt.get());
         check(restored, original);
     }
 

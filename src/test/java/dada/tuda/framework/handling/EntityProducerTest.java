@@ -74,9 +74,7 @@ class EntityProducerTest {
         routingKeyConverter = new TypeRoutingKeyConverter(domainContext);
         IEventActionContext eventActionContext = new EventActionContext(Arrays.stream(CRUDEventActionTypes.values()).map(c -> (IEventAction) c).toList(), domainContext);
         mapper = new MessageMapperImpl();
-        mapper.domainContext = domainContext;
-        mapper.domainContext.init();
-        mapper.eventActionContext = eventActionContext;
+
 
         descriptorConverter = new DescriptorConverter(objectMapper, () -> "opID");
 

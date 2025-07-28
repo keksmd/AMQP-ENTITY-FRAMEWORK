@@ -120,7 +120,7 @@ public class MessagingConfiguration {
     @ConditionalOnBean(ConnectionFactory.class)
     public InternalMessageHandler messageHandlerRegistry(ObjectProvider<DadaTudaFrameworkProperties> properties, IEventActionContext eventActionContext, DomainContext domainContext, MessageMapper mapper, @Autowired(required = false) MessageCanceller messageCanceller, HandlerContext handlerContext, MessageStorage messageStorage) {
 
-        return new InternalMessageHandler(messageStorage, messageCanceller, mapper, eventActionContext, handlerContext, domainContext, properties);
+        return new InternalMessageHandler(messageStorage, messageCanceller, eventActionContext, handlerContext, domainContext, properties);
     }
 
     @Bean
@@ -156,11 +156,11 @@ public class MessagingConfiguration {
         return new PerServiceQueueStrategy(properties);
     }
 
-    @Bean
+    @Bean(initMethod = "init")
     @ConditionalOnMissingBean({ MessageStorage.class })
     @ConditionalOnBean(ConnectionFactory.class)
-    MessageStorage inMemory(MessageMapper messageMapper) {
-        return new InMemoryIdempotencyProvider(messageMapper);
+    MessageStorage inMemory(@Value("${dada.tuda.framework.messaging.cache.inMemory.size:100}") Integer size) {
+        return new InMemoryIdempotencyProvider(size);
     }
 
     @Bean
@@ -228,18 +228,14 @@ public class MessagingConfiguration {
     }
 
     @Bean()
-    @ConditionalOnBean(ConnectionFactory.class)
     AnnotationDomainContext domainContext() {
         return new AnnotationDomainContext();
     }
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    public MessageMapper messageMapper(DomainContext domainContext, IEventActionContext eventActionContext) {
-        MessageMapperImpl impl = new MessageMapperImpl();
-        impl.domainContext = domainContext;
-        impl.eventActionContext = eventActionContext;
-        return impl;
+    public MessageMapper messageMapper() {
+        return new MessageMapperImpl();
     }
 
 

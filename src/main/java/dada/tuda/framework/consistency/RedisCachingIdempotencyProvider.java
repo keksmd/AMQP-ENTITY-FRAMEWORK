@@ -1,6 +1,6 @@
 package dada.tuda.framework.consistency;
 
-import dada.tuda.framework.consistency.mapper.MessageMapper;
+import dada.tuda.framework.consistency.mapper.RedisMapper;
 import dada.tuda.framework.normalization.messages.NormalMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,23 +9,15 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class RedisCachingIdempotencyProvider implements MessageStorage {
     private final MessageRepository messageRepository;
-    private final MessageMapper mapper;
+    private final RedisMapper mapper;
+
 
     @Override
     public NormalMessage getByID(String operationId) {
-        return messageRepository.findById(operationId).map(mapper::toMessage).orElse(null);
+        return messageRepository.findById(operationId).orElse(null);
     }
 
-    @Override
-    public boolean isProcessed(NormalMessage message) {
-        String id = mapper.toEntity(message).getId();
-        try {
-            return messageRepository.existsById(id);
-        } catch (Exception e) {
-            log.error("failed to check event processed,input={}\n{}", message, e.getMessage());
-            return false;
-        }
-    }
+
 
     @Override
     public boolean isProcessedById(String id) {
@@ -50,6 +42,11 @@ public class RedisCachingIdempotencyProvider implements MessageStorage {
         } catch (Exception e) {
             log.error("failed to save event processed", e);
         }
+    }
+
+    @Override
+    public void clear() {
+        messageRepository.deleteAll();
     }
 
 

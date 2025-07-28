@@ -7,6 +7,11 @@ import java.util.Map;
 
 public interface NormalMessage {
 
+
+    String getOperationId();
+
+    void setOperationId(String operation);
+
     @Nullable
     String getObjectId();
 
@@ -24,10 +29,6 @@ public interface NormalMessage {
     String getActorId();
 
     void setActorId(String actor);
-
-    String getOperationId();
-
-    void setOperationId(String operation);
 
     Map<String, Object> getPayloadMap();
 

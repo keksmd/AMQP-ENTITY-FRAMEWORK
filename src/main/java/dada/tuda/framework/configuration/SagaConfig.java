@@ -2,10 +2,6 @@ package dada.tuda.framework.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dada.tuda.framework.MessagingRepositoriesMissingAnnotationChecker;
-import dada.tuda.framework.consistency.MessageRepository;
-import dada.tuda.framework.consistency.MessageStorage;
-import dada.tuda.framework.consistency.RedisCachingIdempotencyProvider;
-import dada.tuda.framework.consistency.mapper.MessageMapper;
 import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.facade.MessageCanceller;
@@ -22,20 +18,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 @Configuration
 @AutoConfiguration(after = RabbitAutoConfiguration.class)
 public class SagaConfig {
-    @Bean
-    @Primary
-    @ConditionalOnBean({ RedisConnectionFactory.class, ConnectionFactory.class })
-    @ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
-    MessageStorage eventStorager(MessageRepository repo, MessageMapper mapper) {
-        return new RedisCachingIdempotencyProvider(repo, mapper);
-    }
-
 
     @Bean
     @ConditionalOnClass(AutoConfigurationPackages.class)

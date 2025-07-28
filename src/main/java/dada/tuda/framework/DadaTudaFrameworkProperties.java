@@ -21,13 +21,28 @@ public class DadaTudaFrameworkProperties {
         private boolean storeOnlyCancelable;
         @NestedConfigurationProperty
         private SagaProperties saga;
+        @NestedConfigurationProperty
+        private CacheProperties cache;
 
         @Getter
         @Setter
-
         public static class SagaProperties {
             private boolean enabled;
             private Duration ttl;
+        }
+
+        @Getter
+        @Setter
+        public static class CacheProperties {
+            @NestedConfigurationProperty
+            private InMemoryProperties inMemory;
+
+            @Getter
+            @Setter
+            public static class InMemoryProperties {
+                private int size;
+            }
+
         }
     }
 
