@@ -2,6 +2,7 @@ dada:
   tuda:
     framework:
       messaging:
+        decomposeRoutingKey: true
         cache:
           inMemory:
             size: 100

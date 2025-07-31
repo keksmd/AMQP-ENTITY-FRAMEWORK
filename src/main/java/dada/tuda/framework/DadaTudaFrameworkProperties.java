@@ -24,6 +24,8 @@ public class DadaTudaFrameworkProperties {
         @NestedConfigurationProperty
         private CacheProperties cache;
 
+        private boolean decomposeRoutingKey;
+
         @Getter
         @Setter
         public static class SagaProperties {

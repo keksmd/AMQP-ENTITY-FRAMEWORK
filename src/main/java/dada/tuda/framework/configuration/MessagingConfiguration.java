@@ -53,6 +53,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitTemplateCustomizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -68,6 +69,8 @@ import org.springframework.core.env.Environment;
 import java.util.List;
 
 @Slf4j
+@ImportAutoConfiguration({ EnumBeanConfiguration.class, PropsConfig.class })
+
 @AutoConfiguration(after = { RabbitAutoConfiguration.class, JacksonAutoConfiguration.class })
 public class MessagingConfiguration {
     @Bean
@@ -133,9 +136,9 @@ public class MessagingConfiguration {
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
     @DependsOn("objectMapperForRabbitEntities")
-    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(@Value("${spring.rabbitmq.listener.simple.concurrency:3}") Integer consumers, QueueAnnotationParser annotationParser, @Value("${spring.rabbitmq.listener.simple.max-concurrency:10}") Integer maxConsumers, MessageConverter converter, IEventActionContext iEventActionContext, QueueAnnotationContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, InternalMessageHandler internalMessageHandler, @Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper) {
+    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(@Value("${spring.rabbitmq.listener.simple.concurrency:3}") Integer consumers, QueueAnnotationParser annotationParser, @Value("${spring.rabbitmq.listener.simple.max-concurrency:10}") Integer maxConsumers, MessageConverter converter, IEventActionContext iEventActionContext, QueueAnnotationContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, InternalMessageHandler internalMessageHandler, @Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper, @Value("${dada.tuda.framework.messaging.decomposeRoutingKey}") boolean decompose) {
         return new MessagingContainerAutoRegistrar(domainContext, queueContext, exchangeContext, new RabbitAdmin(connectionFactory), iEventActionContext, routingKeyConverter, connectionFactory, internalMessageHandler, annotationParser, objectMapper,
-                consumers, maxConsumers, converter);
+                consumers, maxConsumers, converter, decompose);
     }
 
     @Bean

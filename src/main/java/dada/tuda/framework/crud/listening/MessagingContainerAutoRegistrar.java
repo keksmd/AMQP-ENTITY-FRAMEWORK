@@ -9,6 +9,7 @@ import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.crud.contexts.QueueAnnotationContext;
 import dada.tuda.framework.crud.extractor.RoutingKeyConverter;
 import dada.tuda.framework.handling.InternalMessageHandler;
+import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.types.CancelEventActionTemplate;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import dada.tuda.framework.normalization.types.realizations.CRUDEventActionTypes;
@@ -50,6 +51,7 @@ public class MessagingContainerAutoRegistrar implements SmartLifecycle {
     private final int concurrentConsumers;
     private final int maxConcurrentConsumers;
     private final MessageConverter messageConverter;
+    private final boolean decompose;
     private final List<SimpleMessageListenerContainer> containers = new ArrayList<>();
 
     @Override
@@ -91,12 +93,7 @@ public class MessagingContainerAutoRegistrar implements SmartLifecycle {
                     log.warn("Failed to parse or declare queue for annotation: {}", queueAnnotation, e);
                     continue;
                 }
-                var filteredActions = domain.isCreateDefaultBindings() ? actions :
-                        actions.stream()
-                                .filter(a -> !(a instanceof CRUDEventActionTypes ||
-                                               a instanceof CancelEventActionTemplate cancel &&
-                                               cancel.getActionToCancel() instanceof CRUDEventActionTypes))
-                                .toList();
+                var filteredActions = domain.isCreateDefaultBindings() ? actions : actions.stream().filter(a -> !(a instanceof CRUDEventActionTypes || a instanceof CancelEventActionTemplate cancel && cancel.getActionToCancel() instanceof CRUDEventActionTypes)).toList();
                 if (filteredActions.isEmpty()) {
                     log.warn("Filtered actions for queue {} in domain {} are empty", rabbitQueue.getName(), domain.getName());
                     continue;
@@ -104,9 +101,7 @@ public class MessagingContainerAutoRegistrar implements SmartLifecycle {
                 for (var action : filteredActions) {
                     try {
                         var routing = routingKeyConverter.toRoutingKey(domain, action);
-                        var binding = (action instanceof CancelEventActionTemplate)
-                                ? BindingBuilder.bind(rabbitQueue).to(exchangeContext.getExchange(cancelDomain)).with(routing)
-                                : BindingBuilder.bind(rabbitQueue).to(exchange).with(routing);
+                        var binding = (action instanceof CancelEventActionTemplate) ? BindingBuilder.bind(rabbitQueue).to(exchangeContext.getExchange(cancelDomain)).with(routing) : BindingBuilder.bind(rabbitQueue).to(exchange).with(routing);
                         rabbitAdmin.declareBinding(binding);
                         log.debug("Declared binding for queue {} with routing key {}", rabbitQueue.getName(), routing);
                     } catch (Exception e) {
@@ -130,6 +125,17 @@ public class MessagingContainerAutoRegistrar implements SmartLifecycle {
                 var adapter = new MessageListenerAdapter(delegate, "handleMessage") {
                     @Override
                     protected Object[] buildListenerArguments(Object extractedMessage, Channel channel, Message message) {
+                        String routingKey = message.getMessageProperties().getReceivedRoutingKey();
+                        if (routingKey != null) {
+                            if (extractedMessage instanceof NormalMessage msg && (msg.getActionTypeName() == null || msg.getDomainName() == null) && decompose) {
+                                if (msg.getActionTypeName() == null) {
+                                    msg.setActionTypeName(routingKey.contains(".") ? routingKey.split("\\.")[1] : routingKey);
+                                }
+                                if (msg.getDomainName() == null) {
+                                    msg.setDomainName(domain.getName());
+                                }
+                            }
+                        }
                         return new Object[]{ extractedMessage };
                     }
                 };
