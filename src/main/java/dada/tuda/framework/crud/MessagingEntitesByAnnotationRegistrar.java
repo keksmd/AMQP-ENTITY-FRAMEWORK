@@ -19,6 +19,8 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.core.env.Environment;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -99,6 +101,38 @@ public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionR
                         log.warn("Failed to register extractor for field {}.{}: {}", beanClass.getSimpleName(), field.getName(), e.getMessage(), e);
                     }
                 }
+                for (Method m : beanClass.getDeclaredMethods()) {
+                    if (m.getParameterCount() != 0 || m.getReturnType().equals(Void.TYPE)) {
+                        continue;
+                    }
+                    m.setAccessible(true);
+                    try {
+                        if (m.isAnnotationPresent(ObjectId.class)) {
+                            log.debug("Registering ObjectId extractor for {}.{}", beanClass.getSimpleName(), m.getName());
+                            entityContext.registerObjectIdExtractor(getExtractor(m), beanClass, m.getName());
+                        }
+                        if (m.isAnnotationPresent(ActorId.class)) {
+                            log.debug("Registering ActorId extractor for {}.{}", beanClass.getSimpleName(), m.getName());
+                            entityContext.registerActorIdExtractor(getExtractor(m), beanClass, m.getName());
+                        }
+                        if (m.isAnnotationPresent(OperationId.class)) {
+                            log.debug("Registering OperationId extractor for {}.{}", beanClass.getSimpleName(), m.getName());
+                            entityContext.registerOperationIdExtractor(getExtractor(m), beanClass, m.getName());
+                        }
+                        if (m.isAnnotationPresent(PayloadMap.class)) {
+                            log.debug("Registering PayloadMap extractor for {}.{}", beanClass.getSimpleName(), m.getName());
+                            entityContext.registerPayloadMapExtractor(o -> {
+                                try {
+                                    return m.invoke(o);
+                                } catch (IllegalAccessException | InvocationTargetException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }, beanClass, m.getName(), m.getAnnotation(PayloadMap.class));
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to register extractor for m {}.{}: {}", beanClass.getSimpleName(), m.getName(), e.getMessage(), e);
+                    }
+                }
 
                 Queue[] queues = domainAnnotated.queues();
                 if (queues != null) {
@@ -126,6 +160,21 @@ public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionR
                 }
                 return value.toString();
             } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    private static <T> java.util.function.Function<T, String> getExtractor(Method m) {
+        return o -> {
+            try {
+                Object value = m.invoke(o);
+                if (value == null) return null;
+                if (m.getReturnType().isPrimitive() || m.getReturnType().equals(String.class)) {
+                    return String.valueOf(value);
+                }
+                return value.toString();
+            } catch (IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
         };
