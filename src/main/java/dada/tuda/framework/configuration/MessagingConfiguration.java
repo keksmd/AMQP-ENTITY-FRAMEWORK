@@ -34,11 +34,21 @@ import dada.tuda.framework.facade.MessageSender;
 import dada.tuda.framework.handling.DomainHandlerInitializer;
 import dada.tuda.framework.handling.ExchangesByDomainCreator;
 import dada.tuda.framework.handling.InternalMessageHandler;
+import dada.tuda.framework.handling.conversion.RabbitHandlerArgumentResolverComposite;
+import dada.tuda.framework.handling.conversion.resolvers.ActorIdArgumentResolver;
+import dada.tuda.framework.handling.conversion.resolvers.NormalMessageArgumentResolver;
+import dada.tuda.framework.handling.conversion.resolvers.ObjectIdArgumentResolver;
+import dada.tuda.framework.handling.conversion.resolvers.OperationIdArgumentResolver;
+import dada.tuda.framework.handling.conversion.resolvers.PayloadArgumentResolver;
+import dada.tuda.framework.handling.conversion.resolvers.PayloadMapArgumentResolver;
+import dada.tuda.framework.handling.conversion.resolvers.RabbitHandlerArgumentResolver;
 import dada.tuda.framework.normalization.Header;
 import dada.tuda.framework.normalization.HeadersGenerator;
 import dada.tuda.framework.normalization.PayloadConverter;
 import dada.tuda.framework.normalization.types.interfaces.EntityProducer;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
+import dada.tuda.framework.normalization.types.realizations.CRUDEventActionTypes;
+import dada.tuda.framework.normalization.types.realizations.CancelPayload;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -61,9 +71,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 
 import java.util.List;
@@ -96,10 +106,45 @@ public class MessagingConfiguration {
     SmartInitializingSingleton domainHandlersByAnnotationRegistrar(DomainContext domainContext,
                                                                    IEventActionContext eventActionContext,
                                                                    HandlerContext handlerContext,
-                                                                   ApplicationContext applicationContext, PayloadConverter payloadConverter, Environment environment) {
-        return new DomainHandlerInitializer(domainContext, applicationContext, handlerContext, eventActionContext, environment, payloadConverter);
+                                                                   ApplicationContext applicationContext, RabbitHandlerArgumentResolverComposite rabbitHandlerArgumentResolverComposite, Environment environment) {
+        return new DomainHandlerInitializer(domainContext, applicationContext, handlerContext, eventActionContext, environment, rabbitHandlerArgumentResolverComposite);
     }
 
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    RabbitHandlerArgumentResolver payloadArgumentResolver(PayloadConverter payloadConverter) {
+        return new PayloadArgumentResolver(payloadConverter);
+    }
+
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    RabbitHandlerArgumentResolver payloadMapArgumentResolver() {
+        return new PayloadMapArgumentResolver();
+    }
+
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    RabbitHandlerArgumentResolver normalMessageArgumentResolver() {
+        return new NormalMessageArgumentResolver();
+    }
+
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    RabbitHandlerArgumentResolver objectIdArgumentResolver() {
+        return new ObjectIdArgumentResolver();
+    }
+
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    RabbitHandlerArgumentResolver operationIdArgumentResolver() {
+        return new OperationIdArgumentResolver();
+    }
+
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    RabbitHandlerArgumentResolver actorIdArgumentResolver() {
+        return new ActorIdArgumentResolver();
+    }
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
     @DependsOn("objectMapperForRabbitEntities")
@@ -119,6 +164,12 @@ public class MessagingConfiguration {
         return new EventActionContext(actions, domainContext);
     }
 
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    public RabbitHandlerArgumentResolverComposite rabbitHandlerArgumentResolverComposite(List<RabbitHandlerArgumentResolver> resolvers) {
+        return new RabbitHandlerArgumentResolverComposite(resolvers);
+    }
+
     @Bean(initMethod = "init")
     @ConditionalOnBean(ConnectionFactory.class)
     public InternalMessageHandler messageHandlerRegistry(ObjectProvider<DadaTudaFrameworkProperties> properties, IEventActionContext eventActionContext, DomainContext domainContext, MessageMapper mapper, @Autowired(required = false) MessageCanceller messageCanceller, HandlerContext handlerContext, MessageStorage messageStorage) {
@@ -136,7 +187,7 @@ public class MessagingConfiguration {
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
     @DependsOn("objectMapperForRabbitEntities")
-    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(@Value("${spring.rabbitmq.listener.simple.concurrency:3}") Integer consumers, QueueAnnotationParser annotationParser, @Value("${spring.rabbitmq.listener.simple.max-concurrency:10}") Integer maxConsumers, MessageConverter converter, IEventActionContext iEventActionContext, QueueAnnotationContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, InternalMessageHandler internalMessageHandler, @Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper, @Value("${dada.tuda.framework.messaging.decomposeRoutingKey}") boolean decompose) {
+    public MessagingContainerAutoRegistrar messagingContainerAutoRegistrar(@Value("${spring.rabbitmq.listener.simple.concurrency:3}") Integer consumers, QueueAnnotationParser annotationParser, @Value("${spring.rabbitmq.listener.simple.max-concurrency:10}") Integer maxConsumers, MessageConverter converter, IEventActionContext iEventActionContext, QueueAnnotationContext queueContext, ExchangeContext exchangeContext, ConnectionFactory connectionFactory, DomainContext domainContext, RoutingKeyConverter routingKeyConverter, InternalMessageHandler internalMessageHandler, @Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper, @Value("${dada.tuda.framework.messaging.decompose-routing-key}") boolean decompose) {
         return new MessagingContainerAutoRegistrar(domainContext, queueContext, exchangeContext, new RabbitAdmin(connectionFactory), iEventActionContext, routingKeyConverter, connectionFactory, internalMessageHandler, annotationParser, objectMapper,
                 consumers, maxConsumers, converter, decompose);
     }
@@ -243,7 +294,8 @@ public class MessagingConfiguration {
 
 
     @Configuration
-    @ComponentScan(basePackages = "dada.tuda.framework.normalization.types.realizations")
+    @Import({ CancelPayload.class, CRUDEventActionTypes.class })
+//    @ComponentScan(basePackages = "dada.tuda.framework.normalization.types.realizations")
     public static class TypesRealizationConfig {
     }
 

@@ -6,6 +6,7 @@ import dada.tuda.framework.conf.RabbitContainerConfig;
 import dada.tuda.framework.conf.RedisContainerConfig;
 import dada.tuda.framework.conf.RepoConfig;
 import dada.tuda.framework.conf.TestEntity;
+import dada.tuda.framework.conf.beans.MyHandler;
 import dada.tuda.framework.normalization.messages.JsonNormalMessage;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
 @TestPropertySource(locations = "classpath:application.yml")
-@SpringBootTest(classes = { RepoConfig.class, TestEntity.class, RabbitContainerConfig.class, RedisContainerConfig.class, WholeAutoConfiguration.class }, properties = "dada.tuda.framework.messaging.decompose-routing-key=true")
+@SpringBootTest(classes = { RepoConfig.class, MyHandler.class, TestEntity.class, RabbitContainerConfig.class, RedisContainerConfig.class, WholeAutoConfiguration.class }, properties = "dada.tuda.framework.messaging.decompose-routing-key=true")
 class MessagingContainerAutoRegistrarTest {
 
 
@@ -50,13 +51,13 @@ class MessagingContainerAutoRegistrarTest {
         msg.getMessageProperties().getHeaders().put("__TypeId__", JsonNormalMessage.class.getName());
 
         Future<Message> fut = CompletableFuture.supplyAsync(() ->
-                rabbitTemplate.sendAndReceive("example" + "-exchange", "example.requested", msg)
+                rabbitTemplate.sendAndReceive("example-exchange", "example.requested", msg)
         );
         var ans = fut.get();
         assertNotNull(ans);
         var normal = objectMapper.readValue(new String(ans.getBody()), JsonNormalMessage.class);
         assertNotNull(normal);
-        assertEquals(normal.getPayloadMap().get("id"), "1",
+        assertEquals("1", normal.getPayloadMap().get("id"),
                 "Payload should contain id=1, but was: " + normal.getPayloadMap().get("id"));
 
     }

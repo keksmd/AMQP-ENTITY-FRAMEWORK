@@ -3,7 +3,7 @@ package dada.tuda.framework.handling;
 import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.HandlerContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
-import dada.tuda.framework.normalization.PayloadConverter;
+import dada.tuda.framework.handling.conversion.RabbitHandlerArgumentResolverComposite;
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ public class DomainHandlerInitializer implements SmartInitializingSingleton {
     private final HandlerContext handlerContext;
     private final IEventActionContext eventActionContext;
     private final Environment environment;
-    private final PayloadConverter payloadConverter;
+    private final RabbitHandlerArgumentResolverComposite rabbitHandlerArgumentResolverComposite;
 
     public void afterSingletonsInstantiated() {
         Map<String, Object> beans = ctx.getBeansWithAnnotation(DomainHandlers.class);
@@ -75,13 +75,12 @@ public class DomainHandlerInitializer implements SmartInitializingSingleton {
 
                     if (cancelMethod != null) {
                         log.debug("Registering cancelable handler for action '{}' with cancel method '{}'", resolvedAction, cancelMethod.getName());
-                        handlerContext.addHandler(domain, actionType, new CancelableMessageHandlerAdapter(classMethod, bean, payloadConverter, eventActionContext));
-                        handlerContext.addHandler(domain, eventActionContext.getOrCreateCancelByAction(actionType),
-                                new CancelableMessageHandlerAdapter(cancelMethod, bean, payloadConverter, eventActionContext));
+                        handlerContext.addHandler(domain, actionType, new CancelableMessageHandlerAdapter(classMethod, bean, eventActionContext, rabbitHandlerArgumentResolverComposite));
+                        handlerContext.addHandler(domain, eventActionContext.getOrCreateCancelByAction(actionType), new CancelableMessageHandlerAdapter(cancelMethod, bean, eventActionContext, rabbitHandlerArgumentResolverComposite));
                     } else {
                         log.debug("Registering handler for action '{}' without cancel method", resolvedAction);
                         handlerContext.addHandler(domain, actionType,
-                                new CancelableMessageHandlerAdapter(classMethod, bean, payloadConverter, eventActionContext));
+                                new CancelableMessageHandlerAdapter(classMethod, bean, eventActionContext, rabbitHandlerArgumentResolverComposite));
 
                     }
                 }

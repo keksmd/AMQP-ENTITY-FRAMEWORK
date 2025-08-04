@@ -1,7 +1,6 @@
 package dada.tuda.framework.crud;
 
 import org.springframework.amqp.rabbit.annotation.Queue;
-import org.springframework.core.annotation.AliasFor;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Documented;
@@ -15,11 +14,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Component
 public @interface MessagingEntity {
-    @AliasFor("value")
-    String domain() default "";
 
-    @AliasFor("domain")
-    String value() default "";
+    String domain();
+
 
     String createDefaultBindings() default "true";
 

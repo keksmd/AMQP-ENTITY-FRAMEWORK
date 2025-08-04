@@ -115,6 +115,7 @@ public class MessagingContainerAutoRegistrar implements SmartLifecycle {
                 continue;
             }
             try {
+
                 var container = new SimpleMessageListenerContainer();
                 container.setConnectionFactory(connectionFactory);
                 container.setConcurrentConsumers(concurrentConsumers);
