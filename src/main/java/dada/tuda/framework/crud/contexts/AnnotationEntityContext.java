@@ -53,11 +53,7 @@ public class AnnotationEntityContext implements EntityContext {
             throw new IllegalArgumentException("Class cannot be null");
         }
         var descriptor = context.get(clz.getName());
-        if (descriptor == null) {
-            throw new IllegalStateException("Descriptor not found for class: " + clz.getName());
-        } else {
-            return descriptor;
-        }
+        return descriptor;
     }
 
     @Override
