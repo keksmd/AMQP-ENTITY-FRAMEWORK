@@ -60,95 +60,99 @@ public class MessagingContainerAutoRegistrar implements SmartLifecycle {
         IMessagingDomain cancelDomain = domainContext.getByName(CancelPayload.CANCEL_DOMAIN);
 
         for (var domain : domainContext.getAllDomains()) {
-            log.debug("Processing domain: {}", domain.getName());
-
-            if (CancelPayload.CANCEL_DOMAIN.equals(domain.getName())) {
-                log.debug("Skipping cancel domain: {}", domain.getName());
-                continue;
-            }
-            var exchange = exchangeContext.getExchange(domain);
-            if (exchange == null) {
-                log.warn("No exchange found for domain: {}", domain.getName());
-                continue;
-            }
-            var queues = queueContext.getQueueListByDomain(domain);
-            if (queues == null || queues.isEmpty()) {
-                log.warn("No queues found for domain: {}", domain.getName());
-                continue;
-            }
-            var actions = iEventActionContext.getAllowedActionsByDomian(domain);
-            if (actions == null || actions.isEmpty()) {
-                log.warn("No allowed actions found for domain: {}", domain.getName());
-                continue;
-            }
-            List<Queue> queuesToListen = new ArrayList<>();
-
-            for (var queueAnnotation : queues) {
-                Queue rabbitQueue;
-                try {
-                    rabbitQueue = queueAnnotationParser.parseQueue(queueAnnotation);
-                    rabbitAdmin.declareQueue(rabbitQueue);
-                    log.debug("Declared queue: {}", rabbitQueue.getName());
-                } catch (Exception e) {
-                    log.warn("Failed to parse or declare queue for annotation: {}", queueAnnotation, e);
-                    continue;
-                }
-                var filteredActions = domain.isCreateDefaultBindings() ? actions : actions.stream().filter(a -> !(a instanceof CRUDEventActionTypes || a instanceof CancelEventActionTemplate cancel && cancel.getActionToCancel() instanceof CRUDEventActionTypes)).toList();
-                if (filteredActions.isEmpty()) {
-                    log.warn("Filtered actions for queue {} in domain {} are empty", rabbitQueue.getName(), domain.getName());
-                    continue;
-                }
-                for (var action : filteredActions) {
-                    try {
-                        var routing = routingKeyConverter.toRoutingKey(domain, action);
-                        var binding = (action instanceof CancelEventActionTemplate) ? BindingBuilder.bind(rabbitQueue).to(exchangeContext.getExchange(cancelDomain)).with(routing) : BindingBuilder.bind(rabbitQueue).to(exchange).with(routing);
-                        rabbitAdmin.declareBinding(binding);
-                        log.debug("Declared binding for queue {} with routing key {}", rabbitQueue.getName(), routing);
-                    } catch (Exception e) {
-                        log.warn("Failed to bind queue {} with action {}", rabbitQueue.getName(), action, e);
-                    }
-                }
-                queuesToListen.add(rabbitQueue);
-            }
-            if (queuesToListen.isEmpty()) {
-                log.warn("No queues to listen for domain: {}", domain.getName());
-                continue;
-            }
             try {
+                log.debug("Processing domain: {}", domain.getName());
 
-                var container = new SimpleMessageListenerContainer();
-                container.setConnectionFactory(connectionFactory);
-                container.setConcurrentConsumers(concurrentConsumers);
-                container.setMaxConcurrentConsumers(maxConcurrentConsumers);
-                container.setQueues(queuesToListen.toArray(new Queue[0]));
+                if (CancelPayload.CANCEL_DOMAIN.equals(domain.getName())) {
+                    log.debug("Skipping cancel domain: {}", domain.getName());
+                    continue;
+                }
+                var exchange = exchangeContext.getExchange(domain);
+                if (exchange == null) {
+                    log.warn("No exchange found for domain: {}", domain.getName());
+                    continue;
+                }
+                var queues = queueContext.getQueueListByDomain(domain);
+                if (queues == null || queues.isEmpty()) {
+                    log.warn("No queues found for domain: {}", domain.getName());
+                    continue;
+                }
+                var actions = iEventActionContext.getAllowedActionsByDomian(domain);
+                if (actions == null || actions.isEmpty()) {
+                    log.warn("No allowed actions found for domain: {}", domain.getName());
+                    continue;
+                }
+                List<Queue> queuesToListen = new ArrayList<>();
 
-                var delegate = new UniversalMessageListener(internalMessageHandler, objectMapper);
-                var adapter = new MessageListenerAdapter(delegate, "handleMessage") {
-                    @Override
-                    protected Object[] buildListenerArguments(Object extractedMessage, Channel channel, Message message) {
-                        String routingKey = message.getMessageProperties().getReceivedRoutingKey();
-                        if (routingKey != null) {
-                            if (extractedMessage instanceof NormalMessage msg && (msg.getActionTypeName() == null || msg.getDomainName() == null) && decompose) {
-                                if (msg.getActionTypeName() == null) {
-                                    msg.setActionTypeName(routingKey.contains(".") ? routingKey.split("\\.")[1] : routingKey);
-                                }
-                                if (msg.getDomainName() == null) {
-                                    msg.setDomainName(domain.getName());
+                for (var queueAnnotation : queues) {
+                    Queue rabbitQueue;
+                    try {
+                        rabbitQueue = queueAnnotationParser.parseQueue(queueAnnotation);
+                        rabbitAdmin.declareQueue(rabbitQueue);
+                        log.debug("Declared queue: {}", rabbitQueue.getName());
+                    } catch (Exception e) {
+                        log.warn("Failed to parse or declare queue for annotation: {}", queueAnnotation, e);
+                        continue;
+                    }
+                    var filteredActions = domain.isCreateDefaultBindings() ? actions : actions.stream().filter(a -> !(a instanceof CRUDEventActionTypes || a instanceof CancelEventActionTemplate cancel && cancel.getActionToCancel() instanceof CRUDEventActionTypes)).toList();
+                    if (filteredActions.isEmpty()) {
+                        log.warn("Filtered actions for queue {} in domain {} are empty", rabbitQueue.getName(), domain.getName());
+                        continue;
+                    }
+                    for (var action : filteredActions) {
+                        try {
+                            var routing = routingKeyConverter.toRoutingKey(domain, action);
+                            var binding = (action instanceof CancelEventActionTemplate) ? BindingBuilder.bind(rabbitQueue).to(exchangeContext.getExchange(cancelDomain)).with(routing) : BindingBuilder.bind(rabbitQueue).to(exchange).with(routing);
+                            rabbitAdmin.declareBinding(binding);
+                            log.debug("Declared binding for queue {} with routing key {}", rabbitQueue.getName(), routing);
+                        } catch (Exception e) {
+                            log.warn("Failed to bind queue {} with action {}", rabbitQueue.getName(), action, e);
+                        }
+                    }
+                    queuesToListen.add(rabbitQueue);
+                }
+                if (queuesToListen.isEmpty()) {
+                    log.warn("No queues to listen for domain: {}", domain.getName());
+                    continue;
+                }
+                try {
+
+                    var container = new SimpleMessageListenerContainer();
+                    container.setConnectionFactory(connectionFactory);
+                    container.setConcurrentConsumers(concurrentConsumers);
+                    container.setMaxConcurrentConsumers(maxConcurrentConsumers);
+                    container.setQueues(queuesToListen.toArray(new Queue[0]));
+
+                    var delegate = new UniversalMessageListener(internalMessageHandler, objectMapper);
+                    var adapter = new MessageListenerAdapter(delegate, "handleMessage") {
+                        @Override
+                        protected Object[] buildListenerArguments(Object extractedMessage, Channel channel, Message message) {
+                            String routingKey = message.getMessageProperties().getReceivedRoutingKey();
+                            if (routingKey != null) {
+                                if (extractedMessage instanceof NormalMessage msg && (msg.getActionTypeName() == null || msg.getDomainName() == null) && decompose) {
+                                    if (msg.getActionTypeName() == null) {
+                                        msg.setActionTypeName(routingKey.contains(".") ? routingKey.split("\\.")[1] : routingKey);
+                                    }
+                                    if (msg.getDomainName() == null) {
+                                        msg.setDomainName(domain.getName());
+                                    }
                                 }
                             }
+                            return new Object[]{ extractedMessage };
                         }
-                        return new Object[]{ extractedMessage };
-                    }
-                };
-                adapter.setMessageConverter(messageConverter);
-                container.setMessageListener(adapter);
-                container.setAutoStartup(true);
-                container.start();
+                    };
+                    adapter.setMessageConverter(messageConverter);
+                    container.setMessageListener(adapter);
+                    container.setAutoStartup(true);
+                    container.start();
 
-                log.debug("Started message listener container for domain: {}", domain.getName());
-                containers.add(container);
+                    log.debug("Started message listener container for domain: {}", domain.getName());
+                    containers.add(container);
+                } catch (Exception e) {
+                    log.warn("Failed to start message listener container for domain: {}", domain.getName(), e);
+                }
             } catch (Exception e) {
-                log.warn("Failed to start message listener container for domain: {}", domain.getName(), e);
+                log.warn("Unexpected error during processing domain '{}': {}", domain.getName(), e.getMessage(), e);
             }
         }
 
