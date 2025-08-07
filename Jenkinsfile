@@ -10,7 +10,7 @@ node {
         mvn("clean install -U")
     }
     stage('archieveArtifacts') {
-        archieveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+        archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
     }
 
     if (!isPR()) {
