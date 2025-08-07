@@ -9,6 +9,9 @@ node {
     stage('Build && Test') {
         mvn("clean install -U")
     }
+    stage('archieveArtifacts') {
+        archieveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+    }
 
     if (!isPR()) {
         stage('MVN Deploy') {
