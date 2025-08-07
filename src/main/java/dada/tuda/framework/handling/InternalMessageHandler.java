@@ -55,7 +55,7 @@ public class InternalMessageHandler {
             return null;
         }
         if (messageStorage.isProcessed(normalizedMessage)) {
-            log.warn("Operation already processed: {}", normalizedMessage.getOperationId());
+            log.warn("Operation already processed: {}", normalizedMessage);
             return null;
         }
         boolean needsCancel = false;

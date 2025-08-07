@@ -6,10 +6,11 @@ import dada.tuda.framework.normalization.messages.JsonNormalMessage;
 import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 
-
+@Slf4j
 public class DescriptorConverter {
 
     private final ObjectMapper objectMapper;
@@ -56,7 +57,8 @@ public class DescriptorConverter {
                             }
                         }
                     } else {
-                        throw new IllegalStateException("Payload extraction from filed " + descriptor.getPayload() + "failed: " + entity);
+                        log.warn("Payload extraction for class {} from filed {} failed: {}", entity.getClass(), descriptor.getPayload(), entity);
+                        payload = null;
                     }
                 }
                 msg.setDomainName(descriptor.getDomain().getName());

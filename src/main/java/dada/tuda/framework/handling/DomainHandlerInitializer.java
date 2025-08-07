@@ -37,6 +37,9 @@ public class DomainHandlerInitializer implements SmartInitializingSingleton {
                 continue;
             }
             IMessagingDomain domain = domainContext.getByName(domainName);
+            if (domain == null) {
+                throw new IllegalStateException("Domain '" + domainName + "' not found in DomainContext. Ensure it is registered before initializing handlers.");
+            }
             for (Method classMethod : beanClass.getDeclaredMethods()) {
                 if (!classMethod.isAnnotationPresent(ActionHandler.class)) {
                     continue;
