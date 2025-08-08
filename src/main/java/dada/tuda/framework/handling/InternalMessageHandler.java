@@ -125,7 +125,11 @@ public class InternalMessageHandler {
 
     private CancelableMessageHandlerAdapter getHandler(NormalMessage message) {
         log.debug("Getting handler for domain {} and action {}", message.getDomainName(), message.getActionTypeName());
-        return handlerContext.getHandler(message);
+        var ans = handlerContext.getHandler(message);
+        if (ans == null) {
+            throw new IllegalStateException("No handler found for message: " + message);
+        }
+        return ans;
     }
 
 }
