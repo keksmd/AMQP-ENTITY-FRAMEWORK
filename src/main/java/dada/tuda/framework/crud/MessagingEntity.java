@@ -21,7 +21,7 @@ public @interface MessagingEntity {
     String createDefaultBindings() default "true";
 
 
-    Queue[] queues() default {};
+    Queue queues() default @Queue("");
 
     String ttl() default "60000";
 }

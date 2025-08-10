@@ -13,7 +13,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -28,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 @Slf4j
 @Testcontainers
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+
 @ActiveProfiles("test")
 @TestPropertySource(locations = "classpath:application.yml")
 @SpringBootTest(classes = { RepoConfig.class, TestEntity.class, SecondTestEntity.class, RabbitContainerConfig.class, RedisContainerConfig.class, WholeAutoConfiguration.class })
@@ -59,16 +58,6 @@ class InternalMessageHandlerWithTwoEntitesTest {
     }
 
     @Test
-    void msgSendedAndReaded() throws Exception {
-        TestEntity testEntity = new TestEntity();
-        testEntity.setId("1");
-        testEntity.setObject("test");
-        testRepo.create(testEntity);
-        Thread.sleep(5000);
-        assertNotNull(storage.getByID(operationId));
-    }
-
-    @Test
     void requestSendedAndReaded() throws Exception {
         TestEntity testEntity = new TestEntity();
         testEntity.setObject("test");
@@ -83,10 +72,21 @@ class InternalMessageHandlerWithTwoEntitesTest {
         testEntity.setObject(null);
         testRepo.create(testEntity);
         Thread.sleep(5000);
+
         assertNotNull(storage.getByID(operationId));
         var cancel = storage.getByID(operationId + "-cancel");
         assertNotNull(cancel);
         assertEquals(testEntity.getId(), cancel.getPayloadMap().get("CANCELLATION"));
+    }
+
+    @Test
+    void msgSendedAndReaded() throws Exception {
+        TestEntity testEntity = new TestEntity();
+        testEntity.setId("1");
+        testEntity.setObject("test");
+        testRepo.create(testEntity);
+        Thread.sleep(5000);
+        assertNotNull(storage.getByID(operationId));
     }
 
     @Test

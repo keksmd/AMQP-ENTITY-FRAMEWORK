@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -14,9 +17,11 @@ public class UniversalMessageListener {
 
     private final InternalMessageHandler internalMessageHandler;
     private final ObjectMapper objectMapper;
+    private final ExecutorService executor = Executors.newCachedThreadPool();
 
     public Object handleMessage(JsonNormalMessage message) throws Exception {
-        Object result = internalMessageHandler.handleMessage(message);
+        Object result = executor.submit(() -> internalMessageHandler.handleMessage(message)).get(5, TimeUnit.SECONDS);
+
         if (result != null && !(result instanceof JsonNormalMessage)) {
             var ans = new JsonNormalMessage();
             if (result.getClass().equals(Object.class)) {

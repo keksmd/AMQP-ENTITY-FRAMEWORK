@@ -2,6 +2,7 @@ package dada.tuda.framework.conf.beans;
 
 import dada.tuda.framework.conf.TestEntity;
 import dada.tuda.framework.consistency.MessageStorage;
+import dada.tuda.framework.crud.extractor.ObjectId;
 import dada.tuda.framework.handling.ActionHandler;
 import dada.tuda.framework.handling.DomainHandlers;
 import dada.tuda.framework.normalization.messages.JsonNormalMessage;
@@ -16,15 +17,15 @@ public class MyHandler {
     private final MessageStorage messageStorage;
 
     @ActionHandler(action = "created", cancelMethod = "cancelHandle")
-    public void handle(NormalMessage message) throws Exception {
-        if (message.getObjectId() == null) {
+    public void handle(@ObjectId String ohjectId) throws Exception {
+        if (ohjectId == null) {
             throw new IllegalStateException("object id is null");
         }
     }
 
     @ActionHandler(action = "deleted")
-    public void delete(NormalMessage message) throws Exception {
-        if (message.getObjectId() == null) {
+    public void delete(NormalMessage message, @ObjectId String id) throws Exception {
+        if (message.getObjectId() == null || id == null) {
             throw new IllegalStateException("object id is null");
         }
     }

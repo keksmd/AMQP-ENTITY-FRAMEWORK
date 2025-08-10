@@ -9,6 +9,9 @@ import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.types.realizations.CRUDEventActionTypes;
 import lombok.RequiredArgsConstructor;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 
@@ -17,6 +20,7 @@ public class EntityProducer<Entity> implements MessagingEntittyRepository<Entity
     private final MessageSender sender;
     private final EntityContext entityContext;
     private final DescriptorConverter descriptorConverter;
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
     private final MessageStorage messageStorage;
 
     @Override
@@ -54,5 +58,10 @@ public class EntityProducer<Entity> implements MessagingEntittyRepository<Entity
     @Override
     public <T> T request(Entity entity, Class<T> responseType, boolean forOthersOnly) throws TimeoutException {
         return this.doQuery(entity, CRUDEventActionTypes.REQUESTED, forOthersOnly, responseType);
+    }
+
+    @Override
+    public <T> Future<T> requestAsync(Entity entity, Class<T> responseType, boolean forOthersOnly) throws TimeoutException {
+        return executorService.submit(() -> this.doQuery(entity, CRUDEventActionTypes.REQUESTED, forOthersOnly, responseType));
     }
 }

@@ -65,6 +65,10 @@ public class EventActionContext implements IEventActionContext {
 
     @Override
     public CancelEventActionTemplate getOrCreateCancelByAction(IEventAction action) {
+        if (action instanceof CancelEventActionTemplate alreadyIsCancel) {
+            return alreadyIsCancel;
+
+        }
         String cancelName = CancelEventActionTemplate.createNameForCancelByOriginal(action.getName());
         var act = name2actionMap.computeIfAbsent(cancelName, name -> {
             var a = new CancelEventActionTemplate(action);

@@ -56,7 +56,7 @@ public class CancelableMessageHandlerAdapter extends MessageListenerAdapter impl
                 invokeListenerMethod(delegateMethod.getName(), listenerArguments, null);
             }
         } catch (Throwable e) {
-            log.error("THIS WILL CAUSE DATA IMPERSISTENCE !!! Failed to cancel during distributed transaction message(id= {} , domain={},action={}) with listener(method={}, args={})", message.getOperationId(), message.getDomainName(), message.getActionTypeName(), delegateMethod.getName(), Arrays.toString(listenerArguments));
+            log.error("THIS WILL CAUSE DATA IMPERSISTENCE !!! Failed to cancel during distributed transaction message(id= {} , domain={},action={}) with listener(method={}, args={})", message.getOperationId(), message.getDomainName(), message.getActionTypeName(), delegateMethod.getName(), Arrays.toString(listenerArguments), e);
         }
 
     }

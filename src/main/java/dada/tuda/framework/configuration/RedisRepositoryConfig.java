@@ -124,8 +124,6 @@ public class RedisRepositoryConfig {
     }
 
 
-
-
     @Bean
     @ConditionalOnClass(RedisOperations.class)
     @ConditionalOnBean(RedisConnectionFactory.class)

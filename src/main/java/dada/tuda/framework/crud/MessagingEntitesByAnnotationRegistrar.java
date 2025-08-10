@@ -16,7 +16,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.core.env.Environment;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -28,7 +27,6 @@ public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionR
     private final EntityContext entityContext;
     private final DomainContext domainContext;
     private final QueueAnnotationContext queueContext;
-    private final Environment environment;
 
 
     @SneakyThrows
@@ -55,98 +53,104 @@ public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionR
                     continue;
                 }
                 MessagingEntity domainAnnotated = beanClass.getAnnotation(MessagingEntity.class);
-                String domainName = environment.resolvePlaceholders(domainAnnotated.domain()).trim();
-                if (domainName.isBlank()) {
-                    log.warn("Resolved blank domain name for bean '{}', skipping.", beanName);
-                    continue;
-                }
+                handleMessagingEntity(beanClass, domainAnnotated);
 
-                IMessagingDomain domain = domainContext.getByName(domainName);
-                if (domain == null) {
-                    log.debug("Creating new domain: {}", domainName);
-                    domain = new SimpleDomain(domainName)
-                            .setCreateDefaultBindings(Boolean.TRUE.toString().equals(domainAnnotated.createDefaultBindings()))
-                            .setTtl(Long.parseLong(domainAnnotated.ttl()));
-                    domainContext.registerDomain(domain);
-                }
-
-                entityContext.registerDomainMembership(domain, beanClass);
-
-                for (Field field : beanClass.getDeclaredFields()) {
-                    field.setAccessible(true);
-                    try {
-                        if (field.isAnnotationPresent(ObjectId.class)) {
-                            log.debug("Registering ObjectId extractor for {}.{}", beanClass.getSimpleName(), field.getName());
-                            entityContext.registerObjectIdExtractor(getExtractor(field), beanClass, field.getName());
-                        }
-                        if (field.isAnnotationPresent(ActorId.class)) {
-                            log.debug("Registering ActorId extractor for {}.{}", beanClass.getSimpleName(), field.getName());
-                            entityContext.registerActorIdExtractor(getExtractor(field), beanClass, field.getName());
-                        }
-                        if (field.isAnnotationPresent(OperationId.class)) {
-                            log.debug("Registering OperationId extractor for {}.{}", beanClass.getSimpleName(), field.getName());
-                            entityContext.registerOperationIdExtractor(getExtractor(field), beanClass, field.getName());
-                        }
-                        if (field.isAnnotationPresent(PayloadMap.class)) {
-                            log.debug("Registering PayloadMap extractor for {}.{}", beanClass.getSimpleName(), field.getName());
-                            entityContext.registerPayloadMapExtractor(o -> {
-                                try {
-                                    return field.get(o);
-                                } catch (IllegalAccessException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }, beanClass, field.getName(), field.getAnnotation(PayloadMap.class));
-                        }
-                    } catch (Exception e) {
-                        log.warn("Failed to register extractor for field {}.{}: {}", beanClass.getSimpleName(), field.getName(), e.getMessage(), e);
-                    }
-                }
-                for (Method m : beanClass.getDeclaredMethods()) {
-                    if (m.getParameterCount() != 0 || m.getReturnType().equals(Void.TYPE)) {
-                        continue;
-                    }
-                    m.setAccessible(true);
-                    try {
-                        if (m.isAnnotationPresent(ObjectId.class)) {
-                            log.debug("Registering ObjectId extractor for {}.{}", beanClass.getSimpleName(), m.getName());
-                            entityContext.registerObjectIdExtractor(getExtractor(m), beanClass, m.getName());
-                        }
-                        if (m.isAnnotationPresent(ActorId.class)) {
-                            log.debug("Registering ActorId extractor for {}.{}", beanClass.getSimpleName(), m.getName());
-                            entityContext.registerActorIdExtractor(getExtractor(m), beanClass, m.getName());
-                        }
-                        if (m.isAnnotationPresent(OperationId.class)) {
-                            log.debug("Registering OperationId extractor for {}.{}", beanClass.getSimpleName(), m.getName());
-                            entityContext.registerOperationIdExtractor(getExtractor(m), beanClass, m.getName());
-                        }
-                        if (m.isAnnotationPresent(PayloadMap.class)) {
-                            log.debug("Registering PayloadMap extractor for {}.{}", beanClass.getSimpleName(), m.getName());
-                            entityContext.registerPayloadMapExtractor(o -> {
-                                try {
-                                    return m.invoke(o);
-                                } catch (IllegalAccessException | InvocationTargetException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }, beanClass, m.getName(), m.getAnnotation(PayloadMap.class));
-                        }
-                    } catch (Exception e) {
-                        log.warn("Failed to register extractor for m {}.{}: {}", beanClass.getSimpleName(), m.getName(), e.getMessage(), e);
-                    }
-                }
-
-                Queue[] queues = domainAnnotated.queues();
-                if (queues != null) {
-                    for (Queue queue : queues) {
-                        if (queue != null) {
-                            log.debug("Registering queue {} for domain {}", queue.name(), domainName);
-                            queueContext.registerQueueForDomain(queue, domain);
-                        }
-                    }
-                }
 
             } catch (Exception e) {
                 log.warn("Unexpected error during processing bean '{}': {}", beanName, e.getMessage(), e);
             }
+        }
+    }
+
+    private void handleMessagingEntity(Class<?> beanClass, MessagingEntity domainAnnotated) {
+        String domainName = domainAnnotated.domain();
+        if (domainName.isBlank()) {
+            log.warn("Resolved blank domain name for bean '{}', skipping.", beanClass.getSimpleName());
+            return;
+        }
+        IMessagingDomain domain = domainContext.getByName(domainName);
+        if (domain == null) {
+            log.debug("Creating new domain: {}", domainName);
+            domain = new SimpleDomain(domainName).setCreateDefaultBindings(Boolean.TRUE.toString().equals(domainAnnotated.createDefaultBindings())).setTtl(Long.parseLong(domainAnnotated.ttl()));
+            domainContext.registerDomain(domain);
+        }
+        entityContext.registerDomainMembership(domain, beanClass);
+
+        for (Field field : beanClass.getDeclaredFields()) {
+            field.setAccessible(true);
+            handleField(field, beanClass);
+        }
+        for (Method m : beanClass.getDeclaredMethods()) {
+            if (m.getParameterCount() != 0 || m.getReturnType().equals(Void.TYPE)) {
+                continue;
+            }
+            m.setAccessible(true);
+            handleMethod(m, beanClass);
+        }
+        Queue queue = domainAnnotated.queues();
+
+        if (queue != null && queue.name() != null && !queue.name().isEmpty()) {
+            log.debug("Registering queue {} for domain {}", queue.name(), domainName);
+            queueContext.registerQueueForDomain(queue, domain);
+        }
+
+    }
+
+    private void handleField(Field field, Class<?> beanClass) {
+        try {
+            if (field.isAnnotationPresent(ObjectId.class)) {
+                log.debug("Registering ObjectId extractor for {}.{}", beanClass.getSimpleName(), field.getName());
+                entityContext.registerObjectIdExtractor(getExtractor(field), beanClass, field.getName());
+            }
+            if (field.isAnnotationPresent(ActorId.class)) {
+                log.debug("Registering ActorId extractor for {}.{}", beanClass.getSimpleName(), field.getName());
+                entityContext.registerActorIdExtractor(getExtractor(field), beanClass, field.getName());
+            }
+            if (field.isAnnotationPresent(OperationId.class)) {
+                log.debug("Registering OperationId extractor for {}.{}", beanClass.getSimpleName(), field.getName());
+                entityContext.registerOperationIdExtractor(getExtractor(field), beanClass, field.getName());
+            }
+            if (field.isAnnotationPresent(PayloadMap.class)) {
+                log.debug("Registering PayloadMap extractor for {}.{}", beanClass.getSimpleName(), field.getName());
+                entityContext.registerPayloadMapExtractor(o -> {
+                    try {
+                        return field.get(o);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                }, beanClass, field.getName(), field.getAnnotation(PayloadMap.class));
+            }
+        } catch (Exception e) {
+            log.warn("Failed to register extractor for field {}.{}: {}", beanClass.getSimpleName(), field.getName(), e.getMessage(), e);
+        }
+    }
+
+    private void handleMethod(Method m, Class<?> beanClass) {
+        try {
+            if (m.isAnnotationPresent(ObjectId.class)) {
+                log.debug("Registering ObjectId extractor for {}.{}", beanClass.getSimpleName(), m.getName());
+                entityContext.registerObjectIdExtractor(getExtractor(m), beanClass, m.getName());
+            }
+            if (m.isAnnotationPresent(ActorId.class)) {
+                log.debug("Registering ActorId extractor for {}.{}", beanClass.getSimpleName(), m.getName());
+                entityContext.registerActorIdExtractor(getExtractor(m), beanClass, m.getName());
+            }
+            if (m.isAnnotationPresent(OperationId.class)) {
+                log.debug("Registering OperationId extractor for {}.{}", beanClass.getSimpleName(), m.getName());
+                entityContext.registerOperationIdExtractor(getExtractor(m), beanClass, m.getName());
+            }
+            if (m.isAnnotationPresent(PayloadMap.class)) {
+                log.debug("Registering PayloadMap extractor for {}.{}", beanClass.getSimpleName(), m.getName());
+                entityContext.registerPayloadMapExtractor(o -> {
+                    try {
+                        return m.invoke(o);
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    }
+                }, beanClass, m.getName(), m.getAnnotation(PayloadMap.class));
+            }
+        } catch (Exception e) {
+            log.warn("Failed to register extractor for m {}.{}: {}", beanClass.getSimpleName(), m.getName(), e.getMessage(), e);
         }
     }
 

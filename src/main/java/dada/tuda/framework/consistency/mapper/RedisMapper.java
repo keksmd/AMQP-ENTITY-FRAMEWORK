@@ -2,6 +2,7 @@ package dada.tuda.framework.consistency.mapper;
 
 import dada.tuda.framework.crud.MessageJPAEntity;
 import dada.tuda.framework.crud.contexts.DomainContext;
+import dada.tuda.framework.normalization.messages.JsonNormalMessage;
 import dada.tuda.framework.normalization.messages.NormalMessage;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -14,6 +15,8 @@ public abstract class RedisMapper {
 
     @Mapping(target = "ttl", expression = "java(domainContext.getByName(message.getDomainName())!=null?(domainContext.getByName(message.getDomainName()).getTtl()):60000L)")
     public abstract MessageJPAEntity toEntity(NormalMessage message);
+
+    public abstract JsonNormalMessage toJsonMessage(MessageJPAEntity messageJPAEntity);
 
 
 }

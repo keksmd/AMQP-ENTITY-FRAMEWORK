@@ -5,6 +5,8 @@ import dada.tuda.framework.normalization.messages.NormalMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collection;
+
 @Slf4j
 @RequiredArgsConstructor
 public class RedisCachingIdempotencyProvider implements MessageStorage {
@@ -13,10 +15,14 @@ public class RedisCachingIdempotencyProvider implements MessageStorage {
 
 
     @Override
-    public NormalMessage getByID(String operationId) {
-        return messageRepository.findById(operationId).orElse(null);
+    public Collection<? extends NormalMessage> getMessages(String domainName) {
+        return messageRepository.getAllByDomainName(domainName);
     }
 
+    @Override
+    public NormalMessage getByID(String operationId) {
+        return messageRepository.findById(operationId).map(mapper::toJsonMessage).orElse(null);
+    }
 
 
     @Override

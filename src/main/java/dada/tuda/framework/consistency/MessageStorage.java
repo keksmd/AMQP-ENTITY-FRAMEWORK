@@ -2,7 +2,10 @@ package dada.tuda.framework.consistency;
 
 import dada.tuda.framework.normalization.messages.NormalMessage;
 
+import java.util.Collection;
+
 public interface MessageStorage {
+    Collection<? extends NormalMessage> getMessages(String domainName);
     default void init() {
     }
 

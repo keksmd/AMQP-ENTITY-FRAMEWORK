@@ -24,6 +24,7 @@ import dada.tuda.framework.normalization.messages.NormalMessage;
 import dada.tuda.framework.normalization.types.interfaces.EntityProducer;
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 import dada.tuda.framework.normalization.types.realizations.CRUDEventActionTypes;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.MessagePostProcessor;
@@ -82,6 +83,7 @@ class EntityProducerTest {
         entityProducer = new EntityProducer<>(messageSender, entityContext, descriptorConverter, messageStorage);
     }
 
+    @SneakyThrows
     @Test
     void testPersist() {
         NormalMessage message = new JsonNormalMessage();
@@ -92,10 +94,12 @@ class EntityProducerTest {
 
 
         entityProducer.create(entity);
+        Thread.sleep(1000);
 
         verify(rabbitTemplate).convertAndSend(eq(t.getName()), eq("test.created"), eq(message), any(MessagePostProcessor.class));
     }
 
+    @SneakyThrows
     @Test
     void testDelete() {
 
@@ -107,6 +111,7 @@ class EntityProducerTest {
 
 
         entityProducer.delete(entity);
+        Thread.sleep(1000);
 
         verify(rabbitTemplate).convertAndSend(eq(t.getName()), eq("test.deleted"),
                 eq(expected),

@@ -2,7 +2,6 @@ package dada.tuda.framework.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dada.tuda.framework.MessagingRepositoriesMissingAnnotationChecker;
-import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
 import dada.tuda.framework.facade.MessageCanceller;
 import dada.tuda.framework.facade.MessageSender;
@@ -36,8 +35,8 @@ public class SagaConfig {
     @ConditionalOnBean(ConnectionFactory.class)
     @DependsOn("objectMapperForRabbitEntities")
     @ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
-    public MessageCanceller eventCanceler(MessageSender sender, DomainContext domainContext, @Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper, IEventActionContext entityContext) {
-        return new MessageCanceller(entityContext, sender, domainContext, objectMapper);
+    public MessageCanceller eventCanceler(MessageSender sender, @Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper, IEventActionContext entityContext) {
+        return new MessageCanceller(entityContext, sender, objectMapper);
     }
 
     @Bean

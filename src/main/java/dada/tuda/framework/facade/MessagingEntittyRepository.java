@@ -2,6 +2,7 @@ package dada.tuda.framework.facade;
 
 import dada.tuda.framework.normalization.types.interfaces.IEventAction;
 
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
 public interface MessagingEntittyRepository<Entity> {
@@ -31,4 +32,6 @@ public interface MessagingEntittyRepository<Entity> {
     }
 
     <T> T request(Entity entity, Class<T> responseType, boolean forOthersOnly) throws TimeoutException;
+
+    <T> Future<T> requestAsync(Entity entity, Class<T> responseType, boolean forOthersOnly) throws TimeoutException;
 }

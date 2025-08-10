@@ -4,14 +4,21 @@ import dada.tuda.framework.normalization.messages.NormalMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
 public class InMemoryIdempotencyProvider implements MessageStorage {
     private final int maxEntries;
     private Map<String, NormalMessage> messages;
+
+    @Override
+    public Collection<? extends NormalMessage> getMessages(String domainName) {
+        return messages.values().stream().filter(message -> message.getDomainName().equals(domainName)).collect(Collectors.toList());
+    }
 
     @Override
     public void init() {
@@ -28,7 +35,6 @@ public class InMemoryIdempotencyProvider implements MessageStorage {
     public NormalMessage getByID(String operationId) {
         return messages.get(operationId);
     }
-
 
 
     @Override

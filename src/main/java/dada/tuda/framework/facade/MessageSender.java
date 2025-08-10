@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 
 @RequiredArgsConstructor
@@ -27,18 +29,22 @@ public class MessageSender {
     private final IEventActionContext eventActionContext;
     private final HeadersGenerator headersGenerator;
     private final PayloadConverter payloadConverter;
+    private final ExecutorService executor = Executors.newCachedThreadPool();
     private final RoutingKeyConverter routingKeyConverter;
 
     public void sendUsingType(NormalMessage event) {
-        var domain = domainContext.getByName(event.getDomainName());
-        if (domain == null) {
-            throw new IllegalArgumentException("Domain not found: " + event.getDomainName());
-        }
-        TopicExchange exchange = this.exchangeContext.getExchange(domain);
-        String routingKey = toRoutingKey(event);
-        this.rabbitTemplate.convertAndSend(exchange.getName(), routingKey, mapper.toMessageFromNormal(event), (message) -> {
-            this.headersGenerator.accept(message.getMessageProperties().getHeaders());
-            return message;
+        executor.submit(() -> {
+            var domain = domainContext.getByName(event.getDomainName());
+            if (domain == null) {
+                throw new IllegalArgumentException("Domain not found: " + event.getDomainName());
+            }
+            TopicExchange exchange = this.exchangeContext.getExchange(domain);
+            String routingKey = toRoutingKey(event);
+            this.rabbitTemplate.convertAndSend(exchange.getName(), routingKey, mapper.toMessageFromNormal(event), (message) -> {
+                this.headersGenerator.accept(message.getMessageProperties().getHeaders());
+                return message;
+            });
+
         });
     }
 
@@ -46,18 +52,6 @@ public class MessageSender {
         IMessagingDomain domain = domainContext.getByName(event.getDomainName());
         IEventAction action = eventActionContext.getByName(event.getActionTypeName());
         return routingKeyConverter.toRoutingKey(domain, action);
-    }
-
-    public void sendUsingTypeWithExchangeForOtherDomain(NormalMessage event, IMessagingDomain domain) {
-        if (domain == null) {
-            throw new IllegalArgumentException("Domain not found: " + event.getDomainName());
-        }
-        TopicExchange exchange = this.exchangeContext.getExchange(domain);
-        String routingKey = toRoutingKey(event);
-        this.rabbitTemplate.convertAndSend(exchange.getName(), routingKey, mapper.toMessageFromNormal(event), (message) -> {
-            this.headersGenerator.accept(message.getMessageProperties().getHeaders());
-            return message;
-        });
     }
 
     public <T> T sendRequestUsingType(NormalMessage event, Class<T> responseType) throws TimeoutException {
