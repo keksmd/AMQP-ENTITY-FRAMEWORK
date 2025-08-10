@@ -190,11 +190,7 @@ public class DomainHandlerInitializer implements RabbitListenerConfigurer {
                 return;
             }
             var queueAnnotation = queueContext.getQueueByDomain(domain);
-            if (queueAnnotation == null) {
-                log.warn("No queue found for domain: {}", domain.getName());
-                return;
-            }
-            log.debug("Found {} queue for domain: {}", queueAnnotation.name(), domain.getName());
+
 
             for (Method classMethod : beanClass.getDeclaredMethods()) {
                 if (!classMethod.isAnnotationPresent(ActionHandler.class)) {
@@ -259,14 +255,16 @@ public class DomainHandlerInitializer implements RabbitListenerConfigurer {
         Queue rabbitQueue = null;
         try {
             rabbitQueue = queueAnnotationParser.parseQueue(queueAnnotation);
-            rabbitAdmin.declareQueue(rabbitQueue);
             log.debug("Declared queue: {}", rabbitQueue.getName());
         } catch (Exception e) {
-            log.warn("Failed to parse or declare queue for annotation: {}", queueAnnotation, e);
+            log.debug("Failed to parse or declare queue for annotation: {}", queueAnnotation, e);
         }
         if (rabbitQueue == null) {
             rabbitQueue = new Queue(queueStrategy.createQueueNameForDomain(domain), true);
         }
+        rabbitAdmin.declareQueue(rabbitQueue);
+
+        log.debug("Registered {} queue for domain: {}", rabbitQueue.getName(), domain.getName());
         return rabbitQueue;
     }
 

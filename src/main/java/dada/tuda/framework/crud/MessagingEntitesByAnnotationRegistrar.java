@@ -39,7 +39,6 @@ public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionR
                 BeanDefinition beanDefinition = registry.getBeanDefinition(beanName);
                 String beanClassName = beanDefinition.getBeanClassName();
                 if (beanClassName == null) {
-                    log.debug("Bean '{}' has no class name, skipping.", beanName);
                     continue;
                 }
                 Class<T> beanClass;
