@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-@RedisHash(value = "event")
+@RedisHash(value = "${spring.application.name}-message:processed")
 @Getter
 @Setter
 @ToString

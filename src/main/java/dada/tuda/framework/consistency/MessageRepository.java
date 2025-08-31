@@ -7,9 +7,5 @@ import java.util.List;
 
 public interface MessageRepository extends CrudRepository<MessageJPAEntity, String> {
 
-    List<MessageJPAEntity> getAllByTtlEquals(Long ttl);
-
-    List<MessageJPAEntity> getAllByTtlNotNull();
-
     List<MessageJPAEntity> getAllByDomainName(String domainName);
 }

@@ -117,7 +117,7 @@ public class DomainHandlerInitializer implements RabbitListenerConfigurer {
             rabbitAdmin.declareExchange(exchange);
         }
         afterSingletonsInstantiated();
-        endpoints.forEach(registrar::registerEndpoint);
+        endpoints.stream().distinct().forEach(registrar::registerEndpoint);
     }
 
     /**
@@ -257,7 +257,7 @@ public class DomainHandlerInitializer implements RabbitListenerConfigurer {
             rabbitQueue = queueAnnotationParser.parseQueue(queueAnnotation);
             log.debug("Declared queue: {}", rabbitQueue.getName());
         } catch (Exception e) {
-            log.debug("Failed to parse or declare queue for annotation: {}", queueAnnotation, e);
+            log.debug("Failed to parse or declare queue for annotation: {} due to {}", queueAnnotation, e.getMessage());
         }
         if (rabbitQueue == null) {
             rabbitQueue = new Queue(queueStrategy.createQueueNameForDomain(domain), true);

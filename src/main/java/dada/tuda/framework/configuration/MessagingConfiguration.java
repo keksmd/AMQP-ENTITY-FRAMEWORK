@@ -247,7 +247,6 @@ public class MessagingConfiguration {
     @ConditionalOnBean(ConnectionFactory.class)
     @DependsOn("objectMapperForRabbitEntities")
     public MessageSender eventSender(ExchangeContext exchangeContext, MessageMapper mapper, RabbitTemplate rabbitTemplate, IEventActionContext eventActionContext, DomainContext domainContext, PayloadConverter payloadConverter, RoutingKeyConverter routingKeyConverter, HeadersGenerator headersGenerator, @Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper) {
-        rabbitTemplate.setUseTemporaryReplyQueues(true);
         return new MessageSender(rabbitTemplate, exchangeContext, objectMapper, mapper, domainContext, eventActionContext, headersGenerator, payloadConverter, routingKeyConverter);
     }
 

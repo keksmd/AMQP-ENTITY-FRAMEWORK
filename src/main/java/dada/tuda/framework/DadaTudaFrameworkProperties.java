@@ -1,6 +1,5 @@
 package dada.tuda.framework;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -62,7 +61,6 @@ public class DadaTudaFrameworkProperties {
 
             @Getter
             @Setter
-            @AllArgsConstructor
             public static class NamingProperties {
                 private boolean perService;
             }

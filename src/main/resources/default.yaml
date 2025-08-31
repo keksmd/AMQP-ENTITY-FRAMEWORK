@@ -2,9 +2,9 @@ dada:
   tuda:
     framework:
       messaging:
-        decomposeRoutingKey: true
+        decompose-routing-key: true
         cache:
-          inMemory:
+          in-memory:
             size: 100
         store-only-cancelable: true
         saga:
@@ -13,4 +13,4 @@ dada:
       domains:
         queue:
           naming:
-            perService: true
+            per-service: true
