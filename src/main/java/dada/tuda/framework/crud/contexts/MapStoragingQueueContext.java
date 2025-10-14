@@ -1,15 +1,17 @@
 package dada.tuda.framework.crud.contexts;
 
 import dada.tuda.framework.normalization.types.interfaces.IMessagingDomain;
-import org.springframework.amqp.rabbit.annotation.Queue;
+import org.springframework.amqp.core.Queue;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MapStoragingQueueAnnotationContext implements QueueAnnotationContext {
+public class MapStoragingQueueContext implements QueueContext {
 
 
-    Map<IMessagingDomain, Queue> contextNames = new ConcurrentHashMap<>();
+    private final Map<IMessagingDomain, Queue> contextNames = new ConcurrentHashMap<>();
 
 
     @Override
@@ -21,6 +23,11 @@ public class MapStoragingQueueAnnotationContext implements QueueAnnotationContex
     @Override
     public void registerQueueForDomain(Queue queue, IMessagingDomain domain) {
         contextNames.put(domain, queue);
+    }
+
+    @Override
+    public Set<Queue> getAllQueues() {
+        return new HashSet<>(contextNames.values());
     }
 
 }

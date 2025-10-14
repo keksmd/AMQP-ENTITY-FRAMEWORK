@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.TopicExchange;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,5 +24,9 @@ public class ExchangeContext {
 
     public void registerExchange(TopicExchange topicExchange) {
         topics.add(topicExchange);
+    }
+
+    public Set<TopicExchange> getAllExchanges() {
+        return new HashSet<>(topics);
     }
 }

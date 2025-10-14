@@ -2,7 +2,8 @@ package dada.tuda.framework.crud;
 
 import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.EntityContext;
-import dada.tuda.framework.crud.contexts.QueueAnnotationContext;
+import dada.tuda.framework.crud.contexts.QueueContext;
+import dada.tuda.framework.crud.contexts.QueueStrategy;
 import dada.tuda.framework.crud.extractor.ActorId;
 import dada.tuda.framework.crud.extractor.ObjectId;
 import dada.tuda.framework.crud.extractor.OperationId;
@@ -26,7 +27,9 @@ import java.lang.reflect.Method;
 public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionRegistryPostProcessor {
     private final EntityContext entityContext;
     private final DomainContext domainContext;
-    private final QueueAnnotationContext queueContext;
+    private final QueueContext queueContext;
+    private final QueueAnnotationParser queueAnnotationParser;
+    private final QueueStrategy queueStrategy;
 
 
     @SneakyThrows
@@ -88,9 +91,21 @@ public class MessagingEntitesByAnnotationRegistrar<T> implements BeanDefinitionR
         }
         Queue queue = domainAnnotated.queues();
 
-        if (queue != null && queue.name() != null && !queue.name().isEmpty()) {
-            log.debug("Registering queue {} for domain {}", queue.name(), domainName);
-            queueContext.registerQueueForDomain(queue, domain);
+        if (queue != null) {
+            org.springframework.amqp.core.Queue rabbitQueue = null;
+            if (queue.name() != null && !queue.name().isEmpty()) {
+                log.debug("Registering queue {} for domain {}", queue.name(), domainName);
+                try {
+                    rabbitQueue = queueAnnotationParser.parseQueue(queue);
+                    log.debug("Declared queue: {}", rabbitQueue.getName());
+                } catch (Exception ignored) {
+                }
+            }
+            if (rabbitQueue == null) {
+                rabbitQueue = new org.springframework.amqp.core.Queue(queueStrategy.createQueueNameForDomain(domain), Boolean.parseBoolean(queue.durable()));
+            }
+
+            this.queueContext.registerQueueForDomain(rabbitQueue, domain);
         }
 
     }

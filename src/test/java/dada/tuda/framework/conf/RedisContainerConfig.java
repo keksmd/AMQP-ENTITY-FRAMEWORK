@@ -7,9 +7,6 @@ import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -42,13 +39,5 @@ public class RedisContainerConfig {
             redisContainer.stop();
         }
     }
-
-    // @Bean
-    public RedisConnectionFactory redisConnectionFactory(Environment environment) {
-        String host = environment.getProperty("spring.data.redis.host");
-        int port = Integer.parseInt(environment.getProperty("spring.data.redis.port"));
-        return new LettuceConnectionFactory(host, port);
-    }
-
 
 }

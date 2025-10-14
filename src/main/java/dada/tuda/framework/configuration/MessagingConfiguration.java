@@ -10,19 +10,22 @@ import dada.tuda.framework.consistency.MessageStorage;
 import dada.tuda.framework.consistency.mapper.MessageMapper;
 import dada.tuda.framework.consistency.mapper.MessageMapperImpl;
 import dada.tuda.framework.crud.DescriptorConverter;
+import dada.tuda.framework.crud.DynamicDeclarableRegistrar;
 import dada.tuda.framework.crud.MessagingEntitesByAnnotationRegistrar;
 import dada.tuda.framework.crud.QueueAnnotationParser;
 import dada.tuda.framework.crud.contexts.AnnotationDomainContext;
 import dada.tuda.framework.crud.contexts.AnnotationEntityContext;
+import dada.tuda.framework.crud.contexts.BindingContext;
 import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.EntityContext;
 import dada.tuda.framework.crud.contexts.EventActionContext;
 import dada.tuda.framework.crud.contexts.ExchangeContext;
 import dada.tuda.framework.crud.contexts.HandlerContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
-import dada.tuda.framework.crud.contexts.MapStoragingQueueAnnotationContext;
+import dada.tuda.framework.crud.contexts.MapBindingContext;
+import dada.tuda.framework.crud.contexts.MapStoragingQueueContext;
 import dada.tuda.framework.crud.contexts.PerServiceQueueStrategy;
-import dada.tuda.framework.crud.contexts.QueueAnnotationContext;
+import dada.tuda.framework.crud.contexts.QueueContext;
 import dada.tuda.framework.crud.contexts.QueueStrategy;
 import dada.tuda.framework.crud.extractor.OperationIdGenerator;
 import dada.tuda.framework.crud.extractor.RoutingKeyConverter;
@@ -74,6 +77,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.Environment;
 
 import java.util.List;
@@ -109,18 +113,14 @@ public class MessagingConfiguration {
                                                                  HandlerContext handlerContext,
                                                                  ApplicationContext applicationContext,
                                                                  RabbitHandlerArgumentResolverComposite rabbitHandlerArgumentResolverComposite,
-                                                                 QueueStrategy queueStrategy,
-                                                                 QueueAnnotationParser annotationParser,
                                                                  MessageConverter converter,
                                                                  ExchangeContext exchangeContext,
-                                                                 ConnectionFactory connectionFactory,
                                                                  RoutingKeyConverter routingKeyConverter,
                                                                  InternalMessageHandler internalMessageHandler,
                                                                  @Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper,
-                                                                 @Value("${dada.tuda.framework.messaging.decompose-routing-key}") boolean decompose,
-                                                                 QueueAnnotationContext queueAnnotationContext) {
+                                                                 @Value("${dada.tuda.framework.messaging.decompose-routing-key}") boolean decompose, QueueContext queueContext, BindingContext bindingContext) {
 
-        return new DomainHandlerInitializer(domainContext, applicationContext, handlerContext, eventActionContext, rabbitHandlerArgumentResolverComposite, queueAnnotationContext, exchangeContext, new RabbitAdmin(connectionFactory), queueStrategy, routingKeyConverter, internalMessageHandler, annotationParser, objectMapper, converter, decompose);
+        return new DomainHandlerInitializer(domainContext, applicationContext, handlerContext, eventActionContext, rabbitHandlerArgumentResolverComposite, queueContext, exchangeContext, routingKeyConverter, internalMessageHandler, objectMapper, converter, decompose, bindingContext);
     }
 
 
@@ -207,14 +207,14 @@ public class MessagingConfiguration {
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    QueueAnnotationContext queueContext() {
-        return new MapStoragingQueueAnnotationContext();
+    QueueContext queueContext() {
+        return new MapStoragingQueueContext();
     }
 
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
-    QueueStrategy queueStrategy(DadaTudaFrameworkProperties properties) {
-        return new PerServiceQueueStrategy(properties);
+    QueueStrategy queueStrategy() {
+        return new PerServiceQueueStrategy();
     }
 
     @Bean(initMethod = "init")
@@ -239,7 +239,7 @@ public class MessagingConfiguration {
     @Bean
     @ConditionalOnBean(ConnectionFactory.class)
     @DependsOn("objectMapperForRabbitEntities")
-    public DescriptorConverter descriptorConverter(@Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper, OperationIdGenerator operationIdGenerator, MessageMapper mapper) {
+    public DescriptorConverter descriptorConverter(@Qualifier("objectMapperForRabbitEntities") ObjectMapper objectMapper, OperationIdGenerator operationIdGenerator) {
         return new DescriptorConverter(objectMapper, operationIdGenerator);
     }
 
@@ -284,8 +284,20 @@ public class MessagingConfiguration {
 
     @ConditionalOnBean(ConnectionFactory.class)
     @Bean
-    public BeanDefinitionRegistryPostProcessor messagingEntitesByAnnotationRegistrar(EntityContext context, DomainContext domainContext, QueueAnnotationContext queueContext) {
-        return new MessagingEntitesByAnnotationRegistrar<>(context, domainContext, queueContext);
+    public BeanDefinitionRegistryPostProcessor messagingEntitesByAnnotationRegistrar(EntityContext context, QueueAnnotationParser queueAnnotationParser, DomainContext domainContext, QueueContext queueContext, QueueStrategy queueStrategy) {
+        return new MessagingEntitesByAnnotationRegistrar<>(context, domainContext, queueContext, queueAnnotationParser, queueStrategy);
+    }
+
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    public SmartInitializingSingleton dynamicDeclarables(ConnectionFactory connectionFactory, GenericApplicationContext applicationContext, BindingContext bindingContext, QueueContext queueContext, ExchangeContext exchangeContext) {
+        return new DynamicDeclarableRegistrar(applicationContext, new RabbitAdmin(connectionFactory), bindingContext, exchangeContext, queueContext);
+    }
+
+    @Bean
+    @ConditionalOnBean(ConnectionFactory.class)
+    BindingContext bindingContext() {
+        return new MapBindingContext();
     }
 
     @Bean()
@@ -302,7 +314,6 @@ public class MessagingConfiguration {
 
     @Configuration
     @Import({ CancelPayload.class, CRUDEventActionTypes.class })
-//    @ComponentScan(basePackages = "dada.tuda.framework.normalization.types.realizations")
     public static class TypesRealizationConfig {
     }
 

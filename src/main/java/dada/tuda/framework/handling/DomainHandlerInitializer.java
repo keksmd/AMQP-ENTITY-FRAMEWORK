@@ -2,13 +2,12 @@ package dada.tuda.framework.handling;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
-import dada.tuda.framework.crud.QueueAnnotationParser;
+import dada.tuda.framework.crud.contexts.BindingContext;
 import dada.tuda.framework.crud.contexts.DomainContext;
 import dada.tuda.framework.crud.contexts.ExchangeContext;
 import dada.tuda.framework.crud.contexts.HandlerContext;
 import dada.tuda.framework.crud.contexts.IEventActionContext;
-import dada.tuda.framework.crud.contexts.QueueAnnotationContext;
-import dada.tuda.framework.crud.contexts.QueueStrategy;
+import dada.tuda.framework.crud.contexts.QueueContext;
 import dada.tuda.framework.crud.extractor.RoutingKeyConverter;
 import dada.tuda.framework.crud.listening.UniversalMessageListener;
 import dada.tuda.framework.handling.conversion.RabbitHandlerArgumentResolverComposite;
@@ -26,7 +25,6 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.annotation.RabbitListenerConfigurer;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerEndpoint;
-import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpoint;
 import org.springframework.amqp.rabbit.listener.RabbitListenerEndpointRegistrar;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
@@ -68,19 +66,12 @@ public class DomainHandlerInitializer implements RabbitListenerConfigurer {
     /**
      * Context providing queue annotations grouped by domain.
      */
-    private final QueueAnnotationContext queueContext;
+    private final QueueContext queueContext;
     /**
      * Context providing exchanges for domains.
      */
     private final ExchangeContext exchangeContext;
-    /**
-     * Rabbit administrator used to declare queues and bindings.
-     */
-    private final RabbitAdmin rabbitAdmin;
-    /**
-     * Strategy for naming queue.
-     */
-    private final QueueStrategy queueStrategy;
+
     /**
      * Converter from domain and action to routing key.
      */
@@ -90,10 +81,6 @@ public class DomainHandlerInitializer implements RabbitListenerConfigurer {
      */
     private final InternalMessageHandler internalMessageHandler;
 
-    /**
-     * Parser for queue annotations.
-     */
-    private final QueueAnnotationParser queueAnnotationParser;
     /**
      * Jackson object mapper for message deserialization.
      */
@@ -106,6 +93,7 @@ public class DomainHandlerInitializer implements RabbitListenerConfigurer {
      * Flag indicating whether to decompose routing key into domain and action when not provided.
      */
     private final boolean decompose;
+    private final BindingContext bindingContext;
     private MessageListenerAdapter adapter;
 
     @Override
@@ -114,7 +102,6 @@ public class DomainHandlerInitializer implements RabbitListenerConfigurer {
             String exchangeName = iMessagingDomain.getExchangeName();
             TopicExchange exchange = ExchangeBuilder.topicExchange(exchangeName).durable(true).build();
             exchangeContext.registerExchange(exchange);
-            rabbitAdmin.declareExchange(exchange);
         }
         afterSingletonsInstantiated();
         endpoints.stream().distinct().forEach(registrar::registerEndpoint);
@@ -189,7 +176,7 @@ public class DomainHandlerInitializer implements RabbitListenerConfigurer {
                 log.warn("No exchange found for domain: {}", domain.getName());
                 return;
             }
-            var queueAnnotation = queueContext.getQueueByDomain(domain);
+            var rabbitQueue = queueContext.getQueueByDomain(domain);
 
 
             for (Method classMethod : beanClass.getDeclaredMethods()) {
@@ -206,7 +193,7 @@ public class DomainHandlerInitializer implements RabbitListenerConfigurer {
                 log.warn("No actions with handlers found for domain: {}", domain.getName());
                 return;
             }
-            Queue rabbitQueue = initQueue(queueAnnotation, domain);
+
             initActions(withHandler, domain, rabbitQueue, exchange);
             initEndpoint(domain, rabbitQueue);
         } catch (Exception e) {
@@ -251,29 +238,13 @@ public class DomainHandlerInitializer implements RabbitListenerConfigurer {
         }
     }
 
-    private Queue initQueue(org.springframework.amqp.rabbit.annotation.Queue queueAnnotation, IMessagingDomain domain) {
-        Queue rabbitQueue = null;
-        try {
-            rabbitQueue = queueAnnotationParser.parseQueue(queueAnnotation);
-            log.debug("Declared queue: {}", rabbitQueue.getName());
-        } catch (Exception e) {
-            log.debug("Failed to parse or declare queue for annotation: {} due to {}", queueAnnotation, e.getMessage());
-        }
-        if (rabbitQueue == null) {
-            rabbitQueue = new Queue(queueStrategy.createQueueNameForDomain(domain), true);
-        }
-        rabbitAdmin.declareQueue(rabbitQueue);
-
-        log.debug("Registered {} queue for domain: {}", rabbitQueue.getName(), domain.getName());
-        return rabbitQueue;
-    }
 
     private void initActions(Collection<IEventAction> actions, IMessagingDomain domain, Queue rabbitQueue, TopicExchange exchange) {
         for (var action : actions) {
             try {
                 var routing = routingKeyConverter.toRoutingKey(domain, action);
                 Binding binding = BindingBuilder.bind(rabbitQueue).to(exchange).with(routing);
-                rabbitAdmin.declareBinding(binding);
+                bindingContext.registerBinding(binding);
                 log.debug("Declared binding for queue {} with routing key {}", rabbitQueue.getName(), routing);
             } catch (Exception e) {
                 log.warn("Failed to bind queue {} with action {}", rabbitQueue.getName(), action, e);
