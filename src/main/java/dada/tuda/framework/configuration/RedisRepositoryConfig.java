@@ -98,7 +98,6 @@ public class RedisRepositoryConfig {
     @Primary
     @ConditionalOnBean(RedisConnectionFactory.class)
     @ConditionalOnClass(RedisOperations.class)
-    //@ConditionalOnProperty(name = "dada.tuda.framework.messaging.saga.enabled", havingValue = "true")
     public MessageStorage eventStorager(MessageRepository repo, RedisMapper mapper) {
         return new RedisCachingIdempotencyProvider(repo, mapper);
     }

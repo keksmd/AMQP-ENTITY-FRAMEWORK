@@ -31,7 +31,6 @@ public class CancelableMessageHandlerAdapter extends MessageListenerAdapter impl
         Object result = invokeListenerMethod(delegateMethod.getName(), listenerArguments, null);
         IEventAction action = eventActionContext.getByName(message.getActionTypeName());
         if (result != null && action != null && action.isQuery()) {
-            //handleResult(new InvocationResult(result, new LiteralExpression(rawMessage.getMessageProperties().getReplyTo()),result.getClass(), rawMessage.getMessageProperties().getTargetBean(), rawMessage.getMessageProperties().getTargetMethod()), rawMessage, channel);
             return result;
         } else {
             logger.trace("No result object given - no result to handle");

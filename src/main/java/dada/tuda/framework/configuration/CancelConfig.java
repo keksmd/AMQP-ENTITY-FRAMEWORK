@@ -9,10 +9,6 @@ import org.springframework.context.annotation.Configuration;
 
 @AutoConfiguration(after = RabbitAutoConfiguration.class)
 public class CancelConfig {
-    //@Bean
-    //public CancelPayload cancelPayload() {
-    //  return new CancelPayload();
-    //}
 
     @Configuration
     @EnableMessagingRepositories(basePackages = "dada.tuda.framework.repositories.cancel")
