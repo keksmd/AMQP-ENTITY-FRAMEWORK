@@ -1,67 +1,19 @@
-This starter is all you need to start declarative DDD with distributed transactions(Saga is implemented) out of the
-box (
-between services using this framework or adapters)
-Now we support only RabbitMQ, but we have a plan to promote Kafka support
+# amqp-entity-starter
 
-Configuration enables automatically while you have
-org.springframework.amqp.rabbit.connection.ConnectionFactory bean
+Spring Boot starter for RabbitMQ entity and saga-style workflows with Redis-backed coordination.
 
-org.springframework.data.redis.connection.RedisConnectionFactory also enables caching
+## What it does
+- Reduces boilerplate for AMQP-driven domain workflows.
+- Supports structured messaging around entities and workflow state.
+- Targets production-style integration patterns rather than toy examples.
 
-Design PET domain
+## Stack
+Java, Spring Boot, RabbitMQ, Redis, Testcontainers.
 
-``` java
-@Data
-@MessagingEntity(domain = PetMessagePayload.PET_DOMAIN,queues = "pet-queue")
-public class PetMessagePayload {
-    public static final String PET_DOMAIN = "pet";
-    String id;
-    String name;
-    String description;
-    String type;
-    String status;
-}
-```
+## Why it matters
+This is the kind of starter that shows you can package infrastructure concerns into reusable product-grade code.
 
-Use JPA-like repository to send messages, you need only to extend MessagingEntityRepository interface
-and add `@EnableMessagingRepositories(basePackages = "your.package.with.repositories")` to your configuration class
-
-``` java
-public interface PetMessageRepository  extends MessagingEntittyRepository<PetMessagePayload> {
-}
-```
-
-Use handler by Domain and ActionType for handling Event and cancel it (in Saga pipeline)
-
-``` java
-
-@DomainHandlers(domain = "example")
-public class PetHandler {
-    @Autowired
-    private  PetLocalService petLocalService;
-
-    @ActionHandler(action = "created", cancelMethod = "cancelCreate")
-    public void  handleCreate(PetDto petDto) {
-        petLocalService.create(petDto);
-    }
-
-    @ActionHandler(PetDto petDto)
-    public void handleDelete(PetDto petToRemove) {
-         petLocalService.delete(petDto);
-    }
-
-    public void cancelCreate(NormalMessage message, PetDto petToRemove) {
-       log.info("deleting pet due to {}",message.getO) 
-       petLocalService.deleteIfExists(petDto.getId());
-    }
-
-    @ActionHandler(action = "requested")
-    public Object handleQuery(NormalMessage message) {
-        return petLocalService.getById(petDto);
-    }
-}
-
-```
-
-More details and examples you can find in the [Demo-Project](https://github.com/keksmd/AMQP-ENTITTY-FRAMEWORK-DEMO)
-
+## Future work
+- Better docs
+- More examples
+- Kafka variant
